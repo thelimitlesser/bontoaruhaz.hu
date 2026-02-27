@@ -1,0 +1,76 @@
+Wrote alfa-romeo Special
+Wrote daewoo Special
+Wrote dodge Special
+Wrote isuzu Special
+Wrote jaguar Special
+Wrote lancia Special
+Wrote land-rover Special
+Wrote lexus Special
+Wrote mercedes Special
+Wrote rover Special
+Wrote saab Special
+Downloaded SI for audi
+Cleaned audi.svg
+Downloaded SI for bmw
+Cleaned bmw.svg
+Downloaded SI for chevrolet
+Cleaned chevrolet.svg
+Downloaded SI for citroen
+Cleaned citroen.svg
+Downloaded SI for dacia
+Cleaned dacia.svg
+Downloaded SI for fiat
+Cleaned fiat.svg
+Downloaded SI for ford
+Cleaned ford.svg
+Downloaded SI for honda
+Cleaned honda.svg
+Downloaded SI for hyundai
+Cleaned hyundai.svg
+Downloaded SI for infiniti
+Cleaned infiniti.svg
+Downloaded SI for iveco
+Cleaned iveco.svg
+Downloaded SI for jeep
+Cleaned jeep.svg
+Downloaded SI for kia
+Cleaned kia.svg
+Downloaded SI for lada
+Cleaned lada.svg
+Downloaded SI for mazda
+Cleaned mazda.svg
+Downloaded SI for mini
+Cleaned mini.svg
+Downloaded SI for mitsubishi
+Cleaned mitsubishi.svg
+Downloaded SI for nissan
+Cleaned nissan.svg
+Downloaded SI for opel
+Cleaned opel.svg
+Downloaded SI for peugeot
+Cleaned peugeot.svg
+Downloaded SI for porsche
+Cleaned porsche.svg
+Downloaded SI for renault
+Cleaned renault.svg
+Downloaded SI for scania
+Cleaned scania.svg
+Downloaded SI for seat
+Cleaned seat.svg
+Downloaded SI for skoda
+Cleaned skoda.svg
+Downloaded SI for smart
+Cleaned smart.svg
+Downloaded SI for subaru
+Cleaned subaru.svg
+Downloaded SI for suzuki
+Cleaned suzuki.svg
+Downloaded SI for tesla
+Cleaned tesla.svg
+Downloaded SI for toyota
+Cleaned toyota.svg
+Downloaded SI for volvo
+Cleaned volvo.svg
+Downloaded SI for volkswagen
+Cleaned volkswagen.svg
+Fixer process completed.

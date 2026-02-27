@@ -1,0 +1,153 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String?
+  role      String   @default("CUSTOMER") // ENUM: CUSTOMER, MECHANIC, PARTNER, ADMIN
+  
+  // B2B / Mechanic Fields
+  taxId     String?  // Adószám
+  companyName String?
+  isVerified String @default("FALSE") // ENUM: FALSE, PENDING, TRUE
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vehicles  UserVehicle[]
+  orders    Order[]
+  partnerProfile PartnerProfile?
+}
+
+model PartnerProfile {
+  id          String @id @default(uuid())
+  userId      String @unique
+  user        User   @relation(fields: [userId], references: [id])
+  
+  businessName String
+  rating      Float  @default(0)
+  returnPolicy String?
+  
+  parts       Part[]
+}
+
+model UserVehicle {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  
+  vin       String?
+  make      String   // VW
+  model     String   // Golf VII
+  year      Int
+  engineCode String? // CXXB
+  
+  nickname  String?  // "Apu kocsija"
+}
+
+model Part {
+  id          String   @id @default(uuid())
+  
+  sku         String   // Shop internal SKU
+  name        String
+  description String?
+  
+  // Categories
+  categoryId    String?
+  subcategoryId String?
+  
+  // Pricing
+  priceNet    Int      // Nettó ár (Mechanic view)
+  priceGross  Int      // Bruttó ár (Customer view)
+  currency    String   @default("HUF")
+  vatRate     Int      @default(27)
+
+  // Technical
+  oemNumbers  String // Comma separated string for SQLite compatibility
+  condition   String @default("USED") // ENUM: NEW, USED, REFURBISHED
+  
+  // TecDoc Integration
+  tecdocKTypes String // Comma separated string for SQLite compatibility
+  
+  // Seller
+  partnerId   String
+  partner     PartnerProfile @relation(fields: [partnerId], references: [id])
+  
+  // Vehicle Details
+  brandId       String?
+  modelId       String?
+  partItemId    String?
+  yearFrom      Int?
+  yearTo        Int?
+
+  images      String // Comma separated string for SQLite compatibility
+  stock       Int      @default(1)
+  
+  createdAt   DateTime @default(now())
+
+  orderItems  OrderItem[]
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String?     // Guest checkout possible
+  user        User?       @relation(fields: [userId], references: [id])
+  
+  status      String @default("PENDING") // ENUM: PENDING, PAID, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED
+  totalAmount Int
+  
+  items       OrderItem[]
+  
+  shippingAddress String // JSON stringified
+  billingAddress  String // JSON stringified
+
+  createdAt   DateTime @default(now())
+}
+
+model OrderItem {
+  id        String @id @default(uuid())
+  orderId   String
+  order     Order  @relation(fields: [orderId], references: [id])
+  
+  partId    String
+  part      Part   @relation(fields: [partId], references: [id])
+  
+  quantity  Int
+  priceAtTime Int
+}
+
+model DonorVehicle {
+  id        String   @id @default(uuid())
+  vin       String   @unique
+  make      String
+  model     String
+  year      Int
+  engineCode String?
+  mileage   Int?     // Kilometers
+  colorCode String? 
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model StorageLocation {
+  id        String   @id @default(uuid())
+  name      String   // "A1-03-02" (Aisle 1, Bay 3, Shelf 2)
+  description String?
+}
+
+
+model SearchLog {
+  id        String   @id @default(uuid())
+  query     String   @unique
+  count     Int      @default(1)
+  lastSearchedAt DateTime @default(now())
+}
