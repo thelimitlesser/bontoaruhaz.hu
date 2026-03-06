@@ -12340,3 +12340,58 @@ ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMI
 AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
 prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
  GET /admin/users 200 in 3.3s (compile: 144ms, render: 3.1s)
+ GET / 200 in 207ms (compile: 38ms, render: 169ms)
+ GET /grid.svg 404 in 90ms (compile: 20ms, render: 70ms)
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+ensureUserExists: No user found in Supabase session
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+ensureUserExists: No user found in Supabase session
+AdminLayout: No user found from ensureUserExists, redirecting to login
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+ensureUserExists: No user found in Supabase session
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+ensureUserExists: No user found in Supabase session
+AdminLayout: No user found from ensureUserExists, redirecting to login
+ GET /login 200 in 2.2s (compile: 1896ms, render: 323ms)
+ GET /login 200 in 96ms (compile: 15ms, render: 81ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
+ GET /admin/users 307 in 6.5s (compile: 21ms, render: 6.5s)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
+ GET /admin/users 307 in 3.6s (compile: 17ms, render: 3.6s)
+ GET / 200 in 528ms (compile: 17ms, render: 511ms)
+ GET /grid.svg 404 in 70ms (compile: 24ms, render: 46ms)
+ GET / 200 in 309ms (compile: 34ms, render: 275ms)
+ GET /grid.svg 404 in 118ms (compile: 16ms, render: 102ms)
+prisma:query SELECT "public"."Part"."id", "public"."Part"."sku", "public"."Part"."name", "public"."Part"."description", "public"."Part"."categoryId", "public"."Part"."subcategoryId", "public"."Part"."priceNet", "public"."Part"."priceGross", "public"."Part"."currency", "public"."Part"."vatRate", "public"."Part"."oemNumbers", "public"."Part"."condition", "public"."Part"."tecdocKTypes", "public"."Part"."partnerId", "public"."Part"."brandId", "public"."Part"."modelId", "public"."Part"."partItemId", "public"."Part"."yearFrom", "public"."Part"."yearTo", "public"."Part"."images", "public"."Part"."stock", "public"."Part"."createdAt", "public"."Part"."isUniversal", "public"."Part"."productCode" FROM "public"."Part" WHERE ("public"."Part"."name" ILIKE $1 OR "public"."Part"."sku" ILIKE $2 OR "public"."Part"."oemNumbers" ILIKE $3) ORDER BY "public"."Part"."createdAt" DESC LIMIT $4 OFFSET $5
+ POST / 200 in 5.1s (compile: 2.3s, render: 2.9s)
+ POST /api/ai-search 200 in 17.1s (compile: 3.0s, render: 14.1s)
+ GET /brand/audi?query=f&ai_powered=true 200 in 1997ms (compile: 1959ms, render: 37ms)
+ GET /login 200 in 523ms (compile: 369ms, render: 154ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 481ms (compile: 369ms, render: 112ms)
+ GET /login 200 in 108ms (compile: 17ms, render: 91ms)
+ GET /login 200 in 836ms (compile: 455ms, render: 381ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 843ms (compile: 586ms, render: 257ms)
+ GET /login 200 in 233ms (compile: 77ms, render: 156ms)
+ GET /login 200 in 173ms (compile: 41ms, render: 131ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 181ms (compile: 98ms, render: 83ms)
+ GET /login 200 in 75ms (compile: 15ms, render: 60ms)

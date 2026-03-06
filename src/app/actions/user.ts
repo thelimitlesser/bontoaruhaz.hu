@@ -167,3 +167,16 @@ export async function deleteVehicle(id: string) {
     revalidatePath('/profile');
     return { success: true };
 }
+
+export async function getUserRoleById(userId: string) {
+    try {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { role: true }
+        });
+        return user?.role || 'CUSTOMER';
+    } catch (e) {
+        console.error("Error fetching user role", e);
+        return 'CUSTOMER';
+    }
+}

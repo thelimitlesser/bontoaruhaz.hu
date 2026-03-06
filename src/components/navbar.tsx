@@ -8,7 +8,7 @@ import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/context/cart-context";
 import { createClient } from "@/lib/supabase/client";
-import { ensureUserExists } from "@/app/actions/user";
+import { getUserRoleById } from "@/app/actions/user";
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -26,21 +26,30 @@ export function Navbar() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 try {
-                    const dbUser = await ensureUserExists();
-                    if (dbUser) {
-                        user.role = dbUser.role;
-                    }
+                    const dbRole = await getUserRoleById(user.id);
+                    setUser({ ...user, role: dbRole });
                 } catch (e) {
                     console.error("Failed to fetch user role", e);
+                    setUser(user);
                 }
+            } else {
+                setUser(user);
             }
-            setUser(user);
             setLoading(false);
         };
         getUser();
 
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            setUser(session?.user ?? null);
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session?.user) {
+                try {
+                    const dbRole = await getUserRoleById(session.user.id);
+                    setUser({ ...session.user, role: dbRole });
+                } catch (e) {
+                    setUser(session.user);
+                }
+            } else {
+                setUser(null);
+            }
         });
 
         return () => subscription.unsubscribe();
