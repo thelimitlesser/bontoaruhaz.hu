@@ -167,16 +167,38 @@ export async function deleteVehicle(id: string) {
     revalidatePath('/profile');
     return { success: true };
 }
-
-export async function getUserRoleById(userId: string) {
+export async function syncAndGetUserRole() {
     try {
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
+        const supabase = await createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return null;
+
+        let dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
             select: { role: true }
         });
-        return user?.role || 'CUSTOMER';
+
+        if (!dbUser) {
+            const adminEmails = process.env.ADMIN_EMAILS ?
+                process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
+                ['petierdelyi2005@gmail.com', 'admin@autonexus.com'];
+
+            const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
+
+            await prisma.user.create({
+                data: {
+                    id: user.id,
+                    email: user.email!,
+                    fullName: user.user_metadata?.full_name || user.user_metadata?.display_name || 'Új Vásárló',
+                    role: isAdminEmail ? 'ADMIN' : 'CUSTOMER'
+                }
+            });
+            return isAdminEmail ? 'ADMIN' : 'CUSTOMER';
+        }
+
+        return dbUser.role;
     } catch (e) {
-        console.error("Error fetching user role", e);
+        console.error("Error in syncAndGetUserRole", e);
         return 'CUSTOMER';
     }
 }

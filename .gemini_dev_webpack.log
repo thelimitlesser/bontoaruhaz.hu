@@ -12395,3 +12395,140 @@ prisma:query SELECT "public"."Part"."id", "public"."Part"."sku", "public"."Part"
  GET /login 200 in 173ms (compile: 41ms, render: 131ms)
  GET /brand/audi?query=f&ai_powered=true 200 in 181ms (compile: 98ms, render: 83ms)
  GET /login 200 in 75ms (compile: 15ms, render: 60ms)
+ GET / 200 in 1357ms (compile: 1072ms, render: 285ms)
+ GET /grid.svg 404 in 945ms (compile: 819ms, render: 126ms)
+ GET /login 200 in 705ms (compile: 22ms, render: 683ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 731ms (compile: 130ms, render: 601ms)
+ GET /login 200 in 49ms (compile: 12ms, render: 37ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST / 200 in 3.6s (compile: 51ms, render: 3.6s)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ POST /login 200 in 85ms (compile: 8ms, render: 77ms)
+ POST /login 200 in 82ms (compile: 4ms, render: 78ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ POST /login 200 in 48ms (compile: 7ms, render: 42ms)
+ POST /login 200 in 47ms (compile: 4ms, render: 43ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ POST /login 200 in 72ms (compile: 3ms, render: 69ms)
+ POST /login 200 in 73ms (compile: 2ms, render: 71ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ POST /login 200 in 58ms (compile: 12ms, render: 47ms)
+ POST /login 200 in 59ms (compile: 11ms, render: 48ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 351ms (compile: 16ms, render: 335ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 42ms (compile: 3ms, render: 40ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 40ms (compile: 4ms, render: 36ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 43ms (compile: 1868µs, render: 41ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 40ms (compile: 1914µs, render: 38ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 39ms (compile: 1574µs, render: 37ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 41ms (compile: 1428µs, render: 40ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 41ms (compile: 2ms, render: 39ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 49ms (compile: 1747µs, render: 47ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 38ms (compile: 1684µs, render: 36ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 40ms (compile: 3ms, render: 36ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 41ms (compile: 5ms, render: 36ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 43ms (compile: 5ms, render: 39ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 44ms (compile: 5ms, render: 39ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 42ms (compile: 2ms, render: 40ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 37ms (compile: 1818µs, render: 36ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 44ms (compile: 3ms, render: 42ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 47ms (compile: 7ms, render: 40ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ POST /login 200 in 83ms (compile: 8ms, render: 75ms)
+ POST /login 200 in 86ms (compile: 8ms, render: 79ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 39ms (compile: 1564µs, render: 38ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ POST /login 200 in 41ms (compile: 2ms, render: 38ms)
+ POST /login 200 in 40ms (compile: 1601µs, render: 39ms)
+ GET / 200 in 70ms (compile: 1662µs, render: 69ms)
+ GET /grid.svg 404 in 48ms (compile: 10ms, render: 38ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 57ms (compile: 12ms, render: 45ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 62ms (compile: 23ms, render: 40ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 49ms (compile: 6ms, render: 42ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /brand/audi?query=f&ai_powered=true 200 in 44ms (compile: 8ms, render: 36ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST / 200 in 303ms (compile: 6ms, render: 296ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST / 200 in 38ms (compile: 2ms, render: 36ms)
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."Part"."id" FROM "public"."Part" WHERE 1=1 OFFSET $1) AS "sub"
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1) AS "sub"
+prisma:query SELECT "public"."Order"."id", "public"."Order"."totalAmount" FROM "public"."Order" WHERE ("public"."Order"."paymentStatus" = $1 AND "public"."Order"."createdAt" >= $2 AND "public"."Order"."createdAt" <= $3) OFFSET $4
+prisma:query SELECT COUNT(*) FROM (SELECT "public"."Order"."id" FROM "public"."Order" WHERE "public"."Order"."status" NOT IN ($1,$2,$3,$4) OFFSET $5) AS "sub"
+prisma:query SELECT "public"."SearchLog"."id", "public"."SearchLog"."query", "public"."SearchLog"."count", "public"."SearchLog"."lastSearchedAt" FROM "public"."SearchLog" WHERE 1=1 ORDER BY "public"."SearchLog"."count" DESC LIMIT $1 OFFSET $2
+prisma:query SELECT "public"."OrderItem"."id", "public"."OrderItem"."orderId", "public"."OrderItem"."partId", "public"."OrderItem"."quantity", "public"."OrderItem"."priceAtTime" FROM "public"."OrderItem" WHERE 1=1 ORDER BY "public"."OrderItem"."id" ASC LIMIT $1 OFFSET $2
+ensureUserExists: User found in Supabase: petierdelyi2005@gmail.com
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMIN
+AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
+ GET /admin 200 in 3.5s (compile: 36ms, render: 3.4s)
+ensureUserExists: User found in Supabase: petierdelyi2005@gmail.com
+prisma:query SELECT 1
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMIN
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
+ GET /admin/users 200 in 389ms (compile: 36ms, render: 353ms)
+⚠ ./src/components/navbar.tsx
+Attempted import error: 'getUserRoleById' is not exported from '@/app/actions/user' (imported as 'getUserRoleById').
+
+Import trace for requested module:
+./src/components/navbar.tsx
+
+./src/components/navbar.tsx
+Attempted import error: 'getUserRoleById' is not exported from '@/app/actions/user' (imported as 'getUserRoleById').
+
+Import trace for requested module:
+./src/components/navbar.tsx
+
+./src/components/navbar.tsx
+Attempted import error: 'getUserRoleById' is not exported from '@/app/actions/user' (imported as 'getUserRoleById').
+
+Import trace for requested module:
+./src/components/navbar.tsx
+
+./src/components/navbar.tsx
+Attempted import error: 'getUserRoleById' is not exported from '@/app/actions/user' (imported as 'getUserRoleById').
+
+Import trace for requested module:
+./src/components/navbar.tsx
+ensureUserExists: User found in Supabase: petierdelyi2005@gmail.com
+ensureUserExists: User found in Supabase: petierdelyi2005@gmail.com
+ GET /login 200 in 344ms (compile: 97ms, render: 247ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 338ms (compile: 142ms, render: 196ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMIN
+ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMIN
+AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
+ GET /admin/users 200 in 3.6s (compile: 188ms, render: 3.4s)
+ensureUserExists: User found in Supabase: petierdelyi2005@gmail.com
+ensureUserExists: User found in Supabase: petierdelyi2005@gmail.com
+ GET /login 200 in 779ms (compile: 175ms, render: 604ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 790ms (compile: 341ms, render: 449ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMIN
+ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMIN
+AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
+ GET /admin/users 200 in 1150ms (compile: 463ms, render: 688ms)

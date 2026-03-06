@@ -8,7 +8,7 @@ import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/context/cart-context";
 import { createClient } from "@/lib/supabase/client";
-import { getUserRoleById } from "@/app/actions/user";
+import { syncAndGetUserRole } from "@/app/actions/user";
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -26,7 +26,7 @@ export function Navbar() {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
                 try {
-                    const dbRole = await getUserRoleById(user.id);
+                    const dbRole = await syncAndGetUserRole();
                     setUser({ ...user, role: dbRole });
                 } catch (e) {
                     console.error("Failed to fetch user role", e);
@@ -42,7 +42,7 @@ export function Navbar() {
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             if (session?.user) {
                 try {
-                    const dbRole = await getUserRoleById(session.user.id);
+                    const dbRole = await syncAndGetUserRole();
                     setUser({ ...session.user, role: dbRole });
                 } catch (e) {
                     setUser(session.user);
@@ -273,6 +273,20 @@ export function Navbar() {
                                     <span className="font-bold">{link.label}</span>
                                 </Link>
                             ))}
+
+                            {(user?.app_metadata?.role === 'admin' || user?.role === 'ADMIN') && (
+                                <Link
+                                    href="/admin"
+                                    className={clsx("flex items-center gap-4 px-4 py-4 rounded-2xl text-lg font-bold transition-all duration-200 relative group mt-4 border border-red-500/20 text-red-500 hover:bg-red-500/10",
+                                        pathname.startsWith('/admin') ? "bg-red-500/10 shadow-sm" : "")}
+                                    onClick={() => setIsOpen(false)}
+                                >
+                                    <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-red-500/10 text-red-500 group-hover:bg-red-500 group-hover:text-white transition-all duration-300">
+                                        <ShieldCheck className="w-5 h-5" />
+                                    </div>
+                                    <span className="font-bold">Admin Panel</span>
+                                </Link>
+                            )}
                         </div>
 
                     </motion.div>
