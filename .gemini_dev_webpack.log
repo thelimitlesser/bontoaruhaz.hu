@@ -12622,3 +12622,289 @@ prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."Use
 AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
 prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
  GET /admin/users 200 in 2.8s (compile: 143ms, render: 2.7s)
+ GET / 200 in 431ms (compile: 92ms, render: 339ms)
+○ Compiling /_not-found ...
+ GET /grid.svg 404 in 6.0s (compile: 5.8s, render: 210ms)
+⨯ TypeError: Cannot read properties of undefined (reading 'apply')
+    at ignore-listed frames {
+  digest: '686168111'
+}
+⨯ Error: aborted
+    at ignore-listed frames {
+  code: 'ECONNRESET',
+  digest: '2830014120'
+}
+ POST /admin/users 500 in 1161ms (compile: 309ms, render: 851ms)
+⨯ Error: aborted
+    at ignore-listed frames {
+  code: 'ECONNRESET',
+  digest: '2830014120'
+}
+ GET /login 200 in 1656ms (compile: 57ms, render: 1599ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 1678ms (compile: 467ms, render: 1212ms)
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+Error in ensureUserExists: Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:117:19)
+    at async AdminLayout (src/app/(admin)/layout.tsx:11:20)
+  115 |
+  116 |         if (authError) {
+> 117 |             throw new Error(`Supabase Auth Error: ${authError.message}`);
+      |                   ^
+  118 |         }
+  119 |         if (!user) {
+  120 |             return null; // Normal "not logged in" state
+Error in ensureUserExists: Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:117:19)
+    at async UsersPage (src/app/(admin)/admin/users/page.tsx:13:5)
+  115 |
+  116 |         if (authError) {
+> 117 |             throw new Error(`Supabase Auth Error: ${authError.message}`);
+      |                   ^
+  118 |         }
+  119 |         if (!user) {
+  120 |             return null; // Normal "not logged in" state
+⨯ Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:149:15)
+    at async AdminLayout (src/app/(admin)/layout.tsx:11:20)
+  147 |     } catch (error: any) {
+  148 |         console.error("Error in ensureUserExists:", error);
+> 149 |         throw new Error(error.message || String(error));
+      |               ^
+  150 |     }
+  151 | }
+  152 | {
+  digest: '2355147408'
+}
+⨯ Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:149:15)
+    at async UsersPage (src/app/(admin)/admin/users/page.tsx:13:5)
+  147 |     } catch (error: any) {
+  148 |         console.error("Error in ensureUserExists:", error);
+> 149 |         throw new Error(error.message || String(error));
+      |               ^
+  150 |     }
+  151 | }
+  152 | {
+  digest: '1038248577'
+}
+ GET /admin/users 500 in 4.0s (compile: 686ms, render: 3.3s)
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+Error in ensureUserExists: Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:117:19)
+    at async AdminLayout (src/app/(admin)/layout.tsx:11:20)
+  115 |
+  116 |         if (authError) {
+> 117 |             throw new Error(`Supabase Auth Error: ${authError.message}`);
+      |                   ^
+  118 |         }
+  119 |         if (!user) {
+  120 |             return null; // Normal "not logged in" state
+Error in ensureUserExists: Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:117:19)
+    at async UsersPage (src/app/(admin)/admin/users/page.tsx:13:5)
+  115 |
+  116 |         if (authError) {
+> 117 |             throw new Error(`Supabase Auth Error: ${authError.message}`);
+      |                   ^
+  118 |         }
+  119 |         if (!user) {
+  120 |             return null; // Normal "not logged in" state
+⨯ Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:149:15)
+    at async AdminLayout (src/app/(admin)/layout.tsx:11:20)
+  147 |     } catch (error: any) {
+  148 |         console.error("Error in ensureUserExists:", error);
+> 149 |         throw new Error(error.message || String(error));
+      |               ^
+  150 |     }
+  151 | }
+  152 | {
+  digest: '2720920767'
+}
+⨯ Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:149:15)
+    at async UsersPage (src/app/(admin)/admin/users/page.tsx:13:5)
+  147 |     } catch (error: any) {
+  148 |         console.error("Error in ensureUserExists:", error);
+> 149 |         throw new Error(error.message || String(error));
+      |               ^
+  150 |     }
+  151 | }
+  152 | {
+  digest: '627646382'
+}
+ GET / 200 in 9.1s (compile: 474ms, render: 8.6s)
+ GET /login 200 in 8.5s (compile: 2.7s, render: 5.9s)
+ GET /brand/audi?query=f&ai_powered=true 200 in 8.6s (compile: 7.6s, render: 901ms)
+ GET /admin/users 500 in 8.7s (compile: 3.8s, render: 5.0s)
+○ Compiling /_not-found ...
+ GET / 200 in 1390ms (compile: 139ms, render: 1251ms)
+ GET /login 200 in 1327ms (compile: 435ms, render: 892ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 1370ms (compile: 749ms, render: 621ms)
+⚠ Fast Refresh had to perform a full reload due to a runtime error.
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+Error in ensureUserExists: Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:117:19)
+    at async AdminLayout (src/app/(admin)/layout.tsx:11:20)
+  115 |
+  116 |         if (authError) {
+> 117 |             throw new Error(`Supabase Auth Error: ${authError.message}`);
+      |                   ^
+  118 |         }
+  119 |         if (!user) {
+  120 |             return null; // Normal "not logged in" state
+Error in ensureUserExists: Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:117:19)
+    at async UsersPage (src/app/(admin)/admin/users/page.tsx:13:5)
+  115 |
+  116 |         if (authError) {
+> 117 |             throw new Error(`Supabase Auth Error: ${authError.message}`);
+      |                   ^
+  118 |         }
+  119 |         if (!user) {
+  120 |             return null; // Normal "not logged in" state
+⨯ Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:149:15)
+    at async AdminLayout (src/app/(admin)/layout.tsx:11:20)
+  147 |     } catch (error: any) {
+  148 |         console.error("Error in ensureUserExists:", error);
+> 149 |         throw new Error(error.message || String(error));
+      |               ^
+  150 |     }
+  151 | }
+  152 | {
+  digest: '2720920767'
+}
+⨯ Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:149:15)
+    at async UsersPage (src/app/(admin)/admin/users/page.tsx:13:5)
+  147 |     } catch (error: any) {
+  148 |         console.error("Error in ensureUserExists:", error);
+> 149 |         throw new Error(error.message || String(error));
+      |               ^
+  150 |     }
+  151 | }
+  152 | {
+  digest: '627646382'
+}
+ GET /grid.svg 404 in 9.6s (compile: 9.5s, render: 100ms)
+ GET /admin/users 500 in 3.5s (compile: 2.8s, render: 744ms)
+ GET /login 200 in 1007ms (compile: 238ms, render: 770ms)
+ GET / 200 in 982ms (compile: 443ms, render: 538ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 1003ms (compile: 853ms, render: 150ms)
+ GET /grid.svg 404 in 105ms (compile: 30ms, render: 75ms)
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+ensureUserExists: Supabase auth error: Error [AuthSessionMissingError]: Auth session missing!
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 400,
+  code: undefined
+}
+Error in ensureUserExists: Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:117:19)
+    at async AdminLayout (src/app/(admin)/layout.tsx:11:20)
+  115 |
+  116 |         if (authError) {
+> 117 |             throw new Error(`Supabase Auth Error: ${authError.message}`);
+      |                   ^
+  118 |         }
+  119 |         if (!user) {
+  120 |             return null; // Normal "not logged in" state
+Error in ensureUserExists: Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:117:19)
+    at async UsersPage (src/app/(admin)/admin/users/page.tsx:13:5)
+  115 |
+  116 |         if (authError) {
+> 117 |             throw new Error(`Supabase Auth Error: ${authError.message}`);
+      |                   ^
+  118 |         }
+  119 |         if (!user) {
+  120 |             return null; // Normal "not logged in" state
+⨯ Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:149:15)
+    at async AdminLayout (src/app/(admin)/layout.tsx:11:20)
+  147 |     } catch (error: any) {
+  148 |         console.error("Error in ensureUserExists:", error);
+> 149 |         throw new Error(error.message || String(error));
+      |               ^
+  150 |     }
+  151 | }
+  152 | {
+  digest: '2720920767'
+}
+⨯ Error: Supabase Auth Error: Auth session missing!
+    at ensureUserExists (src/app/actions/user.ts:149:15)
+    at async UsersPage (src/app/(admin)/admin/users/page.tsx:13:5)
+  147 |     } catch (error: any) {
+  148 |         console.error("Error in ensureUserExists:", error);
+> 149 |         throw new Error(error.message || String(error));
+      |               ^
+  150 |     }
+  151 | }
+  152 | {
+  digest: '627646382'
+}
+ GET /login 200 in 646ms (compile: 226ms, render: 421ms)
+ GET / 200 in 657ms (compile: 124ms, render: 533ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 647ms (compile: 554ms, render: 93ms)
+ GET /admin/users 500 in 685ms (compile: 283ms, render: 401ms)
+ GET /grid.svg 404 in 203ms (compile: 53ms, render: 150ms)
+ GET /login 200 in 462ms (compile: 23ms, render: 439ms)
+ GET / 200 in 469ms (compile: 55ms, render: 415ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 481ms (compile: 316ms, render: 165ms)
+ GET /grid.svg 404 in 110ms (compile: 23ms, render: 87ms)
+ GET / 200 in 1645ms (compile: 266ms, render: 1379ms)
+ GET /grid.svg 404 in 221ms (compile: 26ms, render: 195ms)
+ GET / 200 in 634ms (compile: 62ms, render: 572ms)
+ GET /grid.svg 404 in 185ms (compile: 17ms, render: 168ms)
+ GET /login 200 in 160ms (compile: 40ms, render: 119ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 6.2s (compile: 11ms, render: 6.2s)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST /login 200 in 129ms (compile: 4ms, render: 125ms)
+ GET / 200 in 122ms (compile: 7ms, render: 114ms)
+ GET /grid.svg 404 in 117ms (compile: 20ms, render: 97ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST / 200 in 145ms (compile: 3ms, render: 142ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."role" FROM "public"."User" WHERE ("public"."User"."id" = $1 AND 1=1) LIMIT $2 OFFSET $3
+ POST / 200 in 125ms (compile: 5ms, render: 120ms)
+ GET / 200 in 214ms (compile: 164ms, render: 49ms)
+ GET /grid.svg 404 in 302ms (compile: 34ms, render: 268ms)
