@@ -4,8 +4,12 @@ import { Navbar } from "@/components/navbar";
 import { User, Package, Settings, Car, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { ensureUserExists } from "@/app/actions/user";
+import { cookies } from "next/headers";
 
 export default async function ProfilePage() {
+    const cookieStore = await cookies();
+    const cookieNames = cookieStore.getAll().map(c => c.name).join(', ');
+
     let dbUser;
     let errorMsg = null;
 
@@ -18,9 +22,13 @@ export default async function ProfilePage() {
     if (!dbUser) {
         // If it's a Prisma connection error, we render it
         return (
-            <div className="min-h-screen pt-40 text-center font-bold text-red-500">
-                <h2>Server Error Loading Profile</h2>
-                <p>{errorMsg || "ensureUserExists returned null (Auth cookie missing or Prisma failed silently)"}</p>
+            <div className="min-h-screen pt-40 text-center font-bold px-4">
+                <h2 className="text-red-500 text-2xl">Server Error Loading Profile</h2>
+                <p className="text-red-400 mt-2">{errorMsg || "ensureUserExists returned null."}</p>
+                <div className="mt-8 text-left bg-gray-100 p-4 rounded-xl overflow-x-auto text-black text-sm">
+                    <strong>Server Received Cookies:</strong> <br />
+                    {cookieNames || "NO COOKIES RECEIVED!"}
+                </div>
             </div>
         );
     }
