@@ -92,7 +92,7 @@ export const brands: Brand[] = [
     { id: "infiniti", name: "Infiniti", slug: "infiniti", logo: "/brands/infiniti.svg?v=12" },
     { id: "isuzu", name: "Isuzu", slug: "isuzu", logo: "/brands/isuzu.svg?v=12" },
     { id: "iveco", name: "Iveco", slug: "iveco", logo: "/brands/iveco_new.png" },
-    { id: "jaguar", name: "Jaguar", slug: "jaguar", logo: "/brands/jaguar.svg?v=16", scale: "scale-150" },
+    { id: "jaguar", name: "Jaguar", slug: "jaguar", logo: "/brands/jaguar.svg?v=17", scale: "scale-150 translate-y-1" },
     { id: "jeep", name: "Jeep", slug: "jeep", logo: "/brands/jeep.svg?v=12" },
     { id: "kia", name: "Kia", slug: "kia", logo: "/brands/kia.svg?v=12" },
     { id: "lada", name: "Lada", slug: "lada", logo: "/brands/lada.svg?v=12" },
