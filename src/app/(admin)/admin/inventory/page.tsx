@@ -1,10 +1,10 @@
-export const dynamic ="force-dynamic";
-import { Plus } from"lucide-react";
-import Link from"next/link";
-import { prisma } from"@/lib/prisma";
-import { InventoryFilters } from"./inventory-filters";
-import { brands, getModelsByBrand } from"@/lib/vehicle-data";
-import { InventoryTable } from"./inventory-table";
+export const dynamic = "force-dynamic";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { InventoryFilters } from "./inventory-filters";
+import { brands, getModelsByBrand } from "@/lib/vehicle-data";
+import { InventoryTable } from "./inventory-table";
 
 export default async function InventoryPage({
     searchParams,
@@ -12,9 +12,9 @@ export default async function InventoryPage({
     searchParams: Promise<{ q?: string; make?: string; model?: string; page?: string }>
 }) {
     const params = await searchParams;
-    const query = params.q ||"";
-    const make = params.make ||"";
-    const model = params.model ||"";
+    const query = params.q || "";
+    const make = params.make || "";
+    const model = params.model || "";
 
     // 1. Build Filter inputs
     const where: any = {};
@@ -22,9 +22,10 @@ export default async function InventoryPage({
     // Text Search
     if (query) {
         where.OR = [
-            { name: { contains: query, mode:'insensitive' } },
-            { sku: { contains: query, mode:'insensitive' } },
-            { oemNumbers: { contains: query, mode:'insensitive' } },
+            { name: { contains: query, mode: 'insensitive' } },
+            { sku: { contains: query, mode: 'insensitive' } },
+            { productCode: { contains: query, mode: 'insensitive' } },
+            { oemNumbers: { contains: query, mode: 'insensitive' } },
         ];
     }
 
@@ -51,7 +52,7 @@ export default async function InventoryPage({
     const parts = await prisma.part.findMany({
         where,
         take: 50,
-        orderBy: { createdAt:'desc' },
+        orderBy: { createdAt: 'desc' },
         include: {
             compatibilities: true
         }
@@ -66,7 +67,7 @@ export default async function InventoryPage({
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">Készlet & Raktár</h1>
                     <p className="text-gray-500">
-                        {totalParts} alkatrész a rendszerben. Keresés cikkszám, név vagy OEM alapján.
+                        {totalParts} alkatrész a rendszerben. Keresés cikkszám, név, hivatkozási szám vagy OEM alapján.
                     </p>
                 </div>
                 <div className="flex gap-3">

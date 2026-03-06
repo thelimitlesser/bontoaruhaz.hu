@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect } from"react";
-import { createProduct, updateProduct } from"@/app/actions/product";
-import { Save, Upload, X as CloseIcon, Image as ImageIcon, Plus, Trash2 } from"lucide-react";
-import { categories, partsSubcategories as subcategories, brands, getModelsByBrand, partItems } from"@/lib/vehicle-data";
-import { SearchableSelect } from"@/components/ui/searchable-select";
+import { useState, useEffect } from "react";
+import { createProduct, updateProduct } from "@/app/actions/product";
+import { Save, Upload, X as CloseIcon, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
+import { categories, partsSubcategories as subcategories, brands, getModelsByBrand, partItems } from "@/lib/vehicle-data";
+import { SearchableSelect } from "@/components/ui/searchable-select";
 
 interface ProductFormProps {
     initialData?: any;
@@ -12,8 +12,8 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
-    const [selectedBrand, setSelectedBrand] = useState(initialData?.brandId ||"");
-    const [selectedModel, setSelectedModel] = useState(initialData?.modelId ||"");
+    const [selectedBrand, setSelectedBrand] = useState(initialData?.brandId || "");
+    const [selectedModel, setSelectedModel] = useState(initialData?.modelId || "");
 
     // Universal Switch
     const [isUniversal, setIsUniversal] = useState(initialData?.isUniversal || false);
@@ -43,7 +43,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
 
 
     // Unified selector state
-    const [selectedPartItem, setSelectedPartItem] = useState(initialData?.partItemId ||"");
+    const [selectedPartItem, setSelectedPartItem] = useState(initialData?.partItemId || "");
 
     // Derived parent categories from selectedPartItem
     const selectedPartItemObj = partItems.find(p => p.id === selectedPartItem);
@@ -58,12 +58,12 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
     const addAvailableModels = addBrand ? getModelsByBrand(addBrand) : [];
 
     const brandOptions = brands.map(b => ({ value: b.id, label: b.name }));
-    const modelOptions = availableModels.map(m => ({ value: m.id, label: m.years ?`${m.name} (${m.years})` : m.name }));
-    const addModelOptions = addAvailableModels.map(m => ({ value: m.id, label: m.years ?`${m.name} (${m.years})` : m.name }));
+    const modelOptions = availableModels.map(m => ({ value: m.id, label: m.years ? `${m.name} (${m.years})` : m.name }));
+    const addModelOptions = addAvailableModels.map(m => ({ value: m.id, label: m.years ? `${m.name} (${m.years})` : m.name }));
 
     // Sort all part items alphabetically for the unified dropdown
     const allPartItemOptions = [...partItems]
-        .sort((a, b) => a.name.localeCompare(b.name,'hu'))
+        .sort((a, b) => a.name.localeCompare(b.name, 'hu'))
         .map(p => ({ value: p.id, label: p.name }));
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,7 +120,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
             }
             if (onSuccess) onSuccess();
         } catch (error: any) {
-            alert(error.message ||"Hiba történt a mentés során!");
+            alert(error.message || "Hiba történt a mentés során!");
         }
     };
 
@@ -131,15 +131,15 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
             <input type="hidden" name="compatibilitiesData" value={JSON.stringify(compatibilities)} />
 
             {/* Jármű szekció összetett (Univerzális + Donor + Extrák) */}
-            <div className={`bg-white border rounded-xl p-6 space-y-6 transition-all ${isUniversal ?'border-orange-500 shadow-md shadow-orange-500/10' :'border-gray-200 shadow-sm'}`}>
+            <div className={`bg-white border rounded-xl p-6 space-y-6 transition-all ${isUniversal ? 'border-orange-500 shadow-md shadow-orange-500/10' : 'border-gray-200 shadow-sm'}`}>
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-4 gap-4">
                     <h2 className="text-xl font-bold text-gray-900">Jármű Kompatibilitás</h2>
 
                     <label className="flex items-center gap-3 cursor-pointer group bg-orange-50 px-4 py-2 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors">
                         <div className="relative">
                             <input type="checkbox" className="sr-only" checked={isUniversal} onChange={(e) => setIsUniversal(e.target.checked)} />
-                            <div className={`block w-10 h-6 rounded-full transition-colors ${isUniversal ?'bg-[var(--color-primary)]' :'bg-gray-300'}`}></div>
-                            <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isUniversal ?'transform translate-x-4' :''}`}></div>
+                            <div className={`block w-10 h-6 rounded-full transition-colors ${isUniversal ? 'bg-[var(--color-primary)]' : 'bg-gray-300'}`}></div>
+                            <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isUniversal ? 'transform translate-x-4' : ''}`}></div>
                         </div>
                         <span className="text-sm font-bold text-orange-900">Univerzális alkatrész (Minden autóhoz)</span>
                     </label>
@@ -177,12 +177,12 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Évjárat (mettől)</label>
-                                    <input name="yearFrom" type="number" defaultValue={initialData?.yearFrom ||""} placeholder="pl. 2012" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                                    <input name="yearFrom" type="number" defaultValue={initialData?.yearFrom || ""} placeholder="pl. 2012" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Évjárat (meddig)</label>
-                                    <input name="yearTo" type="number" defaultValue={initialData?.yearTo ||""} placeholder="pl. 2020" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                                    <input name="yearTo" type="number" defaultValue={initialData?.yearTo || ""} placeholder="pl. 2020" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                                 </div>
                             </div>
                         </div>
@@ -202,7 +202,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                                                     <span className="font-bold text-gray-900">{bName} {mName}</span>
                                                     {(comp.yearFrom || comp.yearTo) && (
                                                         <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-mono">
-                                                            {comp.yearFrom ||'...'} - {comp.yearTo ||'...'}
+                                                            {comp.yearFrom || '...'} - {comp.yearTo || '...'}
                                                         </span>
                                                     )}
                                                 </div>
@@ -269,7 +269,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Megnevezés *</label>
-                        <input name="name" type="text" required defaultValue={initialData?.name ||""} placeholder="pl. Volkswagen Golf VII Generátor" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                        <input name="name" type="text" required defaultValue={initialData?.name || ""} placeholder="pl. Volkswagen Golf VII Generátor" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                     </div>
 
                     <div className="w-full">
@@ -322,14 +322,14 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Cikkszám (Hivatalos OEM) *</label>
-                        <input name="sku" type="text" required defaultValue={initialData?.sku ||""} placeholder="pl. 5G1941005" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
+                        <input name="sku" type="text" required defaultValue={initialData?.sku || ""} placeholder="pl. 5G1941005" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
                         <p className="text-xs text-gray-500 mt-1">Hivatalos gyári azonosító kód, vásárlói kereséshez.</p>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Termékszám (Belső azonosító) *</label>
-                        <input name="productCode" type="text" required defaultValue={initialData?.productCode ||""} placeholder="pl. BONT-LOK-001" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
-                        <p className="text-xs text-gray-500 mt-1">Az Ön saját belső raktári azonosítója.</p>
+                        <label className="text-sm font-medium text-gray-700">Hivatkozási szám *</label>
+                        <input name="productCode" type="text" required defaultValue={initialData?.productCode || ""} placeholder="pl. BONT-LOK-001" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
+                        <p className="text-xs text-gray-500 mt-1">Az Ön saját belső raktári azonosítója (pl. BONT-LOK-001).</p>
                     </div>
                 </div>
 
@@ -337,7 +337,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                     <label className="text-sm font-medium text-gray-700">Leírás</label>
                     <textarea
                         name="description" rows={4}
-                        defaultValue={initialData?.description ||""}
+                        defaultValue={initialData?.description || ""}
                         placeholder="Részletes leírás az alkatrészről..." spellCheck={true}
                         autoComplete="off" autoCorrect="off" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" ></textarea>
                 </div>
@@ -345,7 +345,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">Gyári számok (OEM számok)</label>
                     <input
-                        name="oemNumbers" type="text" defaultValue={initialData?.oemNumbers ||""}
+                        name="oemNumbers" type="text" defaultValue={initialData?.oemNumbers || ""}
                         placeholder="pl. 5G1941005, 5G1941006 (vesszővel elválasztva)" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
                     <p className="text-xs text-gray-500 mt-1">Vesszővel elválasztva adja meg a gyári azonosítókat a pontosabb kereshetőség érdekében.</p>
                 </div>
@@ -358,13 +358,13 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Bruttó Ár (HUF) *</label>
-                        <input name="priceGross" type="number" required defaultValue={initialData?.priceGross ||""} placeholder="0" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                        <input name="priceGross" type="number" required defaultValue={initialData?.priceGross || ""} placeholder="0" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                         <p className="text-xs text-gray-500">A nettó ár automatikusan számolódik (27% ÁFA).</p>
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Állapot</label>
-                        <select name="condition" defaultValue={initialData?.condition ||"USED"} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors">
+                        <select name="condition" defaultValue={initialData?.condition || "USED"} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors">
                             <option value="USED">Használt</option>
                             <option value="NEW">Új</option>
                             <option value="REFURBISHED">Felújított</option>
@@ -420,7 +420,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
             <div className="flex justify-end gap-4">
                 <button type="submit" className="bg-[var(--color-primary)] hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-transform active:scale-95 shadow-lg shadow-orange-900/20">
                     <Save className="w-5 h-5" />
-                    {initialData?.id ?"Módosítások Mentése" :"Termék Mentése"}
+                    {initialData?.id ? "Módosítások Mentése" : "Termék Mentése"}
                 </button>
             </div>
         </form>

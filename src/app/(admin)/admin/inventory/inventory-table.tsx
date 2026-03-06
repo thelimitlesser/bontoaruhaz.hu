@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from"react";
-import { Box, Edit2, Trash2, X, AlertTriangle } from"lucide-react";
-import { brands, getModelsByBrand } from"@/lib/vehicle-data";
-import { ProductForm } from"@/components/admin/product-form";
-import { deleteProduct } from"@/app/actions/product";
+import { useState } from "react";
+import { Box, Edit2, Trash2, X, AlertTriangle } from "lucide-react";
+import { brands, getModelsByBrand } from "@/lib/vehicle-data";
+import { ProductForm } from "@/components/admin/product-form";
+import { deleteProduct } from "@/app/actions/product";
 
 interface InventoryTableProps {
     parts: any[];
@@ -74,7 +74,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                             </div>
                                             {part.productCode && (
                                                 <div className="font-mono text-xs text-orange-700 bg-orange-100 inline-block px-2 py-1 rounded border border-orange-200 ml-2">
-                                                    Belső: {part.productCode}
+                                                    Hiv. szám: {part.productCode}
                                                 </div>
                                             )}
                                             {part.oemNumbers && (
@@ -92,7 +92,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                                 <div className="text-sm">
                                                     <div className="font-medium text-gray-900">
                                                         {(brands.find(b => b.id === part.brandId))?.name || part.brandId}{''}
-                                                        {part.modelId ? (getModelsByBrand(part.brandId).find(m => m.id === part.modelId))?.name || part.modelId :''}
+                                                        {part.modelId ? (getModelsByBrand(part.brandId).find(m => m.id === part.modelId))?.name || part.modelId : ''}
                                                     </div>
                                                 </div>
                                             ) : (
@@ -112,9 +112,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="font-bold text-gray-900 text-lg">
-                                                {part.priceGross.toLocaleString()} Ft
-                                            </div>
+                                            <span className="whitespace-nowrap">{part.priceGross.toLocaleString()} Ft</span>
                                             <div className="text-xs text-gray-500">
                                                 Nettó: {part.priceNet.toLocaleString()} Ft
                                             </div>
