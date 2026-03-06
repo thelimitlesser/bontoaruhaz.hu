@@ -8,6 +8,7 @@ import clsx from "clsx";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/context/cart-context";
 import { createClient } from "@/lib/supabase/client";
+import { ensureUserExists } from "@/app/actions/user";
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -23,6 +24,16 @@ export function Navbar() {
     useEffect(() => {
         const getUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
+            if (user) {
+                try {
+                    const dbUser = await ensureUserExists();
+                    if (dbUser) {
+                        user.role = dbUser.role;
+                    }
+                } catch (e) {
+                    console.error("Failed to fetch user role", e);
+                }
+            }
             setUser(user);
             setLoading(false);
         };
