@@ -11439,3 +11439,16 @@ Import trace for requested module:
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat '/Users/erdelyipeter/BONTOARUHAZ/autonexus/.next/dev/cache/webpack/client-development/1.pack.gz'
  GET / 200 in 1048ms (compile: 800ms, render: 248ms)
  GET /grid.svg 404 in 1115ms (compile: 967ms, render: 148ms)
+ GET / 200 in 374ms (compile: 110ms, render: 264ms)
+⚠ Server is approaching the used memory threshold, restarting...
+▲ Next.js 16.1.6 (webpack)
+- Local:         http://localhost:3000
+- Network:       http://192.168.1.46:3000
+- Environments: .env.local, .env
+
+✓ Starting...
+✓ Ready in 2.4s
+○ Compiling / ...
+ GET / 200 in 7.1s (compile: 6.9s, render: 237ms)
+ GET /grid.svg 404 in 1633ms (compile: 1398ms, render: 235ms)
+ GET / 200 in 297ms (compile: 254ms, render: 43ms)
