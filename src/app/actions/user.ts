@@ -110,6 +110,7 @@ export async function ensureUserExists() {
     }
     try {
         const supabase = await createClient();
+        await supabase.auth.getSession(); // Force token refresh/cookie parsing
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError) {
@@ -166,8 +167,13 @@ export async function deleteVehicle(id: string) {
 export async function syncAndGetUserRole() {
     try {
         const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return null;
+        await supabase.auth.getSession(); // Force token refresh/cookie parsing
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError || !user) {
+            console.error("syncAndGetUserRole: No user or auth error.", authError);
+            return null;
+        }
 
         let dbUser = await prisma.user.findUnique({
             where: { id: user.id },
