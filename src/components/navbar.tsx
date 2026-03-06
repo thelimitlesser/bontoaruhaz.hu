@@ -187,7 +187,7 @@ export function Navbar() {
                                                 <span className="font-bold text-foreground">Profil adatok</span>
                                             </Link>
 
-                                            {(user.app_metadata?.role === 'admin' || user.role === 'ADMIN' || user.email === 'petierdelyi2005@gmail.com') && (
+                                            {(user.app_metadata?.role === 'admin' || user.role === 'ADMIN') && (
                                                 <Link
                                                     href="/admin" className="flex items-center gap-3 p-4 rounded-xl hover:bg-red-500/5 transition-colors group" onClick={() => setIsProfileOpen(false)}
                                                 >

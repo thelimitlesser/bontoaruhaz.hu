@@ -13,14 +13,14 @@ model User {
   id              String          @id @default(uuid())
   email           String          @unique
   fullName        String?
-  phoneNumber     String?
-  shippingAddress String?
   role            String          @default("CUSTOMER")
   taxId           String?
   companyName     String?
   isVerified      String          @default("FALSE")
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
+  phoneNumber     String?
+  shippingAddress String?
   orders          Order[]
   partnerProfile  PartnerProfile?
   vehicles        UserVehicle[]
@@ -83,12 +83,12 @@ model Order {
   userId          String?
   status          String      @default("PENDING")
   totalAmount     Int
-  paymentMethod   String      @default("CARD") // e.g. "CARD", "COD"
-  shippingMethod  String      @default("DELIVERY") // e.g. "DELIVERY", "PICKUP"
-  paymentStatus   String      @default("PENDING") // e.g. "PENDING", "PAID"
   shippingAddress String
   billingAddress  String
   createdAt       DateTime    @default(now())
+  paymentMethod   String      @default("CARD")
+  paymentStatus   String      @default("PENDING")
+  shippingMethod  String      @default("DELIVERY")
   user            User?       @relation(fields: [userId], references: [id])
   items           OrderItem[]
 }
