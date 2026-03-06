@@ -108,24 +108,22 @@ export async function ensureUserExists() {
     if (authError) {
         console.error("ensureUserExists: Supabase auth error:", authError);
     }
-
-    if (!user) {
-        console.log("ensureUserExists: No user found in Supabase session");
-        return null;
-    }
-
-    console.log("ensureUserExists: User found in Supabase:", user.email);
-
     try {
-        // Check if user already exists in Prisma
+        const supabase = await createClient();
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+        if (authError) {
+            throw new Error(`Supabase Auth Error: ${authError.message}`);
+        }
+        if (!user) {
+            return null; // Normal "not logged in" state
+        }
+
         const existingUser = await prisma.user.findUnique({
             where: { id: user.id }
         });
 
         if (!existingUser) {
-            console.log(`ensureUserExists: Creating new Prisma record for ${user.email}`);
-
-            // Get admin emails from env var
             const adminEmails = process.env.ADMIN_EMAILS ?
                 process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
                 ['petierdelyi2005@gmail.com', 'admin@autonexus.com'];
@@ -141,15 +139,13 @@ export async function ensureUserExists() {
                     role: isAdminEmail ? 'ADMIN' : 'CUSTOMER'
                 }
             });
-            console.log(`ensureUserExists: Created user with role: ${isAdminEmail ? 'ADMIN' : 'CUSTOMER'}`);
             return newUser;
         }
 
-        console.log(`ensureUserExists: Found existing user: ${existingUser.email} with role: ${existingUser.role}`);
         return existingUser;
-    } catch (error) {
+    } catch (error: any) {
         console.error("Error in ensureUserExists:", error);
-        return null;
+        throw new Error(error.message || String(error));
     }
 }
 

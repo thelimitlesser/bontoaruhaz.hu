@@ -7,12 +7,13 @@ import { ensureUserExists } from "@/app/actions/user";
 export default async function UsersPage({
     searchParams
 }: {
-    searchParams: { q?: string }
+    searchParams: Promise<{ q?: string }>
 }) {
     // Proactively sync the current user if they are missing from Prisma
     await ensureUserExists();
 
-    const query = (await (searchParams)).q || "";
+    const resolvedParams = await searchParams;
+    const query = resolvedParams?.q || "";
 
     const users = await prisma.user.findMany({
         where: query ? {
@@ -118,8 +119,8 @@ export default async function UsersPage({
                                         </td>
                                         <td className="px-8 py-5">
                                             <div className={`inline-flex items-center gap-2 px-4 py-1.5 rounded-2xl text-[10px] font-black uppercase tracking-widest border transition-all ${user.role === 'ADMIN' ? 'bg-red-500/10 text-red-600 border-red-500/20 shadow-sm shadow-red-500/5' :
-                                                    user.role === 'PARTNER' ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20' :
-                                                        'bg-gray-100 text-gray-600 border-gray-200'
+                                                user.role === 'PARTNER' ? 'bg-indigo-500/10 text-indigo-600 border-indigo-500/20' :
+                                                    'bg-gray-100 text-gray-600 border-gray-200'
                                                 }`}>
                                                 {user.role === 'ADMIN' && <Shield className="w-3 h-3" />}
                                                 {user.role}

@@ -1,7 +1,7 @@
-export const dynamic ="force-dynamic";
-import { prisma } from"@/lib/prisma";
-import { DollarSign, Package, ShoppingCart, Users, Calendar } from"lucide-react";
-import Link from"next/link";
+export const dynamic = "force-dynamic";
+import { prisma } from "@/lib/prisma";
+import { DollarSign, Package, ShoppingCart, Users, Calendar } from "lucide-react";
+import Link from "next/link";
 
 async function getStats(month?: number, year?: number) {
     const now = new Date();
@@ -20,7 +20,7 @@ async function getStats(month?: number, year?: number) {
     try {
         paidOrders = await (prisma.order as any).findMany({
             where: {
-                paymentStatus:'PAID',
+                paymentStatus: 'PAID',
                 createdAt: {
                     gte: startDate,
                     lte: endDate
@@ -32,7 +32,7 @@ async function getStats(month?: number, year?: number) {
         // Fallback if paymentStatus column doesn't exist yet
         paidOrders = await prisma.order.findMany({
             where: {
-                status:'PAID',
+                status: 'PAID',
                 createdAt: {
                     gte: startDate,
                     lte: endDate
@@ -47,14 +47,14 @@ async function getStats(month?: number, year?: number) {
     const activeOrdersCount = await prisma.order.count({
         where: {
             status: {
-                notIn: ['DELIVERED','CANCELLED','RETURNED','REFUNDED']
+                notIn: ['DELIVERED', 'CANCELLED', 'RETURNED', 'REFUNDED']
             }
         }
     });
 
     // 4. Trending Searches
     const trendingSearches = await prisma.searchLog.findMany({
-        orderBy: { count:'desc' },
+        orderBy: { count: 'desc' },
         take: 5
     });
 
@@ -96,7 +96,7 @@ async function getStats(month?: number, year?: number) {
 export default async function AdminDashboard({
     searchParams
 }: {
-    searchParams: { m?: string; y?: string }
+    searchParams: Promise<{ m?: string; y?: string }>
 }) {
     const sParams = await searchParams;
     const m = sParams.m ? parseInt(sParams.m) : undefined;
@@ -104,7 +104,7 @@ export default async function AdminDashboard({
 
     const stats = await getStats(m, y);
 
-    const monthNames = ["Január","Február","Március","Április","Május","Június","Július","Augusztus","Szeptember","Október","November","December" ];
+    const monthNames = ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"];
 
     return (
         <div className="space-y-8 text-gray-900">
@@ -132,7 +132,7 @@ export default async function AdminDashboard({
                                     key={`${year}-${month}`}
                                     href={`/admin?m=${month}&y=${year}`}
                                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${isActive
-                                        ?'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' :'text-gray-500 hover:bg-gray-100' }`}
+                                        ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' : 'text-gray-500 hover:bg-gray-100'}`}
                                 >
                                     {monthNames[month - 1]}
                                 </Link>
@@ -202,7 +202,7 @@ export default async function AdminDashboard({
                             {stats.topSellers.map((item, i) => (
                                 <div key={i} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${i === 0 ?'bg-yellow-500/20 text-yellow-500' :'bg-gray-100 text-gray-500'}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${i === 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-gray-100 text-gray-500'}`}>
                                             {i + 1}
                                         </div>
                                         <div>

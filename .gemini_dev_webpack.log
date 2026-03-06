@@ -12532,3 +12532,31 @@ ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMI
 AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
 prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
  GET /admin/users 200 in 1150ms (compile: 463ms, render: 688ms)
+ensureUserExists: User found in Supabase: petierdelyi2005@gmail.com
+ensureUserExists: User found in Supabase: petierdelyi2005@gmail.com
+ GET /login 200 in 121ms (compile: 14ms, render: 107ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 146ms (compile: 77ms, render: 70ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMIN
+ensureUserExists: Found existing user: petierdelyi2005@gmail.com with role: ADMIN
+AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
+ GET /admin/users 200 in 3.5s (compile: 40ms, render: 3.5s)
+ GET /login 200 in 195ms (compile: 43ms, render: 151ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 202ms (compile: 154ms, render: 48ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
+ GET /admin/users 200 in 597ms (compile: 80ms, render: 516ms)
+ GET /login 200 in 227ms (compile: 27ms, render: 200ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 232ms (compile: 55ms, render: 177ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
+ GET /admin/users 200 in 668ms (compile: 78ms, render: 590ms)
+ GET /login 200 in 201ms (compile: 41ms, render: 160ms)
+ GET /brand/audi?query=f&ai_powered=true 200 in 214ms (compile: 79ms, render: 136ms)
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE "public"."User"."id" IN ($1,$2) OFFSET $3
+AdminLayout: Found user petierdelyi2005@gmail.com with role ADMIN
+prisma:query SELECT "public"."User"."id", "public"."User"."email", "public"."User"."fullName", "public"."User"."phoneNumber", "public"."User"."shippingAddress", "public"."User"."role", "public"."User"."taxId", "public"."User"."companyName", "public"."User"."isVerified", "public"."User"."createdAt", "public"."User"."updatedAt" FROM "public"."User" WHERE 1=1 ORDER BY "public"."User"."role" ASC, "public"."User"."createdAt" DESC OFFSET $1
+ GET /admin/users 200 in 4.1s (compile: 100ms, render: 4.0s)

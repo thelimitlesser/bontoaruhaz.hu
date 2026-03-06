@@ -1,15 +1,28 @@
-import { prisma } from"@/lib/prisma";
-import { redirect } from"next/navigation";
-import { Navbar } from"@/components/navbar";
-import { User, Package, Settings, Car, ChevronRight } from"lucide-react";
-import Link from"next/link";
-import { ensureUserExists } from"@/app/actions/user";
+import { prisma } from "@/lib/prisma";
+import { redirect } from "next/navigation";
+import { Navbar } from "@/components/navbar";
+import { User, Package, Settings, Car, ChevronRight } from "lucide-react";
+import Link from "next/link";
+import { ensureUserExists } from "@/app/actions/user";
 
 export default async function ProfilePage() {
-    const dbUser = await ensureUserExists();
+    let dbUser;
+    let errorMsg = null;
+
+    try {
+        dbUser = await ensureUserExists();
+    } catch (e: any) {
+        errorMsg = e.message || String(e);
+    }
 
     if (!dbUser) {
-        redirect("/login");
+        // If it's a Prisma connection error, we render it
+        return (
+            <div className="min-h-screen pt-40 text-center font-bold text-red-500">
+                <h2>Server Error Loading Profile</h2>
+                <p>{errorMsg || "ensureUserExists returned null (Auth cookie missing or Prisma failed silently)"}</p>
+            </div>
+        );
     }
 
     // Fetch counts from Prisma
@@ -19,10 +32,10 @@ export default async function ProfilePage() {
     ]);
 
     const menuItems = [
-        { icon: Package, label:"Vásárlásaim", href:"/orders", desc:"Korábbi rendelések és számlák" },
-        { icon: Car, label:"Saját Garázs", href:"/garage", desc:"Mentett járműveid gyors kezelése" },
-        { icon: User, label:"Személyes Adatok", href:"/profile/settings", desc:"Név, telefonszám és címek" },
-        { icon: Settings, label:"Beállítások", href:"/settings", desc:"Értesítések és fiók kezelés" },
+        { icon: Package, label: "Vásárlásaim", href: "/orders", desc: "Korábbi rendelések és számlák" },
+        { icon: Car, label: "Saját Garázs", href: "/garage", desc: "Mentett járműveid gyors kezelése" },
+        { icon: User, label: "Személyes Adatok", href: "/profile/settings", desc: "Név, telefonszám és címek" },
+        { icon: Settings, label: "Beállítások", href: "/settings", desc: "Értesítések és fiók kezelés" },
     ];
 
     return (
