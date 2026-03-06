@@ -19,32 +19,29 @@ export function BrandSelector() {
                             Találd meg a keresett alkatrészt autómárka alapján. Válassz a listából!
                         </p>
                     </div>
-                    <div className="h-px flex-1 bg-border mx-8 hidden md:block" />
-                    <div className="flex items-center gap-2 text-[var(--color-primary)] font-bold text-sm cursor-pointer hover:text-foreground transition-colors">
-                        ÖSSZES MÁRKA <ArrowRight className="w-4 h-4" />
-                    </div>
+                    <div className="h-px flex-1 bg-border ml-8 hidden md:block" />
                 </div>
 
                 {/* Brand Grid */}
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-2 sm:gap-4">
                     {brands.map((brand) => (
                         <Link
                             key={brand.id}
                             href={`/brand/${brand.slug}`}
-                            className="group relative flex flex-col items-center justify-center gap-4 p-6 rounded-2xl bg-foreground/5 border border-foreground/10 hover:border-[var(--color-primary)]/50 hover:bg-foreground/10 transition-all duration-300 hover:-translate-y-1"
-                        >
+                            className="group relative flex flex-col items-center justify-center gap-2 sm:gap-4 p-3 sm:p-6 rounded-xl sm:rounded-2xl bg-foreground/5 border border-foreground/10 hover:border-[var(--color-primary)]/50 hover:bg-foreground/10 transition-all duration-300 hover:-translate-y-1" >
                             {/* Icon / Logo */}
-                            <div className={`w-16 h-16 flex items-center justify-center p-1 transition-all duration-300 group-hover:scale-110 ${brand.scale || ""}`}>
+                            <div className={`w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center p-0.5 sm:p-1 transition-all duration-300 group-hover:scale-110 ${brand.scale || ""}`}>
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src={brand.logo}
                                     alt={brand.name}
-                                    className="w-full h-full object-contain transition-all duration-300 opacity-80 group-hover:opacity-100 filter dark:brightness-0 dark:invert brightness-0"
+                                    className={`w-full h-full object-contain transition-all duration-300 opacity-80 group-hover:opacity-100 ${brand.logo.endsWith('.png')
+                                        ? "mix-blend-multiply" : "filter brightness-0"}`}
                                 />
                             </div>
 
                             {/* Name */}
-                            <span className="text-sm font-bold text-muted group-hover:text-foreground uppercase tracking-wide whitespace-nowrap">
+                            <span className="text-[10px] sm:text-sm font-bold text-muted group-hover:text-foreground uppercase tracking-tight sm:tracking-wide whitespace-nowrap">
                                 {brand.name}
                             </span>
 

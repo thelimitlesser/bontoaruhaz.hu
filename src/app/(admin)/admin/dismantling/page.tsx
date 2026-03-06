@@ -1,10 +1,11 @@
-import { Plus, Car } from "lucide-react";
-import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+export const dynamic ="force-dynamic";
+import { Plus, Car } from"lucide-react";
+import Link from"next/link";
+import { prisma } from"@/lib/prisma";
 
 export default async function DismantlingPage() {
     const vehicles = await prisma.donorVehicle.findMany({
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt:'desc' }
     });
 
     return (
@@ -57,8 +58,8 @@ export default async function DismantlingPage() {
                                     <td className="px-6 py-4 font-mono text-xs text-gray-900">{car.vin}</td>
                                     <td className="px-6 py-4">{car.year}</td>
                                     <td className="px-6 py-4">
-                                        <div>{car.engineCode || '-'}</div>
-                                        <div className="text-xs text-gray-500">{car.colorCode || '-'}</div>
+                                        <div>{car.engineCode ||'-'}</div>
+                                        <div className="text-xs text-gray-500">{car.colorCode ||'-'}</div>
                                     </td>
                                     <td className="px-6 py-4">{car.mileage?.toLocaleString() || 0} km</td>
                                     <td className="px-6 py-4 text-center">

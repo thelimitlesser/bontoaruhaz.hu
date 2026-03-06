@@ -1,13 +1,12 @@
-import { Plus } from "lucide-react";
-import Link from "next/link";
-import { PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+export const dynamic ="force-dynamic";
+import { Plus } from"lucide-react";
+import Link from"next/link";
+import { prisma } from"@/lib/prisma";
 
 export default async function ProductsPage() {
     const parts = await prisma.part.findMany({
         take: 20,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt:'desc' }
     });
 
     return (

@@ -1,6 +1,7 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["fullTextSearch"]
+  binaryTargets   = ["native", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
@@ -9,145 +10,131 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  email     String   @unique
-  fullName  String?
-  role      String   @default("CUSTOMER") // ENUM: CUSTOMER, MECHANIC, PARTNER, ADMIN
-  
-  // B2B / Mechanic Fields
-  taxId     String?  // Adószám
-  companyName String?
-  isVerified String @default("FALSE") // ENUM: FALSE, PENDING, TRUE
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  vehicles  UserVehicle[]
-  orders    Order[]
-  partnerProfile PartnerProfile?
+  id              String          @id @default(uuid())
+  email           String          @unique
+  fullName        String?
+  phoneNumber     String?
+  shippingAddress String?
+  role            String          @default("CUSTOMER")
+  taxId           String?
+  companyName     String?
+  isVerified      String          @default("FALSE")
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  orders          Order[]
+  partnerProfile  PartnerProfile?
+  vehicles        UserVehicle[]
 }
 
 model PartnerProfile {
-  id          String @id @default(uuid())
-  userId      String @unique
-  user        User   @relation(fields: [userId], references: [id])
-  
+  id           String  @id @default(uuid())
+  userId       String  @unique
   businessName String
-  rating      Float  @default(0)
+  rating       Float   @default(0)
   returnPolicy String?
-  
-  parts       Part[]
+  parts        Part[]
+  user         User    @relation(fields: [userId], references: [id])
 }
 
 model UserVehicle {
-  id        String   @id @default(uuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  
-  vin       String?
-  make      String   // VW
-  model     String   // Golf VII
-  year      Int
-  engineCode String? // CXXB
-  
-  nickname  String?  // "Apu kocsija"
+  id         String  @id @default(uuid())
+  userId     String
+  vin        String?
+  make       String
+  model      String
+  year       Int
+  engineCode String?
+  nickname   String?
+  user       User    @relation(fields: [userId], references: [id])
 }
 
 model Part {
-  id          String   @id @default(uuid())
-  
-  sku         String   // Shop internal SKU
-  name        String
-  description String?
-  
-  // Categories
-  categoryId    String?
-  subcategoryId String?
-  
-  // Pricing
-  priceNet    Int      // Nettó ár (Mechanic view)
-  priceGross  Int      // Bruttó ár (Customer view)
-  currency    String   @default("HUF")
-  vatRate     Int      @default(27)
-
-  // Technical
-  oemNumbers  String // Comma separated string for SQLite compatibility
-  condition   String @default("USED") // ENUM: NEW, USED, REFURBISHED
-  
-  // TecDoc Integration
-  tecdocKTypes String // Comma separated string for SQLite compatibility
-  
-  // Seller
-  partnerId   String
-  partner     PartnerProfile @relation(fields: [partnerId], references: [id])
-  
-  // Vehicle Details
-  brandId       String?
-  modelId       String?
-  partItemId    String?
-  yearFrom      Int?
-  yearTo        Int?
-
-  images      String // Comma separated string for SQLite compatibility
-  stock       Int      @default(1)
-  
-  createdAt   DateTime @default(now())
-
-  orderItems  OrderItem[]
+  id              String              @id @default(uuid())
+  sku             String
+  name            String
+  description     String?
+  categoryId      String?
+  subcategoryId   String?
+  priceNet        Int
+  priceGross      Int
+  currency        String              @default("HUF")
+  vatRate         Int                 @default(27)
+  oemNumbers      String
+  condition       String              @default("USED")
+  tecdocKTypes    String
+  partnerId       String
+  brandId         String?
+  modelId         String?
+  partItemId      String?
+  yearFrom        Int?
+  yearTo          Int?
+  images          String
+  stock           Int                 @default(1)
+  createdAt       DateTime            @default(now())
+  isUniversal     Boolean             @default(false)
+  productCode     String?
+  orderItems      OrderItem[]
+  partner         PartnerProfile      @relation(fields: [partnerId], references: [id])
+  compatibilities PartCompatibility[]
 }
 
 model Order {
-  id          String      @id @default(uuid())
-  userId      String?     // Guest checkout possible
-  user        User?       @relation(fields: [userId], references: [id])
-  
-  status      String @default("PENDING") // ENUM: PENDING, PAID, PROCESSING, SHIPPED, DELIVERED, CANCELLED, RETURNED
-  totalAmount Int
-  
-  items       OrderItem[]
-  
-  shippingAddress String // JSON stringified
-  billingAddress  String // JSON stringified
-
-  createdAt   DateTime @default(now())
+  id              String      @id @default(uuid())
+  userId          String?
+  status          String      @default("PENDING")
+  totalAmount     Int
+  paymentMethod   String      @default("CARD") // e.g. "CARD", "COD"
+  shippingMethod  String      @default("DELIVERY") // e.g. "DELIVERY", "PICKUP"
+  paymentStatus   String      @default("PENDING") // e.g. "PENDING", "PAID"
+  shippingAddress String
+  billingAddress  String
+  createdAt       DateTime    @default(now())
+  user            User?       @relation(fields: [userId], references: [id])
+  items           OrderItem[]
 }
 
 model OrderItem {
-  id        String @id @default(uuid())
-  orderId   String
-  order     Order  @relation(fields: [orderId], references: [id])
-  
-  partId    String
-  part      Part   @relation(fields: [partId], references: [id])
-  
-  quantity  Int
+  id          String @id @default(uuid())
+  orderId     String
+  partId      String
+  quantity    Int
   priceAtTime Int
+  order       Order  @relation(fields: [orderId], references: [id])
+  part        Part   @relation(fields: [partId], references: [id])
 }
 
 model DonorVehicle {
-  id        String   @id @default(uuid())
-  vin       String   @unique
-  make      String
-  model     String
-  year      Int
+  id         String   @id @default(uuid())
+  vin        String   @unique
+  make       String
+  model      String
+  year       Int
   engineCode String?
-  mileage   Int?     // Kilometers
-  colorCode String? 
-  
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  mileage    Int?
+  colorCode  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model StorageLocation {
-  id        String   @id @default(uuid())
-  name      String   // "A1-03-02" (Aisle 1, Bay 3, Shelf 2)
+  id          String  @id @default(uuid())
+  name        String
   description String?
 }
 
-
 model SearchLog {
-  id        String   @id @default(uuid())
-  query     String   @unique
-  count     Int      @default(1)
+  id             String   @id @default(uuid())
+  query          String   @unique
+  count          Int      @default(1)
   lastSearchedAt DateTime @default(now())
+}
+
+model PartCompatibility {
+  id       String @id @default(uuid())
+  partId   String
+  brandId  String
+  modelId  String
+  yearFrom Int?
+  yearTo   Int?
+  part     Part   @relation(fields: [partId], references: [id], onDelete: Cascade)
 }

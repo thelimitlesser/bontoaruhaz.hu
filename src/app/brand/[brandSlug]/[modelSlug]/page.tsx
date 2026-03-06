@@ -1,17 +1,27 @@
 "use client";
-
-import { use } from "react";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getBrandBySlug, getModelBySlug, categories } from "@/lib/vehicle-data";
-import { ArrowRight, Search } from "lucide-react";
-import { Navbar } from "@/components/navbar";
+import { useState, useEffect, use } from"react";
+import Link from"next/link";
+import { notFound } from"next/navigation";
+import { getBrandBySlug, getModelBySlug, categories } from"@/lib/vehicle-data";
+import { ArrowRight, Search, PackageSearch } from"lucide-react";
+import { Navbar } from"@/components/navbar";
+import { getCategoryProductCounts } from"@/app/actions/product";
 
 export default function ModelCategoryPage({ params }: { params: Promise<{ brandSlug: string; modelSlug: string }> }) {
     const { brandSlug, modelSlug } = use(params);
+    const [counts, setCounts] = useState<Record<string, number>>({});
+    const [loading, setLoading] = useState(true);
 
     const brand = getBrandBySlug(brandSlug);
     const model = getModelBySlug(modelSlug);
+
+    useEffect(() => {
+        if (brand && model) {
+            getCategoryProductCounts(brand.id, model.id)
+                .then(setCounts)
+                .finally(() => setLoading(false));
+        }
+    }, [brand, model]);
 
     if (!brand || !model) {
         notFound();
@@ -24,20 +34,23 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
             <main className="pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
 
                 {/* Navigation / Breadcrumb */}
-                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400 mb-8 font-medium uppercase tracking-wide">
-                    <Link href="/" className="hover:text-black transition-colors">Kezdőlap</Link>
+                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400 mb-4 font-medium uppercase tracking-wide">
+                    <Link href="/" className="hover:text-black transition-colors">KEZDŐLAP</Link>
                     <span>/</span>
-                    <Link href={`/brand/${brand.slug}`} className="hover:text-black transition-colors">{brand.name}</Link>
+                    <Link href={`/brand/${brand.slug}`} className="hover:text-black transition-colors flex items-center gap-1.5 line-clamp-1">
+                        {brand.name}
+                    </Link>
                     <span>/</span>
                     <span className="text-[var(--color-primary)] font-bold">{model.name}</span>
                 </div>
 
-                {/* Header */}
                 <div className="mb-12">
-                    <h1 className="text-3xl md:text-5xl font-black text-[#1a1a1a] uppercase tracking-tighter mb-2 italic">
-                        <span className="text-[var(--color-primary)]">{brand.name} {model.name}</span> ALKATRÉSZEK
+                    <h1 className="text-3xl md:text-5xl font-black text-[#1a1a1a] uppercase tracking-tighter mb-4 italic leading-none">
+                        <span className="text-[var(--color-primary)]">{brand.name} {model.name}</span>
+                        <br />
+                        ALKATRÉSZEK
                     </h1>
-                    <p className="text-gray-500 text-lg font-medium">
+                    <p className="text-gray-500 text-lg font-medium max-w-2xl">
                         Válaszd ki az alkatrész kategóriát a kereséshez.
                     </p>
                 </div>
@@ -46,19 +59,37 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {categories.map((cat) => {
                         const Icon = cat.icon;
+                        const count = counts[cat.id] || 0;
+                        const hasProducts = count > 0;
+
                         return (
                             <Link
                                 key={cat.id}
                                 href={`/brand/${brand.slug}/${model.slug}/${cat.slug}`}
-                                className="group relative bg-white border border-gray-200 hover:border-[var(--color-primary)] hover:shadow-xl hover:shadow-[var(--color-primary)]/10 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 active:scale-[0.98]"
-                            >
+                                className="group relative bg-white border border-gray-200 hover:border-[var(--color-primary)] hover:shadow-xl hover:shadow-[var(--color-primary)]/10 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 active:scale-[0.98]" >
                                 {/* Icon */}
-                                <Icon className="w-12 h-12 shrink-0 object-contain text-[var(--color-primary)] opacity-80 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" strokeWidth={1.5} />
+                                <Icon className="w-12 h-12 shrink-0 object-contain transition-all duration-300 group-hover:scale-110 text-[var(--color-primary)] opacity-80 group-hover:opacity-100" strokeWidth={1.5} />
 
-                                {/* Name */}
-                                <h3 className="flex-1 font-bold text-gray-900 text-lg leading-tight transition-colors group-hover:text-[var(--color-primary)] break-words min-w-0">
-                                    {cat.name}
-                                </h3>
+                                {/* Name & Count */}
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-bold text-lg leading-tight transition-colors text-gray-900 group-hover:text-[var(--color-primary)] break-words">
+                                        {cat.name.split('/').map((part, i, arr) => (
+                                            <span key={i}>
+                                                {part}
+                                                {i < arr.length - 1 && <>/<wbr /></>}
+                                            </span>
+                                        ))}
+                                    </h3>
+                                    {!loading && hasProducts && (
+                                        <div className="text-[10px] font-black uppercase tracking-widest mt-1 flex items-center gap-1.5 text-[var(--color-primary)]">
+                                            <PackageSearch className="w-3 h-3" />
+                                            {count} db készleten
+                                        </div>
+                                    )}
+                                    {loading && (
+                                        <div className="h-3 w-16 bg-gray-100 animate-pulse rounded mt-1" />
+                                    )}
+                                </div>
 
                                 {/* Subtle Indicator */}
                                 <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
@@ -68,11 +99,9 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
                         );
                     })}
 
-                    {/* "Not found" LAST CARD */}
+                    {/*"Not found" LAST CARD */}
                     <Link
-                        href="/contact"
-                        className="group relative bg-white border border-dashed border-[var(--color-primary)]/40 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 active:scale-[0.98]"
-                    >
+                        href="/#ai-search" className="group relative bg-white border border-dashed border-[var(--color-primary)]/40 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 active:scale-[0.98]" >
                         <Search className="w-12 h-12 shrink-0 text-[var(--color-primary)] opacity-80 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" strokeWidth={2} />
                         <div>
                             <h3 className="font-black text-[var(--color-primary)] text-[14px] leading-tight uppercase">

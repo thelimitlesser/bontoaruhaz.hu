@@ -1,8 +1,8 @@
 'use client';
 
-import { createStorageLocation } from "@/app/actions/inventory";
-import Link from "next/link";
-import { ArrowLeft, Save, Box } from "lucide-react";
+import { createStorageLocation } from"@/app/actions/inventory";
+import Link from"next/link";
+import { ArrowLeft, Save, Box } from"lucide-react";
 
 export default function NewLocationPage() {
     return (

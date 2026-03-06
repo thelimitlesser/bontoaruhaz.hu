@@ -1,220 +1,278 @@
 "use client";
 
-import { useState } from "react";
-import { Search, Car, Disc, Hash, Sparkles } from "lucide-react";
-import Link from "next/link";
-import clsx from "clsx";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useState, useRef, useEffect } from"react";
+import { Search, Sparkles, Disc, Loader2 } from"lucide-react";
+import { useRouter } from"next/navigation";
+import clsx from"clsx";
+import { SearchableSelect } from"@/components/ui/searchable-select";
+import { getSearchProducts } from"@/app/actions/product";
+import Image from"next/image";
+import Link from"next/link";
 
-type SearchMode = "car" | "tire" | "sku" | "ai";
-
-import { brands, models, getModelsByBrand, getAllUniqueSubcategoriesForSearch } from "@/lib/vehicle-data";
+type SearchMode ="ai" |"tire";
 
 export function VehicleSelector() {
-    const [activeTab, setActiveTab] = useState<SearchMode>("car");
-
-    // Car State
-    const [brand, setBrand] = useState("");
-    const [model, setModel] = useState("");
-    const [part, setPart] = useState("");
-
-    // Tire State (Mock)
-    const [width, setWidth] = useState("");
-    const [diameter, setDiameter] = useState("");
-
-    // SKU State
-    const [sku, setSku] = useState("");
+    const router = useRouter();
 
     // AI State
     const [aiQuery, setAiQuery] = useState("");
+    const [isThinking, setIsThinking] = useState(false);
 
-    // Dynamic Options
-    const brandOptions = brands.map(b => ({ value: b.id, label: b.name }));
+    // Typewriter effect state
+    const placeholderTexts = ["Pl.: 5G1 941 005","Pl.: Audi a3 turbó","Pl.: 2015-ös fekete Golf heteshez bal első LED lámpa","Pl.: OPR kód alapján keresek...","Pl.: Generátor VW Passathoz" ];
+    const [placeholderIndex, setPlaceholderIndex] = useState(0);
+    const [currentText, setCurrentText] = useState("");
+    const [isDeleting, setIsDeleting] = useState(false);
 
-    const selectedBrandModels = brand ? getModelsByBrand(brand) : [];
-    const modelOptions = selectedBrandModels.map(m => ({
-        value: m.id,
-        label: m.years ? `${m.name} (${m.years})` : m.name
-    }));
+    useEffect(() => {
+        let timer: NodeJS.Timeout;
+        const currentFullText = placeholderTexts[placeholderIndex];
 
-    // Generate dynamic part options from all detailed subcategories
-    const partOptions = getAllUniqueSubcategoriesForSearch();
+        if (!isDeleting && currentText === currentFullText) {
+            // Pause before deleting
+            timer = setTimeout(() => setIsDeleting(true), 2000);
+        } else if (isDeleting && currentText ==="") {
+            // Move to next text and start typing
+            setIsDeleting(false);
+            setPlaceholderIndex((prev) => (prev + 1) % placeholderTexts.length);
+            // Small pause before typing next
+            timer = setTimeout(() => { }, 300);
+        } else {
+            // Typing or deleting
+            const nextText = isDeleting
+                ? currentFullText.substring(0, currentText.length - 1)
+                : currentFullText.substring(0, currentText.length + 1);
 
-    const widthOptions = [
-        { value: "175", label: "175" }, { value: "185", label: "185" }, { value: "195", label: "195" },
-        { value: "205", label: "205" }, { value: "215", label: "215" }, { value: "225", label: "225" },
-        { value: "235", label: "235" }, { value: "245", label: "245" }, { value: "255", label: "255" }
-    ];
+            const typingSpeed = isDeleting ? 15 : Math.random() * 20 + 30; // Faster typing and deleting
 
-    const diameterOptions = [
-        { value: "r14", label: "R14" }, { value: "r15", label: "R15" }, { value: "r16", label: "R16" },
-        { value: "r17", label: "R17" }, { value: "r18", label: "R18" }, { value: "r19", label: "R19" },
-        { value: "r20", label: "R20" }, { value: "r21", label: "R21" }
-    ];
-
-    const tabs = [
-        { id: "car", label: "Márka / Modell", icon: Car },
-        { id: "tire", label: "Felni / Gumi", icon: Disc },
-        { id: "sku", label: "Cikkszám", icon: Hash },
-        { id: "ai", label: "AI Segéd", icon: Sparkles },
-    ];
-
-    const getSearchUrl = () => {
-        const params = new URLSearchParams();
-        if (activeTab === "car") {
-            if (brand) params.set("brand", brand);
-            if (model) params.set("model", model);
-            if (part) params.set("part", part);
-        } else if (activeTab === "tire") {
-            if (width) params.set("width", width);
-            if (diameter) params.set("diameter", diameter);
-        } else if (activeTab === "sku") {
-            if (sku) params.set("sku", sku);
-        } else if (activeTab === "ai") {
-            if (aiQuery) params.set("ai", aiQuery);
+            timer = setTimeout(() => {
+                setCurrentText(nextText);
+            }, typingSpeed);
         }
-        return `/search?${params.toString()}`;
+
+        return () => clearTimeout(timer);
+    }, [currentText, isDeleting, placeholderIndex]);
+
+    // Autocomplete State
+    const [instantResults, setInstantResults] = useState<any[]>([]);
+    const [isInstantSearching, setIsInstantSearching] = useState(false);
+    const [showDropdown, setShowDropdown] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Click outside to close dropdown
+    useEffect(() => {
+        function handleClickOutside(event: MouseEvent) {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setShowDropdown(false);
+            }
+        }
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    // Debounced Instant Search
+    useEffect(() => {
+        if (aiQuery.trim().length < 3) {
+            setInstantResults([]);
+            setShowDropdown(false);
+            return;
+        }
+
+        const delayDebounceFn = setTimeout(async () => {
+            setIsInstantSearching(true);
+            try {
+                // Request a fast text-based search limited to 4 items
+                const results = await getSearchProducts({
+                    query: aiQuery.trim(),
+                    take: 4
+                });
+                setInstantResults(results);
+                setShowDropdown(results.length > 0);
+            } catch (error) {
+                console.error("Instant search error:", error);
+            } finally {
+                setIsInstantSearching(false);
+            }
+        }, 200); // 200ms debounce
+
+        return () => clearTimeout(delayDebounceFn);
+    }, [aiQuery]);
+
+    const handleSearch = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+
+        // AI Search Path
+        if (!aiQuery.trim()) return;
+
+        setIsThinking(true);
+        try {
+            const res = await fetch("/api/ai-search", {
+                method:"POST",
+                headers: {"Content-Type":"application/json" },
+                body: JSON.stringify({ query: aiQuery })
+            });
+
+            if (!res.ok) throw new Error("API hiba");
+
+            const filters = await res.json();
+
+            // Construct URL parameters
+            const params = new URLSearchParams();
+            if (filters.sku) params.set("query", filters.sku);
+            if (filters.query && !filters.sku) params.set("query", filters.query);
+
+            // Mark that this was an AI search so the results page can show special UI
+            params.set("ai_powered","true");
+
+            // Smart Routing based on AI results
+            if (filters.brand && filters.model && filters.category) {
+                // We have a full path: Brand -> Model -> Category
+                if (filters.subcategory) params.set("subcat", filters.subcategory);
+                if (filters.item) params.set("item", filters.item);
+                router.push(`/brand/${filters.brand}/${filters.model}/${filters.category}?${params.toString()}`);
+            } else if (filters.brand && filters.model) {
+                // We have Brand -> Model
+                router.push(`/brand/${filters.brand}/${filters.model}?${params.toString()}`);
+            } else if (filters.brand) {
+                // We only have Brand
+                router.push(`/brand/${filters.brand}?${params.toString()}`);
+            } else {
+                // Fallback to general search if no brand was identified -> Now we alert the user instead of generic page
+                alert("Nem találtunk pontos autómárkát a keresésben. Kérjük, írjon be egy autómárkát vagy modellt (pl. BMW E90) a pontosabb eredményekért!");
+                setAiQuery(""); // optionally clear
+            }
+
+        } catch (error) {
+            console.error(error);
+            alert("Hiba történt a keresés feldolgozása közben. Kérjük, próbálja újra!");
+        } finally {
+            setIsThinking(false);
+        }
     };
 
     return (
-        <div className="rounded-2xl shadow-2xl relative bg-white border border-gray-200">
+        <div className="w-full max-w-full rounded-2xl shadow-2xl relative bg-white border border-gray-200 transform transition-all hover:shadow-[0_20px_50px_rgba(219,81,60,0.15)] duration-200 overflow-hidden">
 
-            {/* Search Mode Tabs */}
-            <div className="flex border-b border-gray-200 bg-gray-100 overflow-x-auto rounded-t-2xl">
-                {tabs.map((tab, index) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id as SearchMode)}
-                        className={clsx(
-                            "flex-1 flex items-center justify-center gap-2 py-4 px-4 text-sm font-bold transition-all whitespace-nowrap",
-                            index === 0 && "rounded-tl-2xl",
-                            index === tabs.length - 1 && "rounded-tr-2xl",
-                            activeTab === tab.id
-                                ? "text-gray-900 bg-white border-b-2 border-[var(--color-primary)]"
-                                : "text-gray-500 hover:text-gray-900 hover:bg-gray-200"
-                        )}
-                    >
-                        <tab.icon className={clsx("w-4 h-4", activeTab === tab.id ? "text-[var(--color-primary)]" : "text-gray-400")} />
-                        {tab.label}
-                    </button>
-                ))}
-            </div>
+            {/* Glowing top border specifically for AI */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-75 animate-pulse rounded-t-2xl" />
 
-            <div className="p-6">
-
-
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-                    {/* --- CAR SEARCH MODE --- */}
-                    {activeTab === "car" && (
-                        <>
-                            <div className="w-full">
-                                <SearchableSelect
-                                    label="Márka"
-                                    options={brandOptions}
-                                    value={brand}
-                                    onChange={setBrand}
-                                    placeholder="Válassz márkát..."
-                                />
-                            </div>
-
-                            <div className="w-full">
-                                <SearchableSelect
-                                    label="Modell"
-                                    options={modelOptions}
-                                    value={model}
-                                    onChange={setModel}
-                                    placeholder="Válassz modellt..."
-                                    disabled={!brand}
-                                />
-                            </div>
-
-                            <div className="w-full">
-                                <SearchableSelect
-                                    label="Alkatrész Neve"
-                                    options={partOptions}
-                                    value={part}
-                                    onChange={setPart}
-                                    placeholder="Keress pl. Generátor..."
-                                    disabled={!brand || !model}
-                                />
-                            </div>
-                        </>
-                    )}
-
-                    {/* --- TIRE SEARCH MODE --- */}
-                    {activeTab === "tire" && (
-                        <>
-                            <div className="w-full">
-                                <SearchableSelect
-                                    label="Szélesség"
-                                    options={widthOptions}
-                                    value={width}
-                                    onChange={setWidth}
-                                    placeholder="Pl. 205"
-                                />
-                            </div>
-
-                            <div className="w-full">
-                                <SearchableSelect
-                                    label="Átmérő"
-                                    options={diameterOptions}
-                                    value={diameter}
-                                    onChange={setDiameter}
-                                    placeholder="Pl. R16"
-                                />
-                            </div>
-
-                            <div className="relative md:col-span-1 border border-border rounded-xl flex items-center justify-center text-muted text-sm bg-foreground/5 h-[50px] mt-6">
-                                További szűrők...
-                            </div>
-                        </>
-                    )}
-
-                    {/* --- SKU SEARCH MODE --- */}
-                    {activeTab === "sku" && (
-                        <div className="md:col-span-3 relative">
-                            <label className="block text-xs text-muted mb-1 ml-1">Gyári cikkszám vagy utángyártott kód</label>
-                            <input
-                                type="text"
-                                placeholder="Pl. 5G1 941 005"
-                                className="w-full bg-foreground/5 border border-border rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors placeholder-muted h-[50px]"
-                                value={sku}
-                                onChange={(e) => setSku(e.target.value)}
-                            />
-                        </div>
-                    )}
+            <div className="p-4 sm:p-8 bg-white/90 backdrop-blur-sm rounded-2xl">
+                <form onSubmit={handleSearch} className="flex flex-col gap-4 sm:gap-6">
 
                     {/* --- AI SEARCH MODE --- */}
-                    {activeTab === "ai" && (
-                        <div className="md:col-span-3 relative">
-                            <label className="block text-xs text-muted mb-1 ml-1">Írd le saját szavaiddal (AI felismeri)</label>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Pl. 2015-ös fekete Golf heteshez keresek bal első LED lámpát..."
-                                    className="w-full bg-foreground/5 border border-[var(--color-primary)]/50 rounded-xl px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] focus:ring-1 focus:ring-[var(--color-primary)] transition-all placeholder-muted shadow-[0_0_15px_rgba(219,81,60,0.1)] h-[50px]"
-                                    value={aiQuery}
-                                    onChange={(e) => setAiQuery(e.target.value)}
-                                />
-                                <Sparkles className="absolute right-4 top-3.5 w-4 h-4 text-[var(--color-primary)] animate-pulse" />
-                            </div>
-                        </div>
-                    )}
+                    <div className="w-full relative group">
+                        <label className="block text-[11px] sm:text-sm font-bold text-gray-500 mb-2 ml-1 uppercase tracking-wider">
+                            Kérdezd az Intelligens Keresőt:
+                        </label>
 
-                    {/* Search Button (Always Visible) */}
-                    <div className="flex items-end">
-                        <Link href={getSearchUrl()} className="w-full">
+                        <div className="relative flex items-center">
+                            {/* Sparkle icon inside input */}
+                            <div className="absolute left-4 z-20 text-[var(--color-primary)]/80 animate-pulse pointer-events-none">
+                                <Sparkles className="w-5 h-5" />
+                            </div>
+
+                            {/* Dynamic placeholder background layer */}
+                            {!aiQuery && (
+                                <div className="absolute left-11 right-12 z-20 text-gray-400 text-[13px] sm:text-lg pointer-events-none transition-opacity duration-300 flex items-center h-full pt-[1px]">
+                                    <span className="truncate">{currentText}</span>
+                                    <span className="animate-pulse ml-[1px] font-light text-gray-400">|</span>
+                                </div>
+                            )}
+
+                            <input
+                                type="text" className={clsx("w-full bg-white border-2 border-[var(--color-primary)]/30 pl-11 pr-12 sm:pr-16 py-2 sm:py-4 text-[15px] sm:text-lg text-gray-900 focus:outline-none focus:border-[var(--color-primary)] transition-all shadow-inner h-[48px] sm:h-[60px] relative z-10",
+                                    showDropdown
+                                        ?"rounded-t-2xl rounded-b-none border-b-0" :"rounded-2xl focus:ring-4 focus:ring-[var(--color-primary)]/10" )}
+                                value={aiQuery}
+                                onChange={(e) => setAiQuery(e.target.value)}
+                                onFocus={() => { if (instantResults.length > 0) setShowDropdown(true); }}
+                                disabled={isThinking}
+                                autoFocus
+                                autoComplete="off" />
+
+                            {/* Search Button Inside Input */}
                             <button
-                                className="w-full bg-foreground/10 hover:bg-[var(--color-primary)] hover:border-[var(--color-primary)] border border-border text-foreground hover:text-white font-bold py-3 px-6 rounded-xl transition-all flex items-center justify-center gap-2 group h-[50px]"
+                                type="submit" disabled={isThinking || !aiQuery.trim()}
+                                className={clsx("absolute right-2 top-2 bottom-2 z-20 aspect-square rounded-xl flex items-center justify-center transition-all",
+                                    aiQuery.trim() && !isThinking
+                                        ?"bg-[var(--color-primary)] text-white shadow-md hover:scale-105" :"bg-gray-100 text-gray-400" )}
                             >
-                                <Search className="w-4 h-4 group-hover:scale-110 transition-transform" />
-                                Keresés
+                                {isThinking ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Search className="w-5 h-5" />
+                                )}
                             </button>
-                        </Link>
+
+                            {/* Autocomplete Dropdown */}
+                            {showDropdown && (
+                                <div
+                                    ref={dropdownRef}
+                                    className="absolute top-full left-0 w-full mt-0 z-[100] bg-white rounded-b-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-2 border-t-[1px] border-[var(--color-primary)]/30 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[400px] overflow-y-auto" >
+                                    {isInstantSearching ? (
+                                        <div className="p-8 flex flex-col items-center justify-center text-muted-foreground gap-3">
+                                            <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
+                                            <span className="text-sm font-medium tracking-tight uppercase">Keresés a raktárkészletben...</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col">
+                                            <div className="px-4 py-2 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Találatok</span>
+                                                <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest">{instantResults.length} termék</span>
+                                            </div>
+
+                                            {instantResults.map((product) => {
+                                                const imageUrl = product.images ? product.images.split(',')[0] :'https://placehold.co/100x100/1a1a1a/cccccc?text=NX';
+                                                const yearRange = product.yearFrom || product.yearTo
+                                                    ?`${product.yearFrom ||'?'} - ${product.yearTo ||'?'}` : null;
+
+                                                return (
+                                                    <Link
+                                                        key={product.id}
+                                                        href={`/product/${product.id}`}
+                                                        onClick={() => setShowDropdown(false)}
+                                                        className="flex items-center gap-4 p-4 hover:bg-orange-50/50 transition-all group border-b border-gray-50 last:border-0" >
+                                                        <div className="w-12 h-12 bg-white rounded-lg border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-[var(--color-primary)]/30 transition-colors">
+                                                            <img src={imageUrl} alt={product.name} className="w-full h-full object-contain p-1 bg-white" />
+                                                        </div>
+                                                        <div className="flex-grow min-w-0">
+                                                            <div className="text-[13px] font-bold text-gray-900 truncate group-hover:text-[var(--color-primary)] transition-colors">
+                                                                {product.name}
+                                                            </div>
+                                                            <div className="flex items-center gap-2 mt-1">
+                                                                <span className="text-[11px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">
+                                                                    {product.cikkszam || product.id.slice(0, 8)}
+                                                                </span>
+                                                                {yearRange && (
+                                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
+                                                                        <span className="w-1 h-1 rounded-full bg-gray-300" />
+                                                                        {yearRange}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[var(--color-primary)]/10 group-hover:text-[var(--color-primary)] transition-colors shrink-0">
+                                                            <Search className="w-3.5 h-3.5" />
+                                                        </div>
+                                                    </Link>
+                                                )
+                                            })}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                        </div>
+
+
+
+                        {/* Explainer text */}
+                        <p className="text-[10px] sm:text-xs text-center text-gray-400 mt-3 animate-fade-in leading-relaxed px-2">
+                            {isThinking ?"Az AI feldolgozza és kategorizálja a kérésedet..." :"Bármit beírhatsz az autóról vagy alkatrészről, az AI megérti és a megfelelő kategóriába irányít."}
+                        </p>
                     </div>
 
-                </div>
+                </form>
             </div>
         </div>
     );

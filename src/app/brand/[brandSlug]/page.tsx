@@ -1,11 +1,11 @@
 "use client";
 
-import { use, useState, useEffect } from "react";
-import Link from "next/link";
-import { notFound } from "next/navigation";
-import { getBrandBySlug, getModelsByBrand, Model } from "@/lib/vehicle-data";
-import { ArrowLeft, Search, SearchX, Car, ArrowRight } from "lucide-react";
-import { Navbar } from "@/components/navbar";
+import { use, useState, useEffect } from"react";
+import Link from"next/link";
+import { notFound } from"next/navigation";
+import { getBrandBySlug, getModelsByBrand, Model } from"@/lib/vehicle-data";
+import { ArrowLeft, Search, SearchX, Car, ArrowRight } from"lucide-react";
+import { Navbar } from"@/components/navbar";
 
 export default function BrandPage({ params }: { params: Promise<{ brandSlug: string }> }) {
     // Unwrap params using React.use()
@@ -28,17 +28,20 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
             <Navbar />
 
-            <main className="pt-20 pb-20 px-4 md:px-6 max-w-[1500px] mx-auto">
-                {/* Breadcrumbs - Precision Alignment */}
-                <div className="flex items-center gap-1.5 text-[12px] font-black text-gray-400 mb-4 tracking-tight">
-                    <Link href="/" className="hover:text-[var(--color-primary)] transition-colors uppercase">AUTÓ KERESŐ</Link>
-                    <span className="text-gray-300">/</span>
-                    <span className="text-gray-600 uppercase font-black">{brand.name}</span>
+            <main className="pt-32 pb-20 px-4 md:px-6 max-w-[1500px] mx-auto">
+                <div className="flex items-center gap-2 text-sm text-gray-400 mb-6 font-medium uppercase tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+                    <Link href="/" className="hover:text-black transition-colors shrink-0">KEZDŐLAP</Link>
+                    <span className="shrink-0">/</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                        {brand.logo && (
+                            <img src={brand.logo} alt={brand.name} className="w-4 h-4 object-contain opacity-50 grayscale" />
+                        )}
+                        <span className="text-[var(--color-primary)] font-bold">{brand.name}</span>
+                    </div>
                 </div>
 
-                {/* Header - Brandname MODELL in uppercase */}
-                <div className="mb-4 focus-within:outline-none">
-                    <h1 className="text-4xl font-black text-gray-700 uppercase tracking-tighter leading-none">
+                <div className="mb-6 focus-within:outline-none flex items-center gap-4">
+                    <h1 className="text-2xl sm:text-4xl font-black text-gray-700 uppercase tracking-tighter leading-none">
                         {brand.name} MODELL
                     </h1>
                 </div>
@@ -47,15 +50,12 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
                 <div className="flex flex-col md:flex-row gap-0 mb-10 shadow-[0_4px_30px_rgba(0,0,0,0.03)] rounded-2xl overflow-hidden border border-gray-100">
                     <div className="relative flex-grow bg-white">
                         <input
-                            type="text"
-                            placeholder="Modell..."
-                            value={searchTerm}
+                            type="text" placeholder="Keress modell, széria vagy kód (pl. E46) alapján..." value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-transparent py-5 px-8 text-gray-700 focus:outline-none placeholder:text-gray-300 text-lg font-bold"
-                        />
+                            className="w-full bg-transparent py-5 px-8 text-gray-700 focus:outline-none placeholder:text-gray-300 text-lg font-bold" />
                     </div>
-                    <button className="bg-gradient-to-r from-[var(--color-primary)] to-[#f97316] hover:opacity-95 text-white px-12 py-5 font-black flex items-center justify-center gap-3 transition-all min-w-[240px] uppercase tracking-wider text-sm">
-                        <Search className="w-5 h-5 stroke-[4px]" />
+                    <button className="bg-gradient-to-r from-[var(--color-primary)] to-[#f97316] hover:opacity-95 text-white px-8 sm:px-12 py-4 sm:py-5 font-black flex items-center justify-center gap-3 transition-all min-w-full md:min-w-[240px] uppercase tracking-wider text-xs sm:text-sm">
+                        <Search className="w-4 h-4 sm:w-5 sm:h-5 stroke-[4px]" />
                         KERESÉS
                     </button>
                 </div>
@@ -78,12 +78,12 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
                         // High-fidelity distribution: manual 5-column split based on visual height
                         const items = [
                             ...sortedEntries.map(([series, models]) => ({
-                                type: 'series' as const,
+                                type:'series' as const,
                                 title: series,
                                 models,
                                 height: 1 + models.length // 1 for header, models.length for items
                             })),
-                            { type: 'help' as const, height: 4 } // Help box is taller, roughly 4 units
+                            { type:'help' as const, height: 4 } // Help box is taller, roughly 4 units
                         ];
 
                         const totalHeight = items.reduce((sum, item) => sum + item.height, 0);
@@ -110,11 +110,10 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
                         return columnBuckets.map((column, colIdx) => (
                             <div key={`col-${colIdx}`} className="flex-1 flex flex-col gap-3 md:gap-4 w-full">
                                 {column.map((item, itemIdx) => (
-                                    item.type === 'series' ? (
+                                    item.type ==='series' ? (
                                         <div
                                             key={item.title}
-                                            className="bg-white/95 rounded-xl border border-gray-100/50 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] overflow-hidden transition-all hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] group"
-                                        >
+                                            className="bg-white/95 rounded-xl border border-gray-100/50 shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)] overflow-hidden transition-all hover:shadow-[0_8px_24px_-6px_rgba(0,0,0,0.08)] group" >
                                             <div className="px-5 py-2.5 border-b border-gray-50 bg-white group-hover:bg-gray-50/30 transition-colors">
                                                 <h3 className="text-sm font-black text-[var(--color-primary)] uppercase tracking-tight">
                                                     {item.title}
@@ -125,8 +124,7 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
                                                     <Link
                                                         key={model.id}
                                                         href={`/brand/${brand.slug}/${model.slug}`}
-                                                        className="text-[13px] font-bold text-gray-600 hover:text-[var(--color-primary)] transition-colors uppercase tracking-tight py-1 flex items-center gap-2 group/item"
-                                                    >
+                                                        className="text-[13px] font-bold text-gray-600 hover:text-[var(--color-primary)] transition-colors uppercase tracking-tight py-1 flex items-center gap-2 group/item" >
                                                         <div className="w-1 h-1 rounded-full bg-gray-300 group-hover/item:bg-[var(--color-primary)] transition-colors" />
                                                         {model.name}
                                                     </Link>
@@ -135,10 +133,7 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
                                         </div>
                                     ) : (
                                         <Link
-                                            key="help-box"
-                                            href="/contact"
-                                            className="block p-5 bg-white rounded-xl border-2 border-dashed border-gray-100 hover:border-[var(--color-primary)] hover:bg-orange-50/30 transition-all group shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)]"
-                                        >
+                                            key="help-box" href="/#ai-search" className="block p-5 bg-white rounded-xl border-2 border-dashed border-gray-100 hover:border-[var(--color-primary)] hover:bg-orange-50/30 transition-all group shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)]" >
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-lg bg-orange-100/50 flex items-center justify-center text-[var(--color-primary)] group-hover:scale-110 transition-transform">
                                                     <SearchX size={20} />
@@ -158,7 +153,7 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
 
                 {filteredModels.length === 0 && (
                     <div className="mt-8 py-20 text-center text-gray-400 font-black text-xl bg-white border border-dashed border-gray-200 rounded-2xl">
-                        Nincs találat a "{searchTerm}" kifejezésre.
+                        Nincs találat a"{searchTerm}" kifejezésre.
                     </div>
                 )}
 

@@ -1,25 +1,25 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { Navbar } from "@/components/navbar";
-import { ThemeProvider } from "@/components/theme-provider";
+import type { Metadata } from"next";
+import { Geist, Geist_Mono } from"next/font/google";
+import"./globals.css";
+import { Navbar } from"@/components/navbar";
+import { Footer } from"@/components/footer";
 
-import { CartProvider } from "@/context/cart-context";
-import { CartDrawer } from "@/components/cart-drawer";
+import { CartProvider } from"@/context/cart-context";
+import { CartDrawer } from"@/components/cart-drawer";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
+  variable:"--font-geist-sans",
   subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+  variable:"--font-geist-mono",
   subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
-  title: "BONTÓÁRUHÁZ - Prémium Alkatrész Piactér",
-  description: "Találd meg a tökéletes alkatrészt másodpercek alatt.",
+  title:"BONTÓÁRUHÁZ - Prémium Alkatrész Piactér",
+  description:"Találd meg a tökéletes alkatrészt másodpercek alatt.",
 };
 
 export default function RootLayout({
@@ -30,21 +30,17 @@ export default function RootLayout({
   return (
     <html lang="hu" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
         suppressHydrationWarning
       >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          forcedTheme="light"
-          disableTransitionOnChange
-        >
-          <CartProvider>
-            <Navbar />
-            <CartDrawer />
+        <CartProvider>
+          <Navbar />
+          <CartDrawer />
+          <main className="flex-1">
             {children}
-          </CartProvider>
-        </ThemeProvider>
+          </main>
+          <Footer />
+        </CartProvider>
       </body>
     </html>
   );

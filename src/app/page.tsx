@@ -12,27 +12,41 @@ export default function Home() {
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full">
 
         {/* HERO SECTION */}
-        <section className="relative w-full min-h-[85vh] flex items-center justify-center p-8 sm:p-20 mt-20 z-0">
+        <section className="relative w-full min-h-[85vh] flex items-center justify-center p-4 sm:p-20 mt-20 z-0">
           {/* Animated Background */}
           <HeroBackground />
 
-          <div className="relative z-10 w-full max-w-4xl flex flex-col items-center gap-8 text-center">
+          <div className="relative z-10 w-full max-w-4xl flex flex-col items-center gap-4 sm:gap-8 text-center">
 
-            <h1 className="text-5xl sm:text-8xl font-black text-foreground tracking-tighter leading-[0.9] italic uppercase drop-shadow-2xl">
-              A VÉRÜNKBEN VAN<br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-orange-500">A LÓERŐ.</span>
-            </h1>
+            <div id="ai-search" className="scroll-mt-24 relative flex flex-col items-center gap-1 text-center pt-4 pb-2 sm:py-6 px-6 sm:px-4">
+              {/* Subtle black spread for contrast */}
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0)_60%)] blur-sm -z-10 rounded-full w-[100%] h-[100%] left-0 top-0 pointer-events-none"></div>
+
+              <h1 className="text-xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight uppercase italic drop-shadow-lg max-w-[90vw] sm:max-w-none">
+                Megbízható autóalkatrészek<br />
+                Magyarországon
+              </h1>
+              <div className="inline-block mt-0 sm:mt-1">
+                <span className="text-[18px] sm:text-5xl lg:text-6xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-orange-500 uppercase tracking-tight drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] px-2 sm:px-0 whitespace-nowrap">
+                  15 év tapasztalattal
+                </span>
+              </div>
+            </div>
 
             {/* MAIN SEARCH WIDGET */}
-            <div className="w-full text-left transform translate-y-4">
+            <div className="w-full text-left transform translate-y-1 sm:translate-y-4">
               <VehicleSelector />
             </div>
 
-            {/* 14-Day Guarantee Badge */}
-            <div className="flex justify-center mt-6 w-full">
-              <div className="flex items-center gap-2 text-sm font-medium text-white/90 bg-black/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10 hover:bg-black/30 hover:border-white/20 transition-all cursor-default">
-                <svg className="w-4 h-4 text-[var(--color-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                <span>14 nap pénzvisszafizetési garancia</span>
+            {/* 14-Day Guarantee Card */}
+            <div className="flex justify-center mt-8 sm:mt-10 w-full">
+              <div className="group flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white px-4 sm:px-6 py-1.5 rounded-full shadow-[0_4px_15px_-3px_rgba(219,81,60,0.3)] hover:shadow-[0_8px_20px_-3px_rgba(219,81,60,0.4)] transform hover:-translate-y-0.5 transition-all duration-300 cursor-default border border-white/10 overflow-hidden">
+                <svg className="w-3.5 h-3.5 text-white/90 shrink-0" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2L3.5 6.5v4.58c0 5.29 3.63 10.24 8.5 11.42 4.87-1.18 8.5-6.13 8.5-11.42V6.5L12 2zM10 15.5l-3-3 1.41-1.41L10 12.67l4.59-4.59L16 9.5l-6 6z" />
+                </svg>
+                <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider whitespace-nowrap">
+                  14 nap pénzvisszafizetési garancia
+                </span>
               </div>
             </div>
 

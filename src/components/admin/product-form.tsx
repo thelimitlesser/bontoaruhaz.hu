@@ -1,31 +1,70 @@
 "use client";
 
-import { useState } from "react";
-import { createProduct } from "@/app/actions/product";
-import { Save, Upload, X as CloseIcon, Image as ImageIcon } from "lucide-react";
-import { categories, getSubcategoriesByCategory, brands, getModelsByBrand, getPartItemsBySubcategory } from "@/lib/vehicle-data";
-import { SearchableSelect } from "@/components/ui/searchable-select";
+import { useState, useEffect } from"react";
+import { createProduct, updateProduct } from"@/app/actions/product";
+import { Save, Upload, X as CloseIcon, Image as ImageIcon, Plus, Trash2 } from"lucide-react";
+import { categories, partsSubcategories as subcategories, brands, getModelsByBrand, partItems } from"@/lib/vehicle-data";
+import { SearchableSelect } from"@/components/ui/searchable-select";
 
-export function ProductForm() {
-    const [selectedBrand, setSelectedBrand] = useState("");
-    const [selectedModel, setSelectedModel] = useState("");
+interface ProductFormProps {
+    initialData?: any;
+    onSuccess?: () => void;
+}
 
-    const [selectedCategory, setSelectedCategory] = useState("");
-    const [selectedSubcategory, setSelectedSubcategory] = useState("");
-    const [selectedPartItem, setSelectedPartItem] = useState("");
-    const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
-    const availableSubcategories = selectedCategory ? getSubcategoriesByCategory(selectedCategory) : [];
+export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
+    const [selectedBrand, setSelectedBrand] = useState(initialData?.brandId ||"");
+    const [selectedModel, setSelectedModel] = useState(initialData?.modelId ||"");
+
+    // Universal Switch
+    const [isUniversal, setIsUniversal] = useState(initialData?.isUniversal || false);
+
+    // Multi-vehicle compatibility state
+    type CompType = { brandId: string; modelId: string; yearFrom?: string; yearTo?: string };
+    const [compatibilities, setCompatibilities] = useState<CompType[]>(initialData?.compatibilities || []);
+
+    // State for the"Add New" compatibility row
+    const [addBrand, setAddBrand] = useState("");
+    const [addModel, setAddModel] = useState("");
+    const [addYearFrom, setAddYearFrom] = useState("");
+    const [addYearTo, setAddYearTo] = useState("");
+
+    const handleAddComp = () => {
+        if (!addBrand || !addModel) return;
+        setCompatibilities([...compatibilities, { brandId: addBrand, modelId: addModel, yearFrom: addYearFrom, yearTo: addYearTo }]);
+        setAddBrand("");
+        setAddModel("");
+        setAddYearFrom("");
+        setAddYearTo("");
+    };
+
+    const handleRemoveComp = (index: number) => {
+        setCompatibilities(compatibilities.filter((_, i) => i !== index));
+    };
+
+
+    // Unified selector state
+    const [selectedPartItem, setSelectedPartItem] = useState(initialData?.partItemId ||"");
+
+    // Derived parent categories from selectedPartItem
+    const selectedPartItemObj = partItems.find(p => p.id === selectedPartItem);
+    const inferredSubcategory = subcategories.find(s => s.id === selectedPartItemObj?.subcategoryId);
+    const inferredCategory = categories.find(c => c.id === inferredSubcategory?.categoryId);
+
+    const [images, setImages] = useState<{ file?: File; preview: string; isExisting?: boolean }[]>(
+        initialData?.images ? initialData.images.split(',').filter(Boolean).map((url: string) => ({ preview: url, isExisting: true })) : []
+    );
+
     const availableModels = selectedBrand ? getModelsByBrand(selectedBrand) : [];
-
-    // For Level 3: Get items based on subcategory id
-    const currentSubcategoryObj = availableSubcategories.find(s => s.id === selectedSubcategory);
-    const availablePartItems = currentSubcategoryObj ? getPartItemsBySubcategory(currentSubcategoryObj.id) : [];
+    const addAvailableModels = addBrand ? getModelsByBrand(addBrand) : [];
 
     const brandOptions = brands.map(b => ({ value: b.id, label: b.name }));
-    const modelOptions = availableModels.map(m => ({ value: m.id, label: m.years ? `${m.name} (${m.years})` : m.name }));
-    const categoryOptions = categories.map(c => ({ value: c.id, label: c.name }));
-    const subcategoryOptions = availableSubcategories.map(s => ({ value: s.id, label: s.name }));
-    const partItemOptions = availablePartItems.map(p => ({ value: p.id, label: p.name }));
+    const modelOptions = availableModels.map(m => ({ value: m.id, label: m.years ?`${m.name} (${m.years})` : m.name }));
+    const addModelOptions = addAvailableModels.map(m => ({ value: m.id, label: m.years ?`${m.name} (${m.years})` : m.name }));
+
+    // Sort all part items alphabetically for the unified dropdown
+    const allPartItemOptions = [...partItems]
+        .sort((a, b) => a.name.localeCompare(b.name,'hu'))
+        .map(p => ({ value: p.id, label: p.name }));
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -39,7 +78,8 @@ export function ProductForm() {
 
             const newImageData = newFiles.map(file => ({
                 file,
-                preview: URL.createObjectURL(file)
+                preview: URL.createObjectURL(file),
+                isExisting: false
             }));
 
             setImages([...images, ...newImageData]);
@@ -48,47 +88,179 @@ export function ProductForm() {
 
     const removeImage = (index: number) => {
         const newImages = [...images];
-        URL.revokeObjectURL(newImages[index].preview);
+        if (!newImages[index].isExisting) {
+            URL.revokeObjectURL(newImages[index].preview);
+        }
         newImages.splice(index, 1);
         setImages(newImages);
     };
 
+    const handleSubmit = async (formData: FormData) => {
+        // Build existing image string from current state
+        const existingImages = images
+            .filter(img => img.isExisting)
+            .map(img => img.preview)
+            .join(',');
+
+        formData.append('existingImages', existingImages);
+
+        // Manually append all new files from state, overriding the native input
+        formData.delete('imageFiles');
+        images.forEach(img => {
+            if (!img.isExisting && img.file) {
+                formData.append('imageFiles', img.file);
+            }
+        });
+
+        try {
+            if (initialData?.id) {
+                await updateProduct(initialData.id, formData);
+            } else {
+                await createProduct(formData);
+            }
+            if (onSuccess) onSuccess();
+        } catch (error: any) {
+            alert(error.message ||"Hiba történt a mentés során!");
+        }
+    };
+
     return (
-        <form action={createProduct} className="space-y-8 max-w-4xl">
+        <form action={handleSubmit} className="space-y-8 max-w-4xl pb-12">
 
-            {/* Removed Származás & Hely - Replced by Márka & Modell within Alapadatok or its own block */}
-            <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
-                <h2 className="text-xl font-bold border-b border-gray-200 text-gray-900 pb-4">Jármű (Márka & Modell)</h2>
+            <input type="hidden" name="isUniversal" value={isUniversal.toString()} />
+            <input type="hidden" name="compatibilitiesData" value={JSON.stringify(compatibilities)} />
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="w-full">
-                        <SearchableSelect
-                            name="brandId"
-                            label="Márka *"
-                            options={brandOptions}
-                            value={selectedBrand}
-                            onChange={(val) => {
-                                setSelectedBrand(val);
-                                setSelectedModel(""); // Reset model when brand changes
-                            }}
-                            placeholder="Válassz márkát..."
-                            theme="light"
-                        />
-                    </div>
+            {/* Jármű szekció összetett (Univerzális + Donor + Extrák) */}
+            <div className={`bg-white border rounded-xl p-6 space-y-6 transition-all ${isUniversal ?'border-orange-500 shadow-md shadow-orange-500/10' :'border-gray-200 shadow-sm'}`}>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-4 gap-4">
+                    <h2 className="text-xl font-bold text-gray-900">Jármű Kompatibilitás</h2>
 
-                    <div className="w-full">
-                        <SearchableSelect
-                            name="modelId"
-                            label="Modell *"
-                            options={modelOptions}
-                            value={selectedModel}
-                            onChange={setSelectedModel}
-                            placeholder="Válassz modellt..."
-                            disabled={!selectedBrand}
-                            theme="light"
-                        />
-                    </div>
+                    <label className="flex items-center gap-3 cursor-pointer group bg-orange-50 px-4 py-2 rounded-lg border border-orange-200 hover:bg-orange-100 transition-colors">
+                        <div className="relative">
+                            <input type="checkbox" className="sr-only" checked={isUniversal} onChange={(e) => setIsUniversal(e.target.checked)} />
+                            <div className={`block w-10 h-6 rounded-full transition-colors ${isUniversal ?'bg-[var(--color-primary)]' :'bg-gray-300'}`}></div>
+                            <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${isUniversal ?'transform translate-x-4' :''}`}></div>
+                        </div>
+                        <span className="text-sm font-bold text-orange-900">Univerzális alkatrész (Minden autóhoz)</span>
+                    </label>
                 </div>
+
+                {!isUniversal ? (
+                    <>
+                        {/* Donor Autó */}
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-4">
+                            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">Elsődleges Jármű (Donor)</h3>
+
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="w-full">
+                                    <SearchableSelect
+                                        name="brandId" label="Márka *" options={brandOptions}
+                                        value={selectedBrand}
+                                        onChange={(val) => {
+                                            setSelectedBrand(val);
+                                            setSelectedModel(""); // Reset model when brand changes
+                                        }}
+                                        placeholder="Válassz márkát..." theme="light" />
+                                </div>
+
+                                <div className="w-full">
+                                    <SearchableSelect
+                                        name="modelId" label="Modell *" options={modelOptions}
+                                        value={selectedModel}
+                                        onChange={setSelectedModel}
+                                        placeholder="Válassz modellt..." disabled={!selectedBrand}
+                                        theme="light" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">Évjárat (mettől)</label>
+                                    <input name="yearFrom" type="number" defaultValue={initialData?.yearFrom ||""} placeholder="pl. 2012" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                                </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium text-gray-700">Évjárat (meddig)</label>
+                                    <input name="yearTo" type="number" defaultValue={initialData?.yearTo ||""} placeholder="pl. 2020" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* További kompatibilis autók listája */}
+                        <div className="space-y-4 pt-4 border-t border-gray-100">
+                            <h3 className="text-sm font-bold text-gray-700 uppercase tracking-wider">További Kompatibilis Modellek</h3>
+
+                            {compatibilities.length > 0 && (
+                                <div className="space-y-2">
+                                    {compatibilities.map((comp, idx) => {
+                                        const bName = brands.find(b => b.id === comp.brandId)?.name || comp.brandId;
+                                        const mName = getModelsByBrand(comp.brandId).find(m => m.id === comp.modelId)?.name || comp.modelId;
+                                        return (
+                                            <div key={idx} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-bold text-gray-900">{bName} {mName}</span>
+                                                    {(comp.yearFrom || comp.yearTo) && (
+                                                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-mono">
+                                                            {comp.yearFrom ||'...'} - {comp.yearTo ||'...'}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <button type="button" onClick={() => handleRemoveComp(idx)} className="text-red-500 hover:bg-red-50 p-2 rounded-md transition-colors">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            )}
+
+                            {/* Hozzáadás Sáv */}
+                            <div className="bg-green-50/50 border border-green-100 p-4 rounded-lg space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-4">
+                                    <div className="md:col-span-3">
+                                        <SearchableSelect
+                                            name="addBrandId" label="Márka" options={brandOptions}
+                                            value={addBrand}
+                                            onChange={(val) => { setAddBrand(val); setAddModel(""); }}
+                                            placeholder="Márka..." theme="light" />
+                                    </div>
+                                    <div className="md:col-span-3">
+                                        <SearchableSelect
+                                            name="addModelId" label="Modell" options={addModelOptions}
+                                            value={addModel}
+                                            onChange={setAddModel}
+                                            placeholder="Modell..." disabled={!addBrand}
+                                            theme="light" />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="text-xs font-medium text-gray-700 block mb-1">Mettől</label>
+                                        <input type="number" placeholder="Év" value={addYearFrom} onChange={e => setAddYearFrom(e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+                                    </div>
+                                    <div className="md:col-span-2">
+                                        <label className="text-xs font-medium text-gray-700 block mb-1">Meddig</label>
+                                        <input type="number" placeholder="Év" value={addYearTo} onChange={e => setAddYearTo(e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-green-500" />
+                                    </div>
+                                    <div className="md:col-span-2 flex items-end">
+                                        <button
+                                            type="button" onClick={handleAddComp}
+                                            disabled={!addBrand || !addModel}
+                                            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" >
+                                            <Plus className="w-4 h-4" />
+                                            Hozzáad
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                ) : (
+                    <div className="text-center py-8 text-orange-800 bg-orange-50 rounded-lg border border-orange-100">
+                        <ImageIcon className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                        <p className="font-bold">Ez az alkatrész Univerzálisnak lett jelölve.</p>
+                        <p className="text-sm mt-1 opacity-80">Nem szükséges külön autómárkákhoz rendelni, minden keresésben releváns lesz.</p>
+                    </div>
+                )}
             </div>
 
             <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
@@ -97,122 +269,87 @@ export function ProductForm() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Megnevezés *</label>
-                        <input name="name" type="text" required placeholder="pl. Volkswagen Golf VII Generátor" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Cikkszám / Termékszám *</label>
-                        <input name="sku" type="text" required placeholder="pl. GEN-VW-001" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono" />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Évjárat (mettől)</label>
-                        <input name="yearFrom" type="number" placeholder="pl. 2012" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
-                    </div>
-
-                    <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Évjárat (meddig)</label>
-                        <input name="yearTo" type="number" placeholder="pl. 2020" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
-                    </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="w-full">
-                        <SearchableSelect
-                            name="categoryId"
-                            label="Főkategória *"
-                            options={categoryOptions}
-                            value={selectedCategory}
-                            onChange={(val) => {
-                                setSelectedCategory(val);
-                                setSelectedSubcategory(""); // Reset subcategory when category changes
-                            }}
-                            placeholder="Válassz főkategóriát..."
-                            theme="light"
-                        />
+                        <input name="name" type="text" required defaultValue={initialData?.name ||""} placeholder="pl. Volkswagen Golf VII Generátor" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                     </div>
 
                     <div className="w-full">
                         <SearchableSelect
-                            name="subcategoryId"
-                            label="Alkategória *"
-                            options={subcategoryOptions}
-                            value={selectedSubcategory}
-                            onChange={(val) => {
-                                setSelectedSubcategory(val);
-                                setSelectedPartItem(""); // Reset part item when subcategory changes
-                            }}
-                            disabled={!selectedCategory}
-                            placeholder="Válassz alkategóriát..."
-                            theme="light"
-                        />
-                    </div>
-                </div>
-
-                {availablePartItems.length > 0 && (
-                    <div className="w-full max-w-md">
-                        <SearchableSelect
-                            name="partItemId"
-                            label="Specifikus alkatrész (Level 3)"
-                            options={partItemOptions}
+                            name="partItemId" label="Pontos Alkatrész Kereső *" options={allPartItemOptions}
                             value={selectedPartItem}
-                            onChange={setSelectedPartItem}
-                            placeholder="Válassz pontos alkatrész típust..."
-                            theme="light"
-                        />
-                        <p className="text-xs text-orange-600 font-medium mt-1">
-                            A kiválasztott alkategória tovább bontható. Kérjük válassza ki a pontos típust!
-                        </p>
+                            onChange={(val) => {
+                                setSelectedPartItem(val);
+                            }}
+                            placeholder="Keresés (pl. első lökhárító, generátor)..." theme="light" />
+                        <p className="text-xs text-gray-500 mt-1">Az alkatrész kiválasztásával a fő- és alkategóriák automatikusan kitöltődnek.</p>
+
+                        {/* Hidden inputs to pass inferred categories to the backend action */}
+                        {inferredCategory && <input type="hidden" name="categoryId" value={inferredCategory.id} />}
+                        {inferredSubcategory && <input type="hidden" name="subcategoryId" value={inferredSubcategory.id} />}
                     </div>
-                )}
+                </div>
 
                 {/* Categorization Preview */}
-                {(selectedCategory || selectedSubcategory) && (
-                    <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 space-y-2">
-                        <h3 className="text-[10px] font-black uppercase tracking-widest text-orange-400">Megjelenés a katalógusban</h3>
+                {(inferredCategory || inferredSubcategory || selectedPartItemObj) && (
+                    <div className="bg-orange-50 border border-orange-100 rounded-lg p-3 space-y-2 animate-in fade-in slide-in-from-top-2">
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-orange-400">Automatikus Kategorizálás</h3>
                         <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-orange-900">
-                            {selectedCategory && (
-                                <span className="bg-orange-200/50 px-2 py-1 rounded">
-                                    {categories.find(c => c.id === selectedCategory)?.name}
+                            {inferredCategory && (
+                                <span className="bg-orange-200/50 px-2 py-1 rounded shadow-sm">
+                                    {inferredCategory.name}
                                 </span>
                             )}
-                            {selectedSubcategory && (
+                            {inferredSubcategory && (
                                 <>
                                     <span className="text-orange-300">/</span>
-                                    <span className="bg-orange-200/50 px-2 py-1 rounded">
-                                        {availableSubcategories.find(s => s.id === selectedSubcategory)?.name}
+                                    <span className="bg-orange-200/50 px-2 py-1 rounded shadow-sm">
+                                        {inferredSubcategory.name}
                                     </span>
                                 </>
                             )}
-                            {selectedPartItem && (
+                            {selectedPartItemObj && (
                                 <>
                                     <span className="text-orange-300">/</span>
                                     <span className="bg-orange-600 text-white px-2 py-1 rounded shadow-sm">
-                                        {availablePartItems.find(p => p.id === selectedPartItem)?.name}
+                                        {selectedPartItemObj.name}
                                     </span>
                                 </>
                             )}
                         </div>
-                        <p className="text-[10px] text-orange-700/70 italic">
-                            {selectedPartItem
-                                ? "Ezzel a beállítással a termék mindhárom szinten (Főkategória, Alkategória és Specifikus típus) megtalálható lesz."
-                                : "A termék a főkategóriában és a választott alkategóriában lesz elérhető."}
-                        </p>
                     </div>
                 )}
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Leírás</label>
-                    <textarea name="description" rows={4} placeholder="Részletes leírás az alkatrészről..." className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors"></textarea>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Cikkszám (Hivatalos OEM) *</label>
+                        <input name="sku" type="text" required defaultValue={initialData?.sku ||""} placeholder="pl. 5G1941005" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
+                        <p className="text-xs text-gray-500 mt-1">Hivatalos gyári azonosító kód, vásárlói kereséshez.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Termékszám (Belső azonosító) *</label>
+                        <input name="productCode" type="text" required defaultValue={initialData?.productCode ||""} placeholder="pl. BONT-LOK-001" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
+                        <p className="text-xs text-gray-500 mt-1">Az Ön saját belső raktári azonosítója.</p>
+                    </div>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Kompatibilis Modellek (További autók)</label>
-                    <textarea name="tecdocKTypes" rows={2} placeholder="pl. VW Golf VII 1.6 TDI, Audi A3 8V... (K-Type kódok vagy szöveges felsorolás)" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors"></textarea>
-                    <p className="text-xs text-gray-500">Itt sorolhatja fel, hogy a donoron kívül mihez jó még az alkatrész.</p>
+                    <label className="text-sm font-medium text-gray-700">Leírás</label>
+                    <textarea
+                        name="description" rows={4}
+                        defaultValue={initialData?.description ||""}
+                        placeholder="Részletes leírás az alkatrészről..." spellCheck={true}
+                        autoComplete="off" autoCorrect="off" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" ></textarea>
                 </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Gyári számok (OEM számok)</label>
+                    <input
+                        name="oemNumbers" type="text" defaultValue={initialData?.oemNumbers ||""}
+                        placeholder="pl. 5G1941005, 5G1941006 (vesszővel elválasztva)" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
+                    <p className="text-xs text-gray-500 mt-1">Vesszővel elválasztva adja meg a gyári azonosítókat a pontosabb kereshetőség érdekében.</p>
+                </div>
+
             </div>
 
             <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
@@ -221,13 +358,13 @@ export function ProductForm() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Bruttó Ár (HUF) *</label>
-                        <input name="priceGross" type="number" required placeholder="0" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                        <input name="priceGross" type="number" required defaultValue={initialData?.priceGross ||""} placeholder="0" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                         <p className="text-xs text-gray-500">A nettó ár automatikusan számolódik (27% ÁFA).</p>
                     </div>
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Állapot</label>
-                        <select name="condition" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors">
+                        <select name="condition" defaultValue={initialData?.condition ||"USED"} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors">
                             <option value="USED">Használt</option>
                             <option value="NEW">Új</option>
                             <option value="REFURBISHED">Felújított</option>
@@ -236,20 +373,12 @@ export function ProductForm() {
 
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Készlet (db)</label>
-                        <input name="stock" type="number" defaultValue="1" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                        <input name="stock" type="number" defaultValue={initialData?.stock ?? 1} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                     </div>
                 </div>
             </div>
 
-            <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
-                <h2 className="text-xl font-bold border-b border-gray-200 text-gray-900 pb-4">Technikai Adatok</h2>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Gyári számok (OEM)</label>
-                    <input name="oemNumbers" type="text" placeholder="pl. 1K0903023, 03L903023F (vesszővel elválasztva)" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono" />
-                    <p className="text-xs text-gray-500">Kereséshez elengedhetetlen!</p>
-                </div>
-            </div>
 
             <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
                 <div className="flex items-center justify-between border-b border-gray-200 pb-4">
@@ -260,12 +389,10 @@ export function ProductForm() {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                     {images.map((img, index) => (
                         <div key={index} className="relative group aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                            <img src={img.preview} alt={`preview-${index}`} className="w-full h-full object-cover" />
+                            <img src={img.preview} alt={`preview-${index}`} className="w-full h-full object-contain p-1" />
                             <button
-                                type="button"
-                                onClick={() => removeImage(index)}
-                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                            >
+                                type="button" onClick={() => removeImage(index)}
+                                className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10" >
                                 <CloseIcon className="w-4 h-4" />
                             </button>
                             {index === 0 && (
@@ -281,12 +408,8 @@ export function ProductForm() {
                             <Upload className="w-8 h-8 text-gray-400" />
                             <span className="text-xs font-bold text-gray-500 mt-2">KÉP HOZZÁADÁSA</span>
                             <input
-                                type="file"
-                                name="imageFiles"
-                                multiple
-                                accept="image/*"
-                                className="hidden"
-                                onChange={handleImageChange}
+                                type="file" name="imageFiles" multiple
+                                accept="image/*" className="hidden" onChange={handleImageChange}
                             />
                         </label>
                     )}
@@ -296,8 +419,8 @@ export function ProductForm() {
 
             <div className="flex justify-end gap-4">
                 <button type="submit" className="bg-[var(--color-primary)] hover:bg-orange-600 text-white font-bold py-3 px-8 rounded-lg flex items-center gap-2 transition-transform active:scale-95 shadow-lg shadow-orange-900/20">
-                    <ImageIcon className="w-5 h-5" />
-                    Termék Mentése
+                    <Save className="w-5 h-5" />
+                    {initialData?.id ?"Módosítások Mentése" :"Termék Mentése"}
                 </button>
             </div>
         </form>

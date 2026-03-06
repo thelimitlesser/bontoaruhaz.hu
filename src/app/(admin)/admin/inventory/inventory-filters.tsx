@@ -1,9 +1,9 @@
 "use client";
 
-import { Search } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useTransition } from "react";
-import { recordSearch } from "@/app/actions/analytics";
+import { Search } from"lucide-react";
+import { useRouter, useSearchParams } from"next/navigation";
+import { useState, useEffect, useTransition } from"react";
+import { recordSearch } from"@/app/actions/analytics";
 
 export function InventoryFilters({
     makes,
@@ -16,9 +16,9 @@ export function InventoryFilters({
     const searchParams = useSearchParams();
     const [isPending, startTransition] = useTransition();
 
-    const [query, setQuery] = useState(searchParams.get("q")?.toString() || "");
-    const [selectedMake, setSelectedMake] = useState(searchParams.get("make")?.toString() || "");
-    const [selectedModel, setSelectedModel] = useState(searchParams.get("model")?.toString() || "");
+    const [query, setQuery] = useState(searchParams.get("q")?.toString() ||"");
+    const [selectedMake, setSelectedMake] = useState(searchParams.get("make")?.toString() ||"");
+    const [selectedModel, setSelectedModel] = useState(searchParams.get("model")?.toString() ||"");
 
     // Quick debounce implementation if hook doesn't exist
     useEffect(() => {
@@ -59,9 +59,7 @@ export function InventoryFilters({
                 <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Keresés... (Pl. Generátor, 03L903023F, Audi A4)"
-                    className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-12 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 placeholder-gray-500 font-medium transition-colors"
-                />
+                    placeholder="Keresés... (Pl. Generátor, 03L903023F, Audi A4)" className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-12 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 placeholder-gray-500 font-medium transition-colors" />
             </div>
             <div className="flex gap-4">
                 <select
@@ -70,8 +68,7 @@ export function InventoryFilters({
                         setSelectedMake(e.target.value);
                         setSelectedModel(""); // Reset model when make changes
                     }}
-                    className="bg-white border border-gray-200 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[var(--color-primary)] w-40"
-                >
+                    className="bg-white border border-gray-200 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[var(--color-primary)] w-40" >
                     <option value="">Minden Márka</option>
                     {makes.map(make => (
                         <option key={make.value} value={make.value}>{make.label}</option>
@@ -80,8 +77,7 @@ export function InventoryFilters({
                 <select
                     value={selectedModel}
                     onChange={(e) => setSelectedModel(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[var(--color-primary)] w-40"
-                >
+                    className="bg-white border border-gray-200 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[var(--color-primary)] w-40" >
                     <option value="">Minden Modell</option>
                     {models.map(model => (
                         <option key={model.value} value={model.value}>{model.label}</option>

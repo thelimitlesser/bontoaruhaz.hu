@@ -1,7 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { Product } from "@/lib/mock-data";
+import { createContext, useContext, useEffect, useState, ReactNode } from"react";
+import { Product } from"@/lib/mock-data";
 
 export interface CartItem extends Product {
     quantityInCart: number;

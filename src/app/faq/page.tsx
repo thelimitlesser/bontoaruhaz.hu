@@ -1,10 +1,10 @@
-import { HelpCircle } from "lucide-react";
+import { HelpCircle } from"lucide-react";
 
 export default function FaqPage() {
     const faqs = [
-        { q: "Mennyi a szállítási idő?", a: "Általában 1-2 munkanap a raktáron lévő termékek esetén." },
-        { q: "Van garancia a használt alkatrészekre?", a: "Igen, minden nálunk vásárolt használt alkatrészre minimum 15 nap beépítési garanciát vállalunk." },
-        { q: "Hogyan fizethetek?", a: "Fizethetsz bankkártyával (SimplePay), utánvéttel vagy előre utalással." },
+        { q:"Mennyi a szállítási idő?", a:"Általában 1-2 munkanap a raktáron lévő termékek esetén." },
+        { q:"Van garancia a használt alkatrészekre?", a:"Igen, minden nálunk vásárolt használt alkatrészre minimum 15 nap beépítési garanciát vállalunk." },
+        { q:"Hogyan fizethetek?", a:"Fizethetsz bankkártyával (SimplePay), utánvéttel vagy előre utalással." },
     ];
 
     return (

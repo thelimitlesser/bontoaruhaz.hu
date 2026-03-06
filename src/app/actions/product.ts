@@ -1,16 +1,18 @@
 'use server';
 
-import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
-import sharp from "sharp";
-import path from "path";
-import { promises as fs } from "fs";
+import { prisma } from"@/lib/prisma";
+import { revalidatePath } from"next/cache";
+import { redirect } from"next/navigation";
+import { createClient } from"@/lib/supabase/server";
+import sharp from"sharp";
+import path from"path";
+import { promises as fs } from"fs";
 
 export async function createProduct(formData: FormData) {
     const rawFormData = {
         name: formData.get('name') as string,
         sku: formData.get('sku') as string,
+        productCode: formData.get('productCode') as string,
         priceGross: parseInt(formData.get('priceGross') as string),
         // Calculate net based on 27% VAT default
         priceNet: Math.round(parseInt(formData.get('priceGross') as string) / 1.27),
@@ -25,6 +27,8 @@ export async function createProduct(formData: FormData) {
         partItemId: formData.get('partItemId') as string,
         yearFrom: formData.get('yearFrom') ? parseInt(formData.get('yearFrom') as string) : null,
         yearTo: formData.get('yearTo') ? parseInt(formData.get('yearTo') as string) : null,
+        isUniversal: formData.get('isUniversal') ==='true',
+        compatibilitiesData: formData.get('compatibilitiesData') as string,
     };
 
     // basic validation
@@ -32,23 +36,38 @@ export async function createProduct(formData: FormData) {
         throw new Error("Hiányzó kötelező mezők!");
     }
 
-    // 1. Get or Create the "Shop" Partner Profile (Quick fix for MVP)
-    // In a real app, this would come from the session.
-    let partner = await prisma.partnerProfile.findFirst({
-        where: { businessName: "Bontóáruház Saját" }
+    // 1. Get current user and ensure they exist in Prisma
+    const supabaseServer = await createClient();
+    const { data: { user: authUser } } = await supabaseServer.auth.getUser();
+
+    if (!authUser) {
+        throw new Error("Be kell jelentkezned a termék feltöltéséhez!");
+    }
+
+    // Get or Create the Partner Profile for the current user
+    let partner = await prisma.partnerProfile.findUnique({
+        where: { userId: authUser.id }
     });
 
     if (!partner) {
-        // Find the admin user
-        const adminUser = await prisma.user.findUnique({ where: { email: 'admin@autonexus.com' } });
-        if (!adminUser) throw new Error("Admin felhasználó nem található (Seed script futott?)");
+        // Ensure user exists in Prisma (sync from Supabase)
+        let prismaUser = await prisma.user.findUnique({ where: { id: authUser.id } });
+        if (!prismaUser) {
+            prismaUser = await prisma.user.create({
+                data: {
+                    id: authUser.id,
+                    email: authUser.email!,
+                    fullName: authUser.user_metadata?.full_name || authUser.user_metadata?.display_name ||'Admin',
+                    role:'ADMIN' // Only admins can access this page anyway
+                }
+            });
+        }
 
         partner = await prisma.partnerProfile.create({
             data: {
-                userId: adminUser.id,
-                businessName: "Bontóáruház Saját",
-                returnPolicy: "14 nap visszavásárlási garancia"
-            }
+                userId: authUser.id,
+                businessName: prismaUser.fullName ||"Saját Üzlet",
+                returnPolicy:"14 nap visszavásárlási garancia" }
         });
     }
 
@@ -56,32 +75,41 @@ export async function createProduct(formData: FormData) {
     const imagesFiles = formData.getAll('imageFiles') as File[];
     const uploadedImageUrls: string[] = [];
 
-    if (imagesFiles.length > 0) {
-        const { createClient } = await import("@/utils/supabase/server");
-        const supabase = await createClient();
+    if (imagesFiles.length > 0 && imagesFiles[0].size > 0) {
+        const { createClient: createSupabaseClient } = await import("@supabase/supabase-js");
+        const supabase = createSupabaseClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        // Clean name for folder (no special characters, spaces to underscores)
+        const cleanName = rawFormData.name
+            .replace(/[^a-zA-Z0-9\s]/g,'')
+            .replace(/\s+/g,'_')
+            .substring(0, 50);
+
+        // Unique folder suffix to avoid collisions for same-named parts
+        const folderName =`${cleanName}_${Math.random().toString(36).substring(7)}`;
 
         for (const file of imagesFiles) {
-            // Skip empty files or non-file entries
             if (!file.name || file.size === 0) continue;
 
             const buffer = Buffer.from(await file.arrayBuffer());
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+            const fileName =`${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+            const filePath =`${folderName}/${fileName}`;
 
-            // Process with sharp: resize and convert to webp buffer
+            // Process with sharp
             const processedBuffer = await sharp(buffer)
-                .resize(1000, 1000, {
-                    fit: 'inside',
-                    withoutEnlargement: true
-                })
+                .resize(1000, 1000, { fit:'inside', withoutEnlargement: true })
                 .webp({ quality: 90 })
                 .toBuffer();
 
-            // Upload to Supabase Storage
-            const { data, error } = await supabase.storage
+            // Upload to Supabase Storage with path
+            const { error } = await supabase.storage
                 .from('part-images')
-                .upload(fileName, processedBuffer, {
-                    contentType: 'image/webp',
-                    cacheControl: '3600',
+                .upload(filePath, processedBuffer, {
+                    contentType:'image/webp',
+                    cacheControl:'3600',
                     upsert: false
                 });
 
@@ -90,12 +118,20 @@ export async function createProduct(formData: FormData) {
                 continue;
             }
 
-            // Get Public URL
             const { data: { publicUrl } } = supabase.storage
                 .from('part-images')
-                .getPublicUrl(fileName);
+                .getPublicUrl(filePath);
 
             uploadedImageUrls.push(publicUrl);
+        }
+    }
+
+    let parsedCompatibilities = [];
+    if (rawFormData.compatibilitiesData) {
+        try {
+            parsedCompatibilities = JSON.parse(rawFormData.compatibilitiesData);
+        } catch (e) {
+            console.error("Failed to parse compatibilities", e);
         }
     }
 
@@ -104,13 +140,14 @@ export async function createProduct(formData: FormData) {
         data: {
             name: rawFormData.name,
             sku: rawFormData.sku,
+            productCode: rawFormData.productCode,
             description: rawFormData.description,
             priceGross: rawFormData.priceGross,
             priceNet: rawFormData.priceNet,
-            oemNumbers: rawFormData.oemNumbers,
-            condition: rawFormData.condition,
-            stock: rawFormData.stock,
-            partnerId: partner.id,
+            oemNumbers: rawFormData.oemNumbers ||"",
+            condition: rawFormData.condition ||"USED",
+            stock: rawFormData.stock || 1,
+            partner: { connect: { id: partner.id } },
             categoryId: rawFormData.categoryId || undefined,
             subcategoryId: rawFormData.subcategoryId || undefined,
             partItemId: rawFormData.partItemId || undefined,
@@ -118,13 +155,148 @@ export async function createProduct(formData: FormData) {
             modelId: rawFormData.modelId || undefined,
             yearFrom: rawFormData.yearFrom,
             yearTo: rawFormData.yearTo,
-            tecdocKTypes: formData.get('tecdocKTypes') as string || "",
+            tecdocKTypes: formData.get('tecdocKTypes') as string ||"",
             images: uploadedImageUrls.join(','),
+            isUniversal: rawFormData.isUniversal,
+            compatibilities: {
+                create: parsedCompatibilities.map((c: any) => ({
+                    brandId: c.brandId,
+                    modelId: c.modelId,
+                    yearFrom: c.yearFrom ? parseInt(c.yearFrom) : null,
+                    yearTo: c.yearTo ? parseInt(c.yearTo) : null,
+                }))
+            }
         }
     });
 
     revalidatePath('/admin/products');
     redirect('/admin/products');
+}
+
+export async function updateProduct(id: string, formData: FormData) {
+    const rawFormData = {
+        name: formData.get('name') as string,
+        sku: formData.get('sku') as string,
+        productCode: formData.get('productCode') as string,
+        priceGross: parseInt(formData.get('priceGross') as string),
+        priceNet: Math.round(parseInt(formData.get('priceGross') as string) / 1.27),
+        description: formData.get('description') as string,
+        oemNumbers: formData.get('oemNumbers') as string,
+        condition: formData.get('condition') as string,
+        stock: parseInt(formData.get('stock') as string),
+        brandId: formData.get('brandId') as string,
+        modelId: formData.get('modelId') as string,
+        categoryId: formData.get('categoryId') as string,
+        subcategoryId: formData.get('subcategoryId') as string,
+        partItemId: formData.get('partItemId') as string,
+        yearFrom: formData.get('yearFrom') ? parseInt(formData.get('yearFrom') as string) : null,
+        yearTo: formData.get('yearTo') ? parseInt(formData.get('yearTo') as string) : null,
+        isUniversal: formData.get('isUniversal') ==='true',
+        compatibilitiesData: formData.get('compatibilitiesData') as string,
+        existingImages: formData.get('existingImages') as string ||"",
+    };
+
+    if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross) {
+        throw new Error("Hiányzó kötelező mezők!");
+    }
+
+    // Handle New Image Uploads
+    const imagesFiles = formData.getAll('imageFiles') as File[];
+    const newImageUrls: string[] = [];
+
+    if (imagesFiles.length > 0 && imagesFiles[0].size > 0) {
+        const { createClient } = await import("@supabase/supabase-js");
+        const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY!
+        );
+
+        // Clean name for folder
+        const cleanName = rawFormData.name
+            .replace(/[^a-zA-Z0-9\s]/g,'')
+            .replace(/\s+/g,'_')
+            .substring(0, 50);
+
+        const folderName =`${cleanName}_${Math.random().toString(36).substring(7)}`;
+
+        for (const file of imagesFiles) {
+            if (!file.name || file.size === 0) continue;
+            const buffer = Buffer.from(await file.arrayBuffer());
+            const fileName =`${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+            const filePath =`${folderName}/${fileName}`;
+
+            const processedBuffer = await sharp(buffer)
+                .resize(1000, 1000, { fit:'inside', withoutEnlargement: true })
+                .webp({ quality: 90 })
+                .toBuffer();
+
+            const { error } = await supabase.storage
+                .from('part-images')
+                .upload(filePath, processedBuffer, { contentType:'image/webp' });
+
+            if (error) continue;
+            const { data: { publicUrl } } = supabase.storage.from('part-images').getPublicUrl(filePath);
+            newImageUrls.push(publicUrl);
+        }
+    }
+
+    const finalImages = [
+        ...rawFormData.existingImages.split(',').filter(Boolean),
+        ...newImageUrls
+    ].join(',');
+
+    let parsedCompatibilities = [];
+    if (rawFormData.compatibilitiesData) {
+        try {
+            parsedCompatibilities = JSON.parse(rawFormData.compatibilitiesData);
+        } catch (e) {
+            console.error("Failed to parse compatibilities", e);
+        }
+    }
+
+    await prisma.part.update({
+        where: { id },
+        data: {
+            name: rawFormData.name,
+            sku: rawFormData.sku,
+            productCode: rawFormData.productCode,
+            description: rawFormData.description,
+            priceGross: rawFormData.priceGross,
+            priceNet: rawFormData.priceNet,
+            oemNumbers: rawFormData.oemNumbers ||"",
+            condition: rawFormData.condition ||"USED",
+            stock: rawFormData.stock || 1,
+            categoryId: rawFormData.categoryId || null,
+            subcategoryId: rawFormData.subcategoryId || null,
+            partItemId: rawFormData.partItemId || null,
+            brandId: rawFormData.brandId || null,
+            modelId: rawFormData.modelId || null,
+            yearFrom: rawFormData.yearFrom,
+            yearTo: rawFormData.yearTo,
+            tecdocKTypes: formData.get('tecdocKTypes') as string ||"",
+            images: finalImages,
+            isUniversal: rawFormData.isUniversal,
+            compatibilities: {
+                deleteMany: {},
+                create: parsedCompatibilities.map((c: any) => ({
+                    brandId: c.brandId,
+                    modelId: c.modelId,
+                    yearFrom: c.yearFrom ? parseInt(c.yearFrom) : null,
+                    yearTo: c.yearTo ? parseInt(c.yearTo) : null,
+                }))
+            }
+        }
+    });
+
+    revalidatePath('/admin/inventory');
+    revalidatePath(`/product/${id}`);
+}
+
+export async function deleteProduct(id: string) {
+    await prisma.part.delete({
+        where: { id }
+    });
+    revalidatePath('/admin/inventory');
 }
 
 export async function getSearchProducts(params: {
@@ -133,21 +305,51 @@ export async function getSearchProducts(params: {
     category?: string;
     subcategory?: string;
     partItem?: string;
+    year?: number;
     minPrice?: number;
     maxPrice?: number;
     query?: string;
+    take?: number;
 }) {
-    const { brand, model, category, subcategory, partItem, minPrice, maxPrice, query } = params;
+    const { brand, model, category, subcategory, partItem, year, minPrice, maxPrice, query, take } = params;
 
     const where: any = {};
 
-    if (brand) where.brandId = brand;
-    if (model) where.modelId = model;
-    if (category) where.categoryId = category;
-    if (subcategory) {
-        // Find subcategory ID from slug if needed, but usually we pass ID
-        where.subcategoryId = subcategory;
+    const vehicleFilters: any[] = [];
+    if (brand || model || year) {
+        const primaryMatch: any = {};
+        if (brand) primaryMatch.brandId = brand;
+        if (model) primaryMatch.modelId = model;
+        if (year) {
+            primaryMatch.AND = [
+                { OR: [{ yearFrom: null }, { yearFrom: { lte: year } }] },
+                { OR: [{ yearTo: null }, { yearTo: { gte: year } }] }
+            ];
+        }
+
+        const compatibilityMatch: any = {};
+        if (brand) compatibilityMatch.brandId = brand;
+        if (model) compatibilityMatch.modelId = model;
+        if (year) {
+            compatibilityMatch.AND = [
+                { OR: [{ yearFrom: null }, { yearFrom: { lte: year } }] },
+                { OR: [{ yearTo: null }, { yearTo: { gte: year } }] }
+            ];
+        }
+
+        vehicleFilters.push(
+            { isUniversal: true },
+            primaryMatch,
+            { compatibilities: { some: compatibilityMatch } }
+        );
     }
+
+    if (vehicleFilters.length > 0) {
+        where.OR = vehicleFilters;
+    }
+
+    if (category) where.categoryId = category;
+    if (subcategory) where.subcategoryId = subcategory;
     if (partItem) where.partItemId = partItem;
 
     if (minPrice || maxPrice) {
@@ -157,20 +359,63 @@ export async function getSearchProducts(params: {
     }
 
     if (query) {
-        where.OR = [
-            { name: { contains: query, mode: 'insensitive' } },
-            { sku: { contains: query, mode: 'insensitive' } },
-            { oemNumbers: { contains: query, mode: 'insensitive' } },
+        const textSearch = [
+            { name: { contains: query, mode:'insensitive' } },
+            { sku: { contains: query, mode:'insensitive' } },
+            { oemNumbers: { contains: query, mode:'insensitive' } },
         ];
+
+        // If we already have a vehicle OR filter, we need to AND it with the text search
+        if (where.OR) {
+            where.AND = [
+                { OR: where.OR },
+                { OR: textSearch }
+            ];
+            delete where.OR;
+        } else {
+            where.OR = textSearch;
+        }
     }
 
     const parts = await prisma.part.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        take: take || undefined,
+        orderBy: { createdAt:'desc' },
         include: {
             partner: true
         }
     });
 
     return parts;
+}
+export async function getCategoryProductCounts(brandId: string, modelId: string) {
+    const counts = await prisma.part.groupBy({
+        by: ['categoryId'],
+        where: {
+            OR: [
+                { brandId, modelId },
+                { isUniversal: true },
+                {
+                    compatibilities: {
+                        some: {
+                            brandId,
+                            modelId
+                        }
+                    }
+                }
+            ]
+        },
+        _count: {
+            id: true
+        }
+    });
+
+    const countsMap: Record<string, number> = {};
+    counts.forEach(c => {
+        if (c.categoryId) {
+            countsMap[c.categoryId] = c._count.id;
+        }
+    });
+
+    return countsMap;
 }

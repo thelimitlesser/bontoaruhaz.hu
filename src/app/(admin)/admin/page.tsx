@@ -1,37 +1,70 @@
-import { prisma } from "@/lib/prisma"; // Need to check if lib/prisma exists, likely need to create it
-import { DollarSign, Package, ShoppingCart, Users } from "lucide-react";
+export const dynamic ="force-dynamic";
+import { prisma } from"@/lib/prisma";
+import { DollarSign, Package, ShoppingCart, Users, Calendar } from"lucide-react";
+import Link from"next/link";
 
+async function getStats(month?: number, year?: number) {
+    const now = new Date();
+    const targetMonth = month ?? (now.getMonth() + 1);
+    const targetYear = year ?? now.getFullYear();
 
-async function getStats() {
+    const startDate = new Date(targetYear, targetMonth - 1, 1);
+    const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59);
+
     // 1. Basic Counts
     const products = await prisma.part.count();
-    const orders = await prisma.order.count();
     const users = await prisma.user.count();
 
-    // 2. Revenue Calculation
-    const paidOrders = await prisma.order.findMany({
-        where: { status: { not: 'CANCELLED' } }, // Assuming non-cancelled are valid sales for now
-        select: { totalAmount: true }
-    });
-    const revenue = paidOrders.reduce((acc, order) => acc + order.totalAmount, 0);
+    // 2. Revenue Calculation (ONLY PAID orders in the selected month)
+    let paidOrders: any[] = [];
+    try {
+        paidOrders = await (prisma.order as any).findMany({
+            where: {
+                paymentStatus:'PAID',
+                createdAt: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            select: { totalAmount: true }
+        });
+    } catch (e) {
+        // Fallback if paymentStatus column doesn't exist yet
+        paidOrders = await prisma.order.findMany({
+            where: {
+                status:'PAID',
+                createdAt: {
+                    gte: startDate,
+                    lte: endDate
+                }
+            },
+            select: { totalAmount: true }
+        });
+    }
+    const monthlyRevenue = paidOrders.reduce((acc: number, order: any) => acc + order.totalAmount, 0);
 
-    // 3. Trending Searches (Demand Sensing)
+    // 3. Active Orders (All time, not completed or cancelled)
+    const activeOrdersCount = await prisma.order.count({
+        where: {
+            status: {
+                notIn: ['DELIVERED','CANCELLED','RETURNED','REFUNDED']
+            }
+        }
+    });
+
+    // 4. Trending Searches
     const trendingSearches = await prisma.searchLog.findMany({
-        orderBy: { count: 'desc' },
+        orderBy: { count:'desc' },
         take: 5
     });
 
-    // 4. Top Selling Parts
-    // Prisma doesn't support complex aggregations with relations easily in one query for this
-    // We'll fetch order items and aggregate in memory for this prototype (assuming low volume)
-    // For high volume, would use raw query: SELECT partId, SUM(quantity) ... GROUP BY partId
+    // 5. Top Selling Parts (All time)
     const orderItems = await prisma.orderItem.findMany({
         include: { part: true },
-        take: 100 // Last 100 items analysis
+        take: 100
     });
 
     const salesByPart: Record<string, { name: string; quantity: number; total: number }> = {};
-
     orderItems.forEach(item => {
         if (!salesByPart[item.partId]) {
             salesByPart[item.partId] = {
@@ -48,29 +81,85 @@ async function getStats() {
         .sort((a, b) => b.quantity - a.quantity)
         .slice(0, 5);
 
-
     return {
         products,
-        orders,
         users,
-        revenue,
+        monthlyRevenue,
+        activeOrdersCount,
         trendingSearches,
-        topSellers
+        topSellers,
+        targetMonth,
+        targetYear
     };
 }
 
-export default async function AdminDashboard() {
-    const stats = await getStats();
+export default async function AdminDashboard({
+    searchParams
+}: {
+    searchParams: { m?: string; y?: string }
+}) {
+    const sParams = await searchParams;
+    const m = sParams.m ? parseInt(sParams.m) : undefined;
+    const y = sParams.y ? parseInt(sParams.y) : undefined;
+
+    const stats = await getStats(m, y);
+
+    const monthNames = ["Január","Február","Március","Április","Május","Június","Július","Augusztus","Szeptember","Október","November","December" ];
 
     return (
         <div className="space-y-8 text-gray-900">
-            <h1 className="text-3xl font-bold tracking-tight">Vezérlőpult</h1>
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold tracking-tight">Vezérlőpult</h1>
+                    <p className="text-gray-500">Üzleti statisztikák és áttekintés</p>
+                </div>
+
+                <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
+                    <div className="px-3 py-1.5 text-sm font-bold flex items-center gap-2 text-gray-400 border-r border-gray-100">
+                        <Calendar className="w-4 h-4" />
+                        IDŐSZAK:
+                    </div>
+                    <div className="flex gap-1 overflow-x-auto max-w-[300px] md:max-w-none px-2">
+                        {[5, 4, 3, 2, 1, 0].map((offset) => {
+                            const d = new Date();
+                            d.setMonth(d.getMonth() - offset);
+                            const month = d.getMonth() + 1;
+                            const year = d.getFullYear();
+                            const isActive = stats.targetMonth === month && stats.targetYear === year;
+
+                            return (
+                                <Link
+                                    key={`${year}-${month}`}
+                                    href={`/admin?m=${month}&y=${year}`}
+                                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${isActive
+                                        ?'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' :'text-gray-500 hover:bg-gray-100' }`}
+                                >
+                                    {monthNames[month - 1]}
+                                </Link>
+                            );
+                        })}
+                    </div>
+                </div>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <StatCard title="Összes Bevétel" value={`${stats.revenue.toLocaleString()} Ft`} icon={<DollarSign className="w-6 h-6 text-green-500" />} />
-                <StatCard title="Aktív Rendelések" value={stats.orders.toString()} icon={<ShoppingCart className="w-6 h-6 text-blue-500" />} />
-                <StatCard title="Raktárkészlet" value={`${stats.products} db`} icon={<Package className="w-6 h-6 text-orange-500" />} />
-                <StatCard title="Regisztrált Felhasználók" value={stats.users.toString()} icon={<Users className="w-6 h-6 text-purple-500" />} />
+                <StatCard
+                    title={`${monthNames[stats.targetMonth - 1]}i Bevétel`}
+                    value={`${stats.monthlyRevenue.toLocaleString()} Ft`}
+                    icon={<DollarSign className="w-6 h-6 text-green-500" />}
+                    subtitle="Kizárólag a kifizetett rendelések" />
+                <StatCard
+                    title="Aktív Rendelések" value={stats.activeOrdersCount.toString()}
+                    icon={<ShoppingCart className="w-6 h-6 text-blue-500" />}
+                    subtitle="Folyamatban lévő ügyek" />
+                <StatCard
+                    title="Raktárkészlet" value={`${stats.products} db`}
+                    icon={<Package className="w-6 h-6 text-orange-500" />}
+                />
+                <StatCard
+                    title="Felhasználók" value={stats.users.toString()}
+                    icon={<Users className="w-6 h-6 text-purple-500" />}
+                />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -89,7 +178,7 @@ export default async function AdminDashboard() {
                                 <div key={search.id} className="flex items-center justify-between group">
                                     <div className="flex items-center gap-3">
                                         <div className="font-mono text-gray-500 text-sm w-4">#{i + 1}</div>
-                                        <div className="font-medium text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
+                                        <div className="font-medium text-gray-900 group-hover:text-[var(--color-primary)] transition-colors lowercase">
                                             {search.query}
                                         </div>
                                     </div>
@@ -113,7 +202,7 @@ export default async function AdminDashboard() {
                             {stats.topSellers.map((item, i) => (
                                 <div key={i} className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${i === 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-gray-100 text-gray-500'}`}>
+                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${i === 0 ?'bg-yellow-500/20 text-yellow-500' :'bg-gray-100 text-gray-500'}`}>
                                             {i + 1}
                                         </div>
                                         <div>
@@ -134,12 +223,13 @@ export default async function AdminDashboard() {
     );
 }
 
-function StatCard({ title, value, icon }: { title: string, value: string, icon: React.ReactNode }) {
+function StatCard({ title, value, icon, subtitle }: { title: string, value: string, icon: React.ReactNode, subtitle?: string }) {
     return (
         <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 flex items-center justify-between">
             <div>
                 <p className="text-sm font-medium text-gray-500">{title}</p>
                 <p className="text-2xl font-bold mt-1 text-gray-900">{value}</p>
+                {subtitle && <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">{subtitle}</p>}
             </div>
             <div className="p-3 bg-gray-100 rounded-lg border border-gray-200">
                 {icon}

@@ -1,10 +1,11 @@
-import { Plus, Box } from "lucide-react";
-import Link from "next/link";
-import { prisma } from "@/lib/prisma";
+export const dynamic ="force-dynamic";
+import { Plus, Box } from"lucide-react";
+import Link from"next/link";
+import { prisma } from"@/lib/prisma";
 
 export default async function InventoryPage() {
     const locations = await prisma.storageLocation.findMany({
-        orderBy: { name: 'asc' }
+        orderBy: { name:'asc' }
     });
 
     return (
@@ -31,7 +32,7 @@ export default async function InventoryPage() {
                         </div>
 
                         <p className="text-sm text-gray-500 mb-4 h-10 line-clamp-2">
-                            {loc.description || 'Nincs leírás'}
+                            {loc.description ||'Nincs leírás'}
                         </p>
 
                     </div>

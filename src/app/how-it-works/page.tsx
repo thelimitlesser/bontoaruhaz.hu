@@ -1,11 +1,11 @@
-import { Search, ShoppingCart, Truck, CheckCircle } from "lucide-react";
+import { Search, ShoppingCart, Truck, CheckCircle } from"lucide-react";
 
 export default function HowItWorksPage() {
     const steps = [
-        { icon: Search, title: "Keresés", desc: "Használd a részletes keresőt vagy az AI segédet." },
-        { icon: ShoppingCart, title: "Rendelés", desc: "Tedd kosárba a kiválasztott alkatrészt." },
-        { icon: Truck, title: "Szállítás", desc: "Futárunk 24-48 órán belül kiszállítja hozzád." },
-        { icon: CheckCircle, title: "Beépítés", desc: "Élvezd az új alkatrészt garanciával." },
+        { icon: Search, title:"Keresés", desc:"Használd a részletes keresőt vagy az AI segédet." },
+        { icon: ShoppingCart, title:"Rendelés", desc:"Tedd kosárba a kiválasztott alkatrészt." },
+        { icon: Truck, title:"Szállítás", desc:"Futárunk 24-48 órán belül kiszállítja hozzád." },
+        { icon: CheckCircle, title:"Beépítés", desc:"Élvezd az új alkatrészt garanciával." },
     ];
 
     return (

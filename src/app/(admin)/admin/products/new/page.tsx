@@ -1,7 +1,7 @@
-import { ProductForm } from "@/components/admin/product-form";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
-import { prisma } from "@/lib/prisma";
+import { ProductForm } from"@/components/admin/product-form";
+import Link from"next/link";
+import { ArrowLeft } from"lucide-react";
+import { prisma } from"@/lib/prisma";
 
 export default async function NewProductPage() {
 

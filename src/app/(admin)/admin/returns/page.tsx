@@ -1,13 +1,14 @@
-import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { Eye, RotateCcw } from "lucide-react";
+export const dynamic ="force-dynamic";
+import { prisma } from"@/lib/prisma";
+import Link from"next/link";
+import { Eye, RotateCcw } from"lucide-react";
 
 export default async function ReturnsPage() {
     const returns = await prisma.order.findMany({
         where: {
-            status: { in: ['RETURNED', 'REFUNDED'] }
+            status: { in: ['RETURNED','REFUNDED'] }
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt:'desc' },
         include: { user: true }
     });
 
@@ -39,15 +40,12 @@ export default async function ReturnsPage() {
                             returns.map((order) => (
                                 <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                                     <td className="px-6 py-4 font-mono text-xs">{order.id.split('-')[0]}...</td>
-                                    <td className="px-6 py-4 text-gray-900 font-medium">{order.user?.fullName || 'Vendég'}</td>
+                                    <td className="px-6 py-4 text-gray-900 font-medium">{order.user?.fullName ||'Vendég'}</td>
                                     <td className="px-6 py-4">{new Date(order.createdAt).toLocaleDateString()}</td>
                                     <td className="px-6 py-4 font-bold text-gray-900">{order.totalAmount.toLocaleString()} Ft</td>
                                     <td className="px-6 py-4">
-                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${order.status === 'REFUNDED'
-                                            ? "bg-green-500/20 text-green-500 border-green-500/50"
-                                            : "bg-orange-500/20 text-orange-500 border-orange-500/50"
-                                            }`}>
-                                            {order.status === 'REFUNDED' ? 'Visszatérítve' : 'Visszaküldve'}
+                                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${order.status ==='REFUNDED' ?"bg-green-500/20 text-green-500 border-green-500/50" :"bg-orange-500/20 text-orange-500 border-orange-500/50" }`}>
+                                            {order.status ==='REFUNDED' ?'Visszatérítve' :'Visszaküldve'}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 text-right">

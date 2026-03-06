@@ -1,6 +1,6 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
+import { prisma } from"@/lib/prisma";
 
 export async function recordSearch(query: string) {
     if (!query || query.length < 3) return; // Ignore very short queries

@@ -74,8 +74,6 @@ async function main() {
                 condition: 'USED',
                 stock: 1,
                 partnerId: partner.id,
-                donorVehicleId: donor.id,
-                storageLocationId: locB2.id,
                 images: '',
                 tecdocKTypes: '' // Added missing field
             }
@@ -94,8 +92,6 @@ async function main() {
                 condition: 'USED',
                 stock: 1,
                 partnerId: partner.id,
-                donorVehicleId: donor.id,
-                storageLocationId: locA1.id,
                 images: '',
                 tecdocKTypes: '' // Added missing field
             }

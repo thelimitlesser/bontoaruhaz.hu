@@ -1,23 +1,27 @@
-import { prisma } from "@/lib/prisma";
-import Link from "next/link";
-import { ArrowLeft, User, MapPin, Package, CreditCard } from "lucide-react";
-import { OrderStatusUpdater } from "./status-updater";
+import { prisma } from"@/lib/prisma";
+import Link from"next/link";
+import { ArrowLeft, User, MapPin, Package, CreditCard, Truck } from"lucide-react";
+import { OrderStatusUpdater } from"./status-updater";
+import { PaymentStatusUpdater } from"./payment-status-updater";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const { id } = await params;
-    const order = await prisma.order.findUnique({
+    const orderRaw = await prisma.order.findUnique({
         where: { id },
         include: { user: true, items: { include: { part: true } } }
     });
 
-    if (!order) return <div>Rendelés nem található</div>;
+    if (!orderRaw) return <div>Rendelés nem található</div>;
+    const order = orderRaw as any; // Cast to any temporarily to allow TS to compile until prisma generate is run
 
     // Parse JSON addresses safely
-    const shipping = typeof order.shippingAddress === 'string' ? JSON.parse(order.shippingAddress) : order.shippingAddress;
+    const shipping = typeof order.shippingAddress ==='string' ? JSON.parse(order.shippingAddress) : order.shippingAddress;
+    const isPickup = order.shippingMethod ==='PICKUP';
+    const isCOD = order.paymentMethod ==='COD';
 
     return (
         <div className="space-y-6">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mb-4">
                 <Link href="/admin/orders" className="p-2 hover:bg-white/10 rounded-full transition-colors">
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
@@ -30,6 +34,10 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 </div>
             </div>
 
+            <div className="mb-6">
+                <PaymentStatusUpdater orderId={order.id} currentPaymentStatus={order.paymentStatus ||'PENDING'} />
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column: Items */}
                 <div className="lg:col-span-2 space-y-6">
@@ -39,10 +47,15 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             Megrendelt Tételek
                         </div>
                         <div className="divide-y divide-white/10">
-                            {order.items.map((item) => (
+                            {order.items.map((item: any) => (
                                 <div key={item.id} className="p-4 flex items-center justify-between">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-16 h-16 bg-gray-800 rounded-lg flex items-center justify-center text-xs text-gray-500">IMG</div>
+                                        <div className="w-16 h-16 bg-gray-800 rounded-lg flex items-center justify-center text-xs text-gray-500 overflow-hidden">
+                                            {item.part.images ? (
+                                                /* eslint-disable-next-line @next/next/no-img-element */
+                                                <img src={JSON.parse(item.part.images)[0]} alt={item.part.name} className="w-full h-full object-cover" />
+                                            ) :"IMG"}
+                                        </div>
                                         <div>
                                             <p className="font-medium text-white">{item.part.name}</p>
                                             <p className="text-sm text-gray-500 font-mono">{item.part.sku}</p>
@@ -70,20 +83,27 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             Vásárló Adatai
                         </h2>
                         <div>
-                            <p className="text-white font-medium">{order.user?.fullName || 'Vendég'}</p>
+                            <p className="text-white font-medium">{order.user?.fullName ||'Vendég'}</p>
                             <p className="text-sm text-gray-400">{order.user?.email}</p>
                         </div>
                     </div>
 
                     <div className="bg-zinc-900 border border-white/10 rounded-xl p-6 space-y-4">
                         <h2 className="font-bold border-b border-white/10 pb-2 flex items-center gap-2">
-                            <MapPin className="w-4 h-4 text-gray-400" />
-                            Szállítási Cím
+                            <Truck className="w-4 h-4 text-gray-400" />
+                            Szállítási Mód
                         </h2>
                         <div className="text-sm text-gray-300">
-                            <p>{shipping?.name}</p>
-                            <p>{shipping?.zip} {shipping?.city}</p>
-                            <p>{shipping?.street}</p>
+                            <p className="font-bold text-white mb-2">{isPickup ?'Személyes átvétel' :'Házhozszállítás'}</p>
+                            {!isPickup && shipping ? (
+                                <>
+                                    <p>{shipping.name || shipping.firstName +'' + shipping.lastName}</p>
+                                    <p>{shipping.zip || shipping.postalCode} {shipping.city}</p>
+                                    <p>{shipping.street || shipping.address}</p>
+                                </>
+                            ) : (
+                                <p className="text-gray-500 italic">Vevő bejön érte a telephelyre.</p>
+                            )}
                         </div>
                     </div>
 
@@ -93,7 +113,10 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             Fizetési Mód
                         </h2>
                         <div className="text-sm text-gray-300">
-                            <p>Utánvét</p>
+                            <p className="font-bold text-white mb-2">{isCOD ? (isPickup ?'Helyszíni fizetés' :'Utánvét') :'Online Bankkártya'}</p>
+                            <p className="text-xs text-gray-500">
+                                {order.paymentStatus ==='PAID' ?'Sikeresen kifizetve' :'Fizetésre vár'}
+                            </p>
                         </div>
                     </div>
                 </div>
