@@ -7,30 +7,10 @@ import { ensureUserExists } from "@/app/actions/user";
 import { cookies } from "next/headers";
 
 export default async function ProfilePage() {
-    const cookieStore = await cookies();
-    const cookieNames = cookieStore.getAll().map(c => c.name).join(', ');
-
-    let dbUser;
-    let errorMsg = null;
-
-    try {
-        dbUser = await ensureUserExists();
-    } catch (e: any) {
-        errorMsg = e.message || String(e);
-    }
+    const dbUser = await ensureUserExists();
 
     if (!dbUser) {
-        // If it's a Prisma connection error, we render it
-        return (
-            <div className="min-h-screen pt-40 text-center font-bold px-4">
-                <h2 className="text-red-500 text-2xl">Server Error Loading Profile</h2>
-                <p className="text-red-400 mt-2">{errorMsg || "ensureUserExists returned null."}</p>
-                <div className="mt-8 text-left bg-gray-100 p-4 rounded-xl overflow-x-auto text-black text-sm">
-                    <strong>Server Received Cookies:</strong> <br />
-                    {cookieNames || "NO COOKIES RECEIVED!"}
-                </div>
-            </div>
-        );
+        redirect("/login");
     }
 
     // Fetch counts from Prisma
