@@ -113,10 +113,10 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="font-bold text-gray-900 text-lg">
-                                                {part.priceGross.toLocaleString()} Ft
+                                                {part.priceGross.toLocaleString('hu-HU')} Ft
                                             </div>
                                             <div className="text-xs text-gray-500">
-                                                Nettó: {part.priceNet.toLocaleString()} Ft
+                                                Nettó: {part.priceNet.toLocaleString('hu-HU')} Ft
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">

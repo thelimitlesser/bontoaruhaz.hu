@@ -1,9 +1,9 @@
 "use client";
 
-import { Search } from"lucide-react";
-import { useRouter, useSearchParams } from"next/navigation";
-import { useState, useEffect, useTransition } from"react";
-import { recordSearch } from"@/app/actions/analytics";
+import { Search } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect, useTransition } from "react";
+import { recordSearch } from "@/app/actions/analytics";
 
 export function InventoryFilters({
     makes,
@@ -16,37 +16,44 @@ export function InventoryFilters({
     const searchParams = useSearchParams();
     const [isPending, startTransition] = useTransition();
 
-    const [query, setQuery] = useState(searchParams.get("q")?.toString() ||"");
-    const [selectedMake, setSelectedMake] = useState(searchParams.get("make")?.toString() ||"");
-    const [selectedModel, setSelectedModel] = useState(searchParams.get("model")?.toString() ||"");
+    const [query, setQuery] = useState(searchParams.get("q")?.toString() || "");
+    const [selectedMake, setSelectedMake] = useState(searchParams.get("make")?.toString() || "");
+    const [selectedModel, setSelectedModel] = useState(searchParams.get("model")?.toString() || "");
 
-    // Quick debounce implementation if hook doesn't exist
+    // Memoize the current params to avoid infinite loops
     useEffect(() => {
         const timer = setTimeout(() => {
-            const params = new URLSearchParams(searchParams);
+            const currentParams = new URLSearchParams(searchParams.toString());
+            const newParams = new URLSearchParams(searchParams.toString());
+
             if (query) {
-                params.set("q", query);
+                newParams.set("q", query);
                 // Log the search for demand sensing
                 if (query.length > 2) {
                     recordSearch(query);
                 }
             } else {
-                params.delete("q");
-            }
-            if (selectedMake) {
-                params.set("make", selectedMake);
-            } else {
-                params.delete("make");
-            }
-            if (selectedModel) {
-                params.set("model", selectedModel);
-            } else {
-                params.delete("model");
+                newParams.delete("q");
             }
 
-            startTransition(() => {
-                router.replace(`/admin/inventory?${params.toString()}`);
-            });
+            if (selectedMake) {
+                newParams.set("make", selectedMake);
+            } else {
+                newParams.delete("make");
+            }
+
+            if (selectedModel) {
+                newParams.set("model", selectedModel);
+            } else {
+                newParams.delete("model");
+            }
+
+            // Only navigate if parameters actually changed to avoid infinite RSC loops
+            if (newParams.toString() !== currentParams.toString()) {
+                startTransition(() => {
+                    router.replace(`/admin/inventory?${newParams.toString()}`, { scroll: false });
+                });
+            }
         }, 500);
 
         return () => clearTimeout(timer);
