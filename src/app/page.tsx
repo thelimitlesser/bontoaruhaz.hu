@@ -22,12 +22,12 @@ export default function Home() {
               {/* Subtle black spread for contrast */}
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0)_60%)] blur-sm -z-10 rounded-full w-[100%] h-[100%] left-0 top-0 pointer-events-none"></div>
 
-              <h1 className="text-xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight uppercase italic drop-shadow-lg w-full">
+              <h1 className="text-[22px] sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight uppercase italic drop-shadow-lg w-full break-words max-w-[100vw]">
                 Megbízható autóalkatrészek<br />
                 Magyarországon
               </h1>
               <div className="inline-block mt-0 sm:mt-1 w-full flex justify-center">
-                <span className="text-[17px] sm:text-5xl lg:text-6xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-orange-500 uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] px-1 sm:px-0 whitespace-nowrap">
+                <span className="text-[16px] sm:text-5xl lg:text-6xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-orange-500 uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] px-1 sm:px-0 whitespace-nowrap">
                   15 év tapasztalattal
                 </span>
               </div>
