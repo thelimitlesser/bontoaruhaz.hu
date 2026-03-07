@@ -327,9 +327,9 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Hivatkozási szám *</label>
+                        <label className="text-sm font-medium text-gray-700">Termékszám (Belső azonosító) *</label>
                         <input name="productCode" type="text" required defaultValue={initialData?.productCode || ""} placeholder="pl. BONT-LOK-001" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
-                        <p className="text-xs text-gray-500 mt-1">Az Ön saját belső raktári azonosítója (pl. BONT-LOK-001).</p>
+                        <p className="text-xs text-gray-500 mt-1">Az Ön saját belső raktári azonosítója.</p>
                     </div>
                 </div>
 

@@ -85,10 +85,10 @@ export function Navbar() {
     return (
         <>
             <nav className="fixed top-0 left-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-xl transition-all font-[family-name:var(--font-geist-sans)]">
-                <div className="w-full relative px-6 h-20 flex items-center justify-between max-w-7xl mx-auto">
+                <div className="w-full relative px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between max-w-7xl mx-auto">
                     {/* Logo */}
-                    <Link href="/" className="-ml-1 sm:-ml-2 lg:-ml-4 flex items-center gap-1 sm:gap-3 text-base sm:text-[28px] font-black tracking-tighter text-foreground z-10 group">
-                        <div className="relative w-8 h-8 sm:w-16 sm:h-16 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Link href="/" className="-ml-1 sm:-ml-2 lg:-ml-4 flex items-center gap-1 sm:gap-3 text-[17px] sm:text-[28px] font-black tracking-tighter text-foreground z-10 group">
+                        <div className="relative w-9 h-9 sm:w-16 sm:h-16 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                             <img
                                 src="/logo_orange.png" alt="Logo" className="w-full h-full object-contain" style={{ filter: "drop-shadow(0px 0px 5px rgba(249,115,22,0.6))" }}
                             />

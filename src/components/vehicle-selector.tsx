@@ -1,15 +1,15 @@
 "use client";
 
-import { useState, useRef, useEffect } from"react";
-import { Search, Sparkles, Disc, Loader2 } from"lucide-react";
-import { useRouter } from"next/navigation";
-import clsx from"clsx";
-import { SearchableSelect } from"@/components/ui/searchable-select";
-import { getSearchProducts } from"@/app/actions/product";
-import Image from"next/image";
-import Link from"next/link";
+import { useState, useRef, useEffect } from "react";
+import { Search, Sparkles, Disc, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import clsx from "clsx";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { getSearchProducts } from "@/app/actions/product";
+import Image from "next/image";
+import Link from "next/link";
 
-type SearchMode ="ai" |"tire";
+type SearchMode = "ai" | "tire";
 
 export function VehicleSelector() {
     const router = useRouter();
@@ -19,7 +19,7 @@ export function VehicleSelector() {
     const [isThinking, setIsThinking] = useState(false);
 
     // Typewriter effect state
-    const placeholderTexts = ["Pl.: 5G1 941 005","Pl.: Audi a3 turbó","Pl.: 2015-ös fekete Golf heteshez bal első LED lámpa","Pl.: OPR kód alapján keresek...","Pl.: Generátor VW Passathoz" ];
+    const placeholderTexts = ["Pl.: 5G1 941 005", "Pl.: Audi a3 turbó", "Pl.: 2015-ös fekete Golf heteshez bal első LED lámpa", "Pl.: OPR kód alapján keresek...", "Pl.: Generátor VW Passathoz"];
     const [placeholderIndex, setPlaceholderIndex] = useState(0);
     const [currentText, setCurrentText] = useState("");
     const [isDeleting, setIsDeleting] = useState(false);
@@ -31,7 +31,7 @@ export function VehicleSelector() {
         if (!isDeleting && currentText === currentFullText) {
             // Pause before deleting
             timer = setTimeout(() => setIsDeleting(true), 2000);
-        } else if (isDeleting && currentText ==="") {
+        } else if (isDeleting && currentText === "") {
             // Move to next text and start typing
             setIsDeleting(false);
             setPlaceholderIndex((prev) => (prev + 1) % placeholderTexts.length);
@@ -107,8 +107,8 @@ export function VehicleSelector() {
         setIsThinking(true);
         try {
             const res = await fetch("/api/ai-search", {
-                method:"POST",
-                headers: {"Content-Type":"application/json" },
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ query: aiQuery })
             });
 
@@ -122,7 +122,7 @@ export function VehicleSelector() {
             if (filters.query && !filters.sku) params.set("query", filters.query);
 
             // Mark that this was an AI search so the results page can show special UI
-            params.set("ai_powered","true");
+            params.set("ai_powered", "true");
 
             // Smart Routing based on AI results
             if (filters.brand && filters.model && filters.category) {
@@ -156,33 +156,33 @@ export function VehicleSelector() {
             {/* Glowing top border specifically for AI */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-75 animate-pulse rounded-t-2xl" />
 
-            <div className="p-4 sm:p-8 bg-white/90 backdrop-blur-sm rounded-2xl">
-                <form onSubmit={handleSearch} className="flex flex-col gap-4 sm:gap-6">
+            <div className="p-3 sm:p-8 bg-white/90 backdrop-blur-sm rounded-2xl">
+                <form onSubmit={handleSearch} className="flex flex-col gap-3 sm:gap-6">
 
                     {/* --- AI SEARCH MODE --- */}
                     <div className="w-full relative group">
-                        <label className="block text-[11px] sm:text-sm font-bold text-gray-500 mb-2 ml-1 uppercase tracking-wider">
+                        <label className="block text-[10px] sm:text-sm font-bold text-gray-500 mb-2 ml-1 uppercase tracking-wider">
                             Kérdezd az Intelligens Keresőt:
                         </label>
 
                         <div className="relative flex items-center">
                             {/* Sparkle icon inside input */}
-                            <div className="absolute left-4 z-20 text-[var(--color-primary)]/80 animate-pulse pointer-events-none">
-                                <Sparkles className="w-5 h-5" />
+                            <div className="absolute left-3 sm:left-4 z-20 text-[var(--color-primary)]/80 animate-pulse pointer-events-none">
+                                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5" />
                             </div>
 
                             {/* Dynamic placeholder background layer */}
                             {!aiQuery && (
-                                <div className="absolute left-11 right-12 z-20 text-gray-400 text-[13px] sm:text-lg pointer-events-none transition-opacity duration-300 flex items-center h-full pt-[1px]">
+                                <div className="absolute left-9 sm:left-11 right-12 z-20 text-gray-400 text-[12px] sm:text-lg pointer-events-none transition-opacity duration-300 flex items-center h-full pt-[1px]">
                                     <span className="truncate">{currentText}</span>
                                     <span className="animate-pulse ml-[1px] font-light text-gray-400">|</span>
                                 </div>
                             )}
 
                             <input
-                                type="text" className={clsx("w-full bg-white border-2 border-[var(--color-primary)]/30 pl-11 pr-12 sm:pr-16 py-2 sm:py-4 text-[15px] sm:text-lg text-gray-900 focus:outline-none focus:border-[var(--color-primary)] transition-all shadow-inner h-[48px] sm:h-[60px] relative z-10",
+                                type="text" className={clsx("w-full bg-white border-2 border-[var(--color-primary)]/30 pl-9 sm:pl-11 pr-12 sm:pr-16 py-2 sm:py-4 text-[14px] sm:text-lg text-gray-900 focus:outline-none focus:border-[var(--color-primary)] transition-all shadow-inner h-[44px] sm:h-[60px] relative z-10",
                                     showDropdown
-                                        ?"rounded-t-2xl rounded-b-none border-b-0" :"rounded-2xl focus:ring-4 focus:ring-[var(--color-primary)]/10" )}
+                                        ? "rounded-t-2xl rounded-b-none border-b-0" : "rounded-xl focus:ring-4 focus:ring-[var(--color-primary)]/10")}
                                 value={aiQuery}
                                 onChange={(e) => setAiQuery(e.target.value)}
                                 onFocus={() => { if (instantResults.length > 0) setShowDropdown(true); }}
@@ -193,9 +193,9 @@ export function VehicleSelector() {
                             {/* Search Button Inside Input */}
                             <button
                                 type="submit" disabled={isThinking || !aiQuery.trim()}
-                                className={clsx("absolute right-2 top-2 bottom-2 z-20 aspect-square rounded-xl flex items-center justify-center transition-all",
+                                className={clsx("absolute right-1 sm:right-2 top-1 sm:top-2 bottom-1 sm:bottom-2 z-20 aspect-square rounded-lg sm:rounded-xl flex items-center justify-center transition-all",
                                     aiQuery.trim() && !isThinking
-                                        ?"bg-[var(--color-primary)] text-white shadow-md hover:scale-105" :"bg-gray-100 text-gray-400" )}
+                                        ? "bg-[var(--color-primary)] text-white shadow-md hover:scale-105" : "bg-gray-100 text-gray-400")}
                             >
                                 {isThinking ? (
                                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -222,9 +222,9 @@ export function VehicleSelector() {
                                             </div>
 
                                             {instantResults.map((product) => {
-                                                const imageUrl = product.images ? product.images.split(',')[0] :'https://placehold.co/100x100/1a1a1a/cccccc?text=NX';
+                                                const imageUrl = product.images ? product.images.split(',')[0] : 'https://placehold.co/100x100/1a1a1a/cccccc?text=NX';
                                                 const yearRange = product.yearFrom || product.yearTo
-                                                    ?`${product.yearFrom ||'?'} - ${product.yearTo ||'?'}` : null;
+                                                    ? `${product.yearFrom || '?'} - ${product.yearTo || '?'}` : null;
 
                                                 return (
                                                     <Link
@@ -268,7 +268,7 @@ export function VehicleSelector() {
 
                         {/* Explainer text */}
                         <p className="text-[10px] sm:text-xs text-center text-gray-400 mt-3 animate-fade-in leading-relaxed px-2">
-                            {isThinking ?"Az AI feldolgozza és kategorizálja a kérésedet..." :"Bármit beírhatsz az autóról vagy alkatrészről, az AI megérti és a megfelelő kategóriába irányít."}
+                            {isThinking ? "Az AI feldolgozza és kategorizálja a kérésedet..." : "Bármit beírhatsz az autóról vagy alkatrészről, az AI megérti és a megfelelő kategóriába irányít."}
                         </p>
                     </div>
 

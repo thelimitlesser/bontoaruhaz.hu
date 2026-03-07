@@ -24,7 +24,6 @@ export default async function InventoryPage({
         where.OR = [
             { name: { contains: query, mode: 'insensitive' } },
             { sku: { contains: query, mode: 'insensitive' } },
-            { productCode: { contains: query, mode: 'insensitive' } },
             { oemNumbers: { contains: query, mode: 'insensitive' } },
         ];
     }
@@ -67,7 +66,7 @@ export default async function InventoryPage({
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">Készlet & Raktár</h1>
                     <p className="text-gray-500">
-                        {totalParts} alkatrész a rendszerben. Keresés cikkszám, név, hivatkozási szám vagy OEM alapján.
+                        {totalParts} alkatrész a rendszerben. Keresés cikkszám, név vagy OEM alapján.
                     </p>
                 </div>
                 <div className="flex gap-3">
