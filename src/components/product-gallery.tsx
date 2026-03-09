@@ -14,6 +14,20 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     const [selectedImage, setSelectedImage] = useState(images[0]);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
+    const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+    const currentIndex = images.indexOf(selectedImage);
+
+    // Auto-slide logic
+    useEffect(() => {
+        if (!isAutoPlaying || images.length <= 1 || isFullscreen) return;
+
+        const interval = setInterval(() => {
+            const nextIndex = (currentIndex + 1) % images.length;
+            setSelectedImage(images[nextIndex]);
+        }, 4000);
+
+        return () => clearInterval(interval);
+    }, [isAutoPlaying, currentIndex, images.length, isFullscreen]);
 
     // Handle ESC key and scroll lock
     useEffect(() => {
@@ -31,16 +45,16 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
         }
     }, [isFullscreen]);
 
-    const currentIndex = images.indexOf(selectedImage);
-
     const handleNext = (e: React.MouseEvent) => {
         e.stopPropagation();
+        setIsAutoPlaying(false); // Stop auto-play on manual interaction
         const nextIndex = (currentIndex + 1) % images.length;
         setSelectedImage(images[nextIndex]);
     };
 
     const handlePrev = (e: React.MouseEvent) => {
         e.stopPropagation();
+        setIsAutoPlaying(false); // Stop auto-play on manual interaction
         const prevIndex = (currentIndex - 1 + images.length) % images.length;
         setSelectedImage(images[prevIndex]);
     };
@@ -62,11 +76,18 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
 
                 {/* Standard Image Tag for maximum compatibility */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                    src={selectedImage}
-                    alt={productName}
-                    className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" style={{ borderRadius: '46px' }}
-                />
+                <AnimatePresence mode="wait">
+                    <motion.img
+                        key={selectedImage}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        transition={{ duration: 0.5 }}
+                        src={selectedImage}
+                        alt={productName}
+                        className="w-full h-full object-cover" style={{ borderRadius: '46px' }}
+                    />
+                </AnimatePresence>
 
                 {/* Glass reflection effect */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-20 pointer-events-none" />
@@ -91,26 +112,30 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 )}
             </div>
 
-            {/* Thumbnails Row */}
+            {/* Pagination Dots */}
             {images.length > 1 && (
-                <div className="flex gap-2 sm:gap-4 overflow-x-auto py-3 px-2 scrollbar-none">
-                    {images.map((img, idx) => (
+                <div className="flex justify-center gap-2 py-2">
+                    {images.map((_, idx) => (
                         <button
                             key={idx}
-                            onClick={() => setSelectedImage(img)}
-                            className={clsx(
-                                "relative w-20 h-20 sm:w-24 sm:h-24 shrink-0 overflow-hidden transition-all duration-300 border-2 p-1 bg-white",
-                                selectedImage === img
-                                    ? "border-[var(--color-primary)] scale-105 shadow-lg shadow-[var(--color-primary)]/20"
-                                    : "border-transparent opacity-60 hover:opacity-100 hover:scale-105"
-                            )}
-                            style={{ borderRadius: '16px' }}
+                            onClick={() => {
+                                setSelectedImage(images[idx]);
+                                setIsAutoPlaying(false);
+                            }}
+                            className="relative w-2.5 h-2.5 rounded-full transition-all duration-300"
                         >
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img
-                                src={img}
-                                className="object-contain w-full h-full" alt={`${productName} - kép ${idx + 1}`}
-                            />
+                            <div className={clsx(
+                                "absolute inset-0 rounded-full transition-all duration-300",
+                                currentIndex === idx
+                                    ? "bg-[var(--color-primary)] scale-125"
+                                    : "bg-muted hover:bg-muted-foreground scale-100"
+                            )} />
+                            {currentIndex === idx && (
+                                <motion.div
+                                    layoutId="activeDot"
+                                    className="absolute inset-0 rounded-full bg-[var(--color-primary)] blur-[2px] opacity-50"
+                                />
+                            )}
                         </button>
                     ))}
                 </div>
