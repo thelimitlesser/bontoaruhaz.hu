@@ -6,30 +6,17 @@ import { categories, partsSubcategories as subcategories, partItems, brands, mod
 const ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY!);
 
 const systemInstruction = `You are an expert car parts search assistant for BONTÓÁRUHÁZ.
-Your goal is to parse user queries (typos, slang, or codes) and map them to technical metadata.
-
-Mapping Rules:
-1. **Technical IDs Recognition**:
-   - If a query looks like a part number (e.g., "1K0907379") or a reference number (e.g., "HIV-24-001" or just "2345"), put it in \`searchTerm\`.
-   - Mechanics often search by **Engine Code** (e.g., ASZ, M47, BKD). Match these to the provided model \`keywords\`.
-
-2. **Platform Compatibility (Expert Suggestions)**:
-   - Understand shared platforms:
-     - **VAG Group**: Audi A3 (8L/8P) ≈ VW Golf IV/V ≈ Leon I/II ≈ Octavia I/II.
-     - **PSA Group**: Peugeot 206/207 ≈ Citroen C2/C3.
-     - **Toyota/Suzuki**: Swace ≈ Corolla, Across ≈ RAV4.
-   - If one is mentioned, prefer that modelId, but keep context for potential matches across the group.
-
-3. **Error Resilience**: Be forgiving with spellings (folksvagen, mercédesz).
-4. **Output**: Hungarian terms. Always return valid JSON.
+Your goal is to parse user queries and map them to technical metadata.
 
 JSON Response Format:
 {
-  "brandId": string | null,
-  "modelId": string | null,
-  "categoryId": string | null,
-  "subcategoryId": string | null,
-  "searchTerm": string | null
+  "brand": "Alfa Romeo" | null,
+  "model": "147" | null,
+  "category": "Motor" | null,
+  "subcategory": "Turbófeltöltő" | null,
+  "item": "Turbó" | null,
+  "query": "search term or SKU" | null,
+  "sku": "specific part number if found" | null
 }`;
 
 async function generateWithRetry(model: any, prompt: string, retries = 3, delay = 1000) {
@@ -47,9 +34,9 @@ async function generateWithRetry(model: any, prompt: string, retries = 3, delay 
             const isRateLimit = error?.message?.includes("429") || error?.status === 429;
 
             if ((isServiceUnavailable || isRateLimit) && i < retries - 1) {
-                console.warn(`AI Search: Gemini busy/limited (attempt ${i + 1}/${retries}). Retrying in ${delay}ms...`);
+                console.warn(`AI Search: Gemini busy (attempt ${i + 1}/${retries}). Retrying...`);
                 await new Promise(resolve => setTimeout(resolve, delay));
-                delay *= 2; // Exponential backoff
+                delay *= 2;
                 continue;
             }
             throw error;
@@ -64,42 +51,91 @@ export async function POST(req: Request) {
 
         const model = ai.getGenerativeModel({ model: "gemini-flash-latest" });
 
-        const result = await generateWithRetry(model, systemInstruction + "\n\nKeresés:" + query);
+        const result = await generateWithRetry(model, systemInstruction + "\n\nKeresés: " + query);
 
         if (!result) throw new Error("No response from AI");
 
-        const response = result.response;
-        const text = response.text();
-        const parsedResult = JSON.parse(text);
+        const parsedResult = JSON.parse(result.response.text());
 
-        // Basic matching logic
-        let finalBrandSlug = null;
+        // 1. BRAND MATCHING
+        let finalBrand = null;
         if (parsedResult.brand) {
-            const b = brands.find(x => x.slug.toLowerCase() === parsedResult.brand.toLowerCase() || x.name.toLowerCase() === parsedResult.brand.toLowerCase());
-            if (b) finalBrandSlug = b.slug;
+            const b = brands.find(x =>
+                x.slug.toLowerCase() === parsedResult.brand.toLowerCase() ||
+                x.name.toLowerCase() === parsedResult.brand.toLowerCase()
+            );
+            if (b) finalBrand = b.slug;
         }
 
-        let finalModelSlug = null;
-        if (parsedResult.model && finalBrandSlug) {
-            const brandId = brands.find(b => b.slug === finalBrandSlug)?.id;
+        // 2. MODEL MATCHING
+        let finalModel = null;
+        if (parsedResult.model && finalBrand) {
+            const brandId = brands.find(b => b.slug === finalBrand)?.id;
             const availableModels = models.filter(m => m.brandId === brandId);
+            const mQuery = String(parsedResult.model).toLowerCase();
 
-            // Refined matching: slug, name, or keywords
-            const queryModel = String(parsedResult.model).toLowerCase();
             const m = availableModels.find(x =>
-                x.slug.toLowerCase() === queryModel ||
-                x.name.toLowerCase().includes(queryModel) ||
-                queryModel.includes(x.name.toLowerCase()) ||
-                x.keywords?.some(k => k.toLowerCase() === queryModel)
+                x.slug.toLowerCase() === mQuery ||
+                x.name.toLowerCase().includes(mQuery) ||
+                mQuery.includes(x.name.toLowerCase()) ||
+                x.keywords?.some(k => k.toLowerCase() === mQuery)
             );
+            if (m) finalModel = m.slug;
+        }
 
-            if (m) finalModelSlug = m.slug;
+        // 3. CATEGORY MATCHING
+        let finalCategory = null;
+        if (parsedResult.category) {
+            const cQuery = String(parsedResult.category).toLowerCase();
+            const c = categories.find(x =>
+                x.slug.toLowerCase() === cQuery ||
+                x.name.toLowerCase().includes(cQuery) ||
+                cQuery.includes(x.name.toLowerCase()) ||
+                x.keywords?.some(k => k.toLowerCase().includes(cQuery))
+            );
+            if (c) finalCategory = c.slug;
+        }
+
+        // 4. SUBCATEGORY MATCHING
+        let finalSubcategory = null;
+        if (parsedResult.subcategory && finalCategory) {
+            const catId = categories.find(c => c.slug === finalCategory)?.id;
+            const availableSubs = subcategories.filter(s => s.categoryId === catId);
+            const sQuery = String(parsedResult.subcategory).toLowerCase();
+
+            const s = availableSubs.find(x =>
+                x.slug.toLowerCase() === sQuery ||
+                x.name.toLowerCase().includes(sQuery) ||
+                sQuery.includes(x.name.toLowerCase()) ||
+                x.keywords?.some(k => k.toLowerCase().includes(sQuery))
+            );
+            if (s) finalSubcategory = s.slug;
+        }
+
+        // 5. ITEM MATCHING
+        let finalItem = null;
+        if (parsedResult.item && finalSubcategory) {
+            const subId = subcategories.find(s => s.slug === finalSubcategory)?.id;
+            const availableItems = partItems.filter(p => p.subcategoryId === subId);
+            const iQuery = String(parsedResult.item).toLowerCase();
+
+            const i = availableItems.find(x =>
+                x.slug.toLowerCase() === iQuery ||
+                x.name.toLowerCase().includes(iQuery) ||
+                iQuery.includes(x.name.toLowerCase()) ||
+                x.keywords?.some(k => k.toLowerCase().includes(iQuery))
+            );
+            if (i) finalItem = i.slug;
         }
 
         return NextResponse.json({
             ...parsedResult,
-            brand: finalBrandSlug,
-            model: finalModelSlug
+            brand: finalBrand,
+            model: finalModel,
+            category: finalCategory,
+            subcategory: finalSubcategory,
+            item: finalItem,
+            query: parsedResult.query || parsedResult.searchTerm || null
         });
     } catch (error) {
         console.error("AI Search Error:", error);

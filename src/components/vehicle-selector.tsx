@@ -139,9 +139,9 @@ export function VehicleSelector() {
                 // We only have Brand
                 router.push(`/brand/${filters.brand}?${params.toString()}`);
             } else {
-                // Fallback to general search if no brand was identified -> Now we alert the user instead of generic page
-                alert("Nem találtunk pontos autómárkát a keresésben. Kérjük, írjon be egy autómárkát vagy modellt (pl. BMW E90) a pontosabb eredményekért!");
-                setAiQuery(""); // optionally clear
+                // Fallback to general search if no brand was identified
+                params.set("query", aiQuery);
+                router.push(`/search?${params.toString()}`);
             }
 
         } catch (error) {
