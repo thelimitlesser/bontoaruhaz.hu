@@ -1,12 +1,12 @@
-export const dynamic ="force-dynamic";
-import { Plus } from"lucide-react";
-import Link from"next/link";
-import { prisma } from"@/lib/prisma";
+export const dynamic = "force-dynamic";
+import { Plus } from "lucide-react";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
 
 export default async function ProductsPage() {
     const parts = await prisma.part.findMany({
         take: 20,
-        orderBy: { createdAt:'desc' }
+        orderBy: { createdAt: 'desc' }
     });
 
     return (
@@ -51,7 +51,9 @@ export default async function ProductsPage() {
                                     </td>
                                     <td className="px-6 py-4 font-medium text-gray-900">{part.name}</td>
                                     <td className="px-6 py-4 font-mono text-xs">{part.sku}</td>
-                                    <td className="px-6 py-4">{part.priceGross} Ft</td>
+                                    <td className="px-6 py-4">
+                                        <span className="font-bold">{part.priceGross.toLocaleString()} Ft</span>
+                                    </td>
                                     <td className="px-6 py-4 text-green-600 font-bold">{part.stock} db</td>
                                     <td className="px-6 py-4 text-right">
                                         <button className="text-[var(--color-primary)] hover:underline">Szerkesztés</button>

@@ -17,6 +17,7 @@ export function VehicleSelector() {
     // AI State
     const [aiQuery, setAiQuery] = useState("");
     const [isThinking, setIsThinking] = useState(false);
+    const [aiError, setAiError] = useState<string | null>(null);
 
     // Typewriter effect state
     const placeholderTexts = ["Pl.: 5G1 941 005", "Pl.: Audi a3 turbó", "Pl.: 2015-ös fekete Golf heteshez bal első LED lámpa", "Pl.: OPR kód alapján keresek...", "Pl.: Generátor VW Passathoz"];
@@ -105,6 +106,7 @@ export function VehicleSelector() {
         if (!aiQuery.trim()) return;
 
         setIsThinking(true);
+        setAiError(null);
         try {
             const res = await fetch("/api/ai-search", {
                 method: "POST",
@@ -144,14 +146,14 @@ export function VehicleSelector() {
 
         } catch (error) {
             console.error(error);
-            alert("Hiba történt a keresés feldolgozása közben. Kérjük, próbálja újra!");
+            setAiError("Az AI pillanatnyilag túlterhelt. Kérjük, próbálja újra pár másodperc múlva, vagy használja a kézi keresőt!");
         } finally {
             setIsThinking(false);
         }
     };
 
     return (
-        <div className="w-full max-w-full rounded-2xl shadow-2xl relative bg-white border border-gray-200 transform transition-all hover:shadow-[0_20px_50px_rgba(219,81,60,0.15)] duration-200 overflow-hidden">
+        <div className="w-full max-w-full rounded-2xl shadow-2xl relative bg-white border border-gray-200 transform transition-all hover:shadow-[0_20px_50px_rgba(219,81,60,0.15)] duration-200">
 
             {/* Glowing top border specifically for AI */}
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-[var(--color-primary)] to-transparent opacity-75 animate-pulse rounded-t-2xl" />
@@ -208,7 +210,7 @@ export function VehicleSelector() {
                             {showDropdown && (
                                 <div
                                     ref={dropdownRef}
-                                    className="absolute top-full left-0 w-full mt-0 z-[100] bg-white rounded-b-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-2 border-t-[1px] border-[var(--color-primary)]/30 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[400px] overflow-y-auto" >
+                                    className="absolute top-full left-0 w-full mt-0 z-[100] bg-white rounded-b-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-2 border-t-[1px] border-[var(--color-primary)]/30 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[80vh] sm:max-h-[400px] overflow-y-auto" >
                                     {isInstantSearching ? (
                                         <div className="p-8 flex flex-col items-center justify-center text-muted-foreground gap-3">
                                             <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
@@ -266,10 +268,18 @@ export function VehicleSelector() {
 
 
 
-                        {/* Explainer text */}
-                        <p className="text-[10px] sm:text-xs text-center text-gray-400 mt-3 animate-fade-in leading-relaxed px-2">
-                            {isThinking ? "Az AI feldolgozza és kategorizálja a kérésedet..." : "Bármit beírhatsz az autóról vagy alkatrészről, az AI megérti és a megfelelő kategóriába irányít."}
-                        </p>
+                        {/* Explainer / Error text */}
+                        <div className="mt-3 min-h-[1.5rem] flex items-center justify-center animate-fade-in px-2">
+                            {aiError ? (
+                                <p className="text-[10px] sm:text-xs text-red-500 font-medium text-center">
+                                    {aiError}
+                                </p>
+                            ) : (
+                                <p className="text-[10px] sm:text-xs text-center text-gray-400 leading-relaxed">
+                                    {isThinking ? "Az AI éppen elemzi a kérésedet (ez eltarthat pár másodpercig)..." : "Bármit beírhatsz az autóról vagy alkatrészről, az AI megérti és a megfelelő kategóriába irányít."}
+                                </p>
+                            )}
+                        </div>
                     </div>
 
                 </form>

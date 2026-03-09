@@ -32,24 +32,8 @@ export const categories = partsCategoriesData;
 export const partsSubcategories = partsSubcategoriesData;
 export const partItems = partsPartItemsData;
 
-// --- Types ---
-
-export interface Brand {
-    id: string;
-    name: string;
-    slug: string;
-    logo: string; // URL or Lucide Icon Name
-    scale?: string; // Optional CSS scale class (e.g.,"scale-100","scale-125")
-}
-
-export interface Model {
-    id: string;
-    brandId: string;
-    name: string;
-    slug: string;
-    years?: string;
-    series?: string; // For grouping, e.g.,"MEGANE","ESPACE" 
-}
+import { Brand, Model } from './types';
+export type { Brand, Model };
 
 export interface Category extends PartCategory { }
 
@@ -117,6 +101,18 @@ export const brands: Brand[] = [
     { id: "toyota", name: "Toyota", slug: "toyota", logo: "/brands/toyota.svg?v=12" },
     { id: "volvo", name: "Volvo", slug: "volvo", logo: "/brands/volvo.svg?v=12" },
     { id: "volkswagen", name: "Volkswagen", slug: "volkswagen", logo: "/brands/volkswagen.svg?v=12" },
+    { id: "abarth", name: "Abarth", slug: "abarth", logo: "/brands/abarth.svg" },
+    { id: "aston-martin", name: "Aston Martin", slug: "aston-martin", logo: "/brands/aston-martin.svg" },
+    { id: "bentley", name: "Bentley", slug: "bentley", logo: "/brands/bentley.svg" },
+    { id: "byd", name: "BYD", slug: "byd", logo: "/brands/byd.svg" },
+    { id: "cupra", name: "Cupra", slug: "cupra", logo: "/brands/cupra.svg" },
+    { id: "ds", name: "DS", slug: "ds", logo: "/brands/ds.svg" },
+    { id: "ferrari", name: "Ferrari", slug: "ferrari", logo: "/brands/ferrari.svg" },
+    { id: "maserati", name: "Maserati", slug: "maserati", logo: "/brands/maserati.svg" },
+    { id: "mg", name: "MG", slug: "mg", logo: "/brands/mg.svg" },
+    { id: "porsche", name: "Porsche", slug: "porsche", logo: "/brands/porsche.svg" },
+    { id: "ssangyong", name: "SsangYong", slug: "ssangyong", logo: "/brands/ssangyong.svg" },
+    { id: "tesla", name: "Tesla", slug: "tesla", logo: "/brands/tesla.svg" },
 ];
 
 import { vwGroupModels } from './vw-group';

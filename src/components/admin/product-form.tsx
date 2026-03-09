@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createProduct, updateProduct } from "@/app/actions/product";
+import { createProduct, updateProduct, getNextReferenceNumber } from "@/app/actions/product";
 import { Save, Upload, X as CloseIcon, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
+import { ShippingCalculator } from "./shipping-calculator";
 import { categories, partsSubcategories as subcategories, brands, getModelsByBrand, partItems } from "@/lib/vehicle-data";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
@@ -54,12 +55,28 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
         initialData?.images ? initialData.images.split(',').filter(Boolean).map((url: string) => ({ preview: url, isExisting: true })) : []
     );
 
+    const [autoRef, setAutoRef] = useState(initialData?.productCode || "");
+
+    useEffect(() => {
+        if (!initialData) {
+            getNextReferenceNumber().then(setAutoRef);
+        }
+    }, [initialData]);
+
     const availableModels = selectedBrand ? getModelsByBrand(selectedBrand) : [];
     const addAvailableModels = addBrand ? getModelsByBrand(addBrand) : [];
 
     const brandOptions = brands.map(b => ({ value: b.id, label: b.name }));
-    const modelOptions = availableModels.map(m => ({ value: m.id, label: m.years ? `${m.name} (${m.years})` : m.name }));
-    const addModelOptions = addAvailableModels.map(m => ({ value: m.id, label: m.years ? `${m.name} (${m.years})` : m.name }));
+    const modelOptions = availableModels.map(m => ({
+        value: m.id,
+        label: m.years ? `${m.name} (${m.years})` : m.name,
+        group: m.series
+    }));
+    const addModelOptions = addAvailableModels.map(m => ({
+        value: m.id,
+        label: m.years ? `${m.name} (${m.years})` : m.name,
+        group: m.series
+    }));
 
     // Sort all part items alphabetically for the unified dropdown
     const allPartItemOptions = [...partItems]
@@ -111,6 +128,13 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 formData.append('imageFiles', img.file);
             }
         });
+
+        // Add mandatory description footer
+        const footer = "\n\nA hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!";
+        const currentDesc = formData.get('description') as string;
+        if (currentDesc && !currentDesc.includes("A hivatkozási számra hivatkozzon")) {
+            formData.set('description', currentDesc + footer);
+        }
 
         try {
             if (initialData?.id) {
@@ -321,15 +345,15 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Cikkszám (Hivatalos OEM) *</label>
+                        <label className="text-sm font-medium text-gray-700">Cikkszám (Gyári szám) *</label>
                         <input name="sku" type="text" required defaultValue={initialData?.sku || ""} placeholder="pl. 5G1941005" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
-                        <p className="text-xs text-gray-500 mt-1">Hivatalos gyári azonosító kód, vásárlói kereséshez.</p>
+                        <p className="text-xs text-gray-500 mt-1">Hivatalos gyári azonosító kód.</p>
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Termékszám (Belső azonosító) *</label>
-                        <input name="productCode" type="text" required defaultValue={initialData?.productCode || ""} placeholder="pl. BONT-LOK-001" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
-                        <p className="text-xs text-gray-500 mt-1">Az Ön saját belső raktári azonosítója.</p>
+                        <label className="text-sm font-medium text-gray-700">Hivatkozási szám (Belső azonosító) *</label>
+                        <input name="productCode" type="text" required value={autoRef} onChange={(e) => setAutoRef(e.target.value)} placeholder="pl. 1000" className="w-full bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase font-bold" />
+                        <p className="text-xs text-orange-700 mt-1">Automatikusan generált belső azonosító.</p>
                     </div>
                 </div>
 
@@ -338,28 +362,24 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                     <textarea
                         name="description" rows={4}
                         defaultValue={initialData?.description || ""}
-                        placeholder="Részletes leírás az alkatrészről..." spellCheck={true}
-                        autoComplete="off" autoCorrect="off" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" ></textarea>
+                        placeholder="Részletes leírás az alkatrészről..."
+                        spellCheck="true" lang="hu"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" ></textarea>
                 </div>
 
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Gyári számok (OEM számok)</label>
-                    <input
-                        name="oemNumbers" type="text" defaultValue={initialData?.oemNumbers || ""}
-                        placeholder="pl. 5G1941005, 5G1941006 (vesszővel elválasztva)" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
-                    <p className="text-xs text-gray-500 mt-1">Vesszővel elválasztva adja meg a gyári azonosítókat a pontosabb kereshetőség érdekében.</p>
-                </div>
 
             </div>
 
             <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
-                <h2 className="text-xl font-bold border-b border-gray-200 text-gray-900 pb-4">Árazás & Készlet</h2>
+                <h2 className="text-xl font-bold border-b border-gray-200 text-gray-900 pb-4">Árazás & Szállítás</h2>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Bruttó Ár (HUF) *</label>
-                        <input name="priceGross" type="number" required defaultValue={initialData?.priceGross || ""} placeholder="0" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
-                        <p className="text-xs text-gray-500">A nettó ár automatikusan számolódik (27% ÁFA).</p>
+                        <label className="text-sm font-medium text-gray-700">Eladási Ár (Ft) *</label>
+                        <div className="relative">
+                            <input name="priceGross" type="number" required defaultValue={initialData?.priceGross || ""} placeholder="pl. 15000" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold text-lg" />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">Ft</div>
+                        </div>
                     </div>
 
                     <div className="space-y-2">
@@ -375,6 +395,15 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                         <label className="text-sm font-medium text-gray-700">Készlet (db)</label>
                         <input name="stock" type="number" defaultValue={initialData?.stock ?? 1} className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                     </div>
+                </div>
+
+                <div className="pt-4">
+                    <ShippingCalculator
+                        initialWeight={initialData?.weight}
+                        initialHeight={initialData?.height}
+                        initialWidth={initialData?.width}
+                        initialLength={initialData?.length}
+                    />
                 </div>
             </div>
 

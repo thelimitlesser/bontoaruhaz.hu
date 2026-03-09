@@ -93,20 +93,22 @@ Requirements:
 async function main() {
     const allModels = [];
 
-    // Fully sequential to avoid 429 Rate Limit
-    for (let i = 0; i < brands.length; i++) {
-        const brand = brands[i];
-        const result = await generateModelsForBrand(brand);
+    // Batch processing to avoid rate limits (5 at a time)
+    const batchSize = 5;
+    for (let i = 0; i < brands.length; i += batchSize) {
+        const batch = brands.slice(i, i + batchSize);
+        const promises = batch.map(brand => generateModelsForBrand(brand));
+        const results = await Promise.all(promises);
 
-        if (result && Array.isArray(result)) {
-            allModels.push(...result);
-        }
+        results.forEach(result => {
+            if (result && Array.isArray(result)) {
+                allModels.push(...result);
+            }
+        });
 
-        console.log(`Completed ${i + 1}/${brands.length} (${brand.name})`);
-
-        // Wait 8 seconds between requests to be safe
-        console.log('Waiting 8 seconds before next request...');
-        await new Promise(r => setTimeout(r, 8000));
+        console.log(`Completed batch ${Math.ceil(i / batchSize) + 1}/${Math.ceil(brands.length / batchSize)}`);
+        // Small delay between batches
+        await new Promise(r => setTimeout(r, 2000));
     }
 
     await fs.writeFile('generated-models.json', JSON.stringify(allModels, null, 2));

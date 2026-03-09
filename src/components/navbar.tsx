@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { ShoppingCart, Menu, X, User, Home, Info, HelpCircle, ShieldCheck, Phone, LogOut } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -89,8 +90,8 @@ export function Navbar() {
                     {/* Logo */}
                     <Link href="/" className="-ml-1 sm:-ml-2 lg:-ml-4 flex items-center gap-1 sm:gap-3 text-[17px] sm:text-[28px] font-black tracking-tighter text-foreground z-10 group">
                         <div className="relative w-9 h-9 sm:w-16 sm:h-16 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <img
-                                src="/logo_orange.png" alt="Logo" className="w-full h-full object-contain" style={{ filter: "drop-shadow(0px 0px 5px rgba(249,115,22,0.6))" }}
+                            <Image
+                                src="/logo_orange.png" alt="Logo" fill priority sizes="(max-width: 640px) 36px, 64px" className="object-contain" style={{ filter: "drop-shadow(0px 0px 5px rgba(249,115,22,0.6))" }}
                             />
                         </div>
                         <span className="group-hover:text-[var(--color-primary)] transition-colors duration-300 whitespace-nowrap">

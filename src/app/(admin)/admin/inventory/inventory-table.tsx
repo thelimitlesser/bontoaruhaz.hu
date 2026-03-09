@@ -4,7 +4,8 @@ import { useState } from "react";
 import { Box, Edit2, Trash2, X, AlertTriangle } from "lucide-react";
 import { brands, getModelsByBrand } from "@/lib/vehicle-data";
 import { ProductForm } from "@/components/admin/product-form";
-import { deleteProduct } from "@/app/actions/product";
+import { deleteProduct, updatePartStock } from "@/app/actions/product";
+import { useRouter } from "next/navigation";
 
 interface InventoryTableProps {
     parts: any[];
@@ -14,6 +15,8 @@ export function InventoryTable({ parts }: InventoryTableProps) {
     const [editingProduct, setEditingProduct] = useState<any | null>(null);
     const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+
+    const router = useRouter();
 
     const handleDelete = async () => {
         if (!deletingProductId) return;
@@ -28,6 +31,14 @@ export function InventoryTable({ parts }: InventoryTableProps) {
         }
     };
 
+    const handleStockChange = async (id: string, newStock: number) => {
+        try {
+            await updatePartStock(id, newStock);
+        } catch (error) {
+            alert("Hiba történt a készlet frissítésekor!");
+        }
+    };
+
     return (
         <>
             <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
@@ -39,7 +50,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                 <th className="px-6 py-4">Alkatrész Info</th>
                                 <th className="px-6 py-4">Kompatibilitás</th>
                                 <th className="px-6 py-4 text-center">Státusz</th>
-                                <th className="px-6 py-4 text-right">Ár (Bruttó)</th>
+                                <th className="px-6 py-4 text-right">Ár</th>
                                 <th className="px-6 py-4 text-right">Műveletek</th>
                             </tr>
                         </thead>
@@ -100,23 +111,33 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                             )}
                                         </td>
                                         <td className="px-6 py-4 text-center">
-                                            {part.stock > 0 ? (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-500/10 text-green-500 border border-green-500/20">
-                                                    <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></span>
-                                                    Készleten ({part.stock})
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-500/10 text-red-500 border border-red-500/20">
-                                                    Kifogyott
-                                                </span>
-                                            )}
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="flex items-center bg-gray-50 border border-gray-200 rounded-lg overflow-hidden h-10">
+                                                    <button
+                                                        onClick={() => handleStockChange(part.id, Math.max(0, part.stock - 1))}
+                                                        className="px-3 hover:bg-gray-100 text-gray-600 transition-colors border-r border-gray-200"
+                                                    >-</button>
+                                                    <input
+                                                        type="number"
+                                                        value={part.stock}
+                                                        onChange={(e) => handleStockChange(part.id, parseInt(e.target.value) || 0)}
+                                                        className="w-12 text-center bg-transparent text-sm font-bold text-gray-900 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                    />
+                                                    <button
+                                                        onClick={() => handleStockChange(part.id, part.stock + 1)}
+                                                        className="px-3 hover:bg-gray-100 text-gray-600 transition-colors border-l border-gray-200"
+                                                    >+</button>
+                                                </div>
+                                                {part.stock > 0 ? (
+                                                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-tight">Készleten</span>
+                                                ) : (
+                                                    <span className="text-[10px] font-bold text-red-600 uppercase tracking-tight">Kifogyott</span>
+                                                )}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="font-bold text-gray-900 text-lg">
-                                                {part.priceGross.toLocaleString('hu-HU')} Ft
-                                            </div>
-                                            <div className="text-xs text-gray-500">
-                                                Nettó: {part.priceNet.toLocaleString('hu-HU')} Ft
+                                                {part.priceGross.toLocaleString()} Ft
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
