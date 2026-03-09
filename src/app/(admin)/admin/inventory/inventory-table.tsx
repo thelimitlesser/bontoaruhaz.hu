@@ -85,7 +85,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                             </div>
                                             {part.productCode && (
                                                 <div className="font-mono text-xs text-orange-700 bg-orange-100 inline-block px-2 py-1 rounded border border-orange-200 ml-2">
-                                                    Belső: {part.productCode}
+                                                    Hiv. szám: {part.productCode}
                                                 </div>
                                             )}
                                             {part.oemNumbers && (

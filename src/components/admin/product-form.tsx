@@ -351,9 +351,9 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                     </div>
 
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">Hivatkozási szám (Belső azonosító) *</label>
+                        <label className="text-sm font-medium text-gray-700">Hivatkozási szám *</label>
                         <input name="productCode" type="text" required value={autoRef} onChange={(e) => setAutoRef(e.target.value)} placeholder="pl. 1000" className="w-full bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase font-bold" />
-                        <p className="text-xs text-orange-700 mt-1">Automatikusan generált belső azonosító.</p>
+                        <p className="text-xs text-orange-700 mt-1">Automatikusan generált hivatkozási szám.</p>
                     </div>
                 </div>
 
