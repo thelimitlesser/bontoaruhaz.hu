@@ -158,8 +158,4 @@ export const frenchGroupModels: Model[] = [
     { "id": "dacia-logan-pickup", "brandId": "dacia", "name": "Logan Pick-up", "slug": "logan-pickup", "series": "Logan" },
     { "id": "dacia-solenza", "brandId": "dacia", "name": "Solenza", "slug": "solenza", "series": "Solenza" },
     { "id": "dacia-nova", "brandId": "dacia", "name": "Nova / SupeRNova", "slug": "nova", "series": "Nova" },
-    { "id": "ds-3", "brandId": "ds", "name": "DS 3 / DS 3 Crossback", "slug": "ds3", "series": "DS 3" },
-    { "id": "ds-4", "brandId": "ds", "name": "DS 4 / DS 4 Crossback", "slug": "ds4", "series": "DS 4" },
-    { "id": "ds-7", "brandId": "ds", "name": "DS 7 Crossback", "slug": "ds7", "series": "DS 7" },
-    { "id": "ds-9", "brandId": "ds", "name": "DS 9", "slug": "ds9", "series": "DS 9" }
 ];

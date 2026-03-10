@@ -101,18 +101,6 @@ export const brands: Brand[] = [
     { id: "toyota", name: "Toyota", slug: "toyota", logo: "/brands/toyota.svg?v=12" },
     { id: "volvo", name: "Volvo", slug: "volvo", logo: "/brands/volvo.svg?v=12" },
     { id: "volkswagen", name: "Volkswagen", slug: "volkswagen", logo: "/brands/volkswagen.svg?v=12" },
-    { id: "abarth", name: "Abarth", slug: "abarth", logo: "/brands/abarth.svg" },
-    { id: "aston-martin", name: "Aston Martin", slug: "aston-martin", logo: "/brands/aston-martin.svg" },
-    { id: "bentley", name: "Bentley", slug: "bentley", logo: "/brands/bentley.svg" },
-    { id: "byd", name: "BYD", slug: "byd", logo: "/brands/byd.svg" },
-    { id: "cupra", name: "Cupra", slug: "cupra", logo: "/brands/cupra.svg" },
-    { id: "ds", name: "DS", slug: "ds", logo: "/brands/ds.svg" },
-    { id: "ferrari", name: "Ferrari", slug: "ferrari", logo: "/brands/ferrari.svg" },
-    { id: "maserati", name: "Maserati", slug: "maserati", logo: "/brands/maserati.svg" },
-    { id: "mg", name: "MG", slug: "mg", logo: "/brands/mg.svg" },
-    { id: "porsche", name: "Porsche", slug: "porsche", logo: "/brands/porsche.svg" },
-    { id: "ssangyong", name: "SsangYong", slug: "ssangyong", logo: "/brands/ssangyong.svg" },
-    { id: "tesla", name: "Tesla", slug: "tesla", logo: "/brands/tesla.svg" },
 ];
 
 import { vwGroupModels } from './vw-group';
