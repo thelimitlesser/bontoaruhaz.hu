@@ -191,7 +191,7 @@ export function VehicleSelector() {
 
                             <input
                                 ref={inputRef}
-                                type="text" className={clsx("w-full bg-white border-2 border-[var(--color-primary)]/30 pl-9 sm:pl-11 pr-12 sm:pr-16 py-2 sm:py-4 text-[14px] sm:text-lg text-gray-900 focus:outline-none focus:border-[var(--color-primary)] transition-all shadow-inner h-[44px] sm:h-[60px] relative z-10",
+                                type="text" className={clsx("w-full bg-white border-2 border-[var(--color-primary)]/30 pl-9 sm:pl-11 pr-12 sm:pr-16 py-2 sm:py-4 text-base sm:text-lg text-gray-900 focus:outline-none focus:border-[var(--color-primary)] transition-all shadow-inner h-[44px] sm:h-[60px] relative z-10",
                                     showDropdown
                                         ? "rounded-t-2xl rounded-b-none border-b-0" : "rounded-xl focus:ring-4 focus:ring-[var(--color-primary)]/10")}
                                 value={aiQuery}
