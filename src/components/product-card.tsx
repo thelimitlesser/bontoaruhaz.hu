@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ShoppingCart, Tag, MapPin, Globe } from "lucide-react";
 import Image from "next/image";
+import { clsx } from "clsx";
 import { Product } from "@/lib/mock-data";
 
 // Add support for real Prisma Part
@@ -20,7 +21,10 @@ export interface PrismaPart {
     } | null;
 }
 
+import { useState } from "react";
+
 export function ProductCard({ product }: { product: Product | any }) {
+    const [isLoaded, setIsLoaded] = useState(false);
     // Adapter for Prisma Part
     const isPrisma = 'priceGross' in product;
 
@@ -55,12 +59,19 @@ export function ProductCard({ product }: { product: Product | any }) {
                 </div>
 
                 {/* Image Container */}
-                <div className="relative h-48 w-full mb-4 rounded-xl overflow-hidden bg-black/5">
+                <div className="relative h-48 w-full mb-4 rounded-xl overflow-hidden bg-muted/20">
+                    {!isLoaded && (
+                        <div className="absolute inset-0 bg-muted/20 animate-pulse" />
+                    )}
                     <Image
                         src={mainImage}
                         alt={product.name}
                         fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110" />
+                        onLoadingComplete={() => setIsLoaded(true)}
+                        className={clsx(
+                            "object-cover transition-all duration-500 group-hover:scale-110",
+                            isLoaded ? "opacity-100" : "opacity-0"
+                        )} />
                     {/* Scanline overlay on hover */}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>

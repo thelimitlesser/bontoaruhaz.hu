@@ -15,6 +15,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
     const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+    const [isLoaded, setIsLoaded] = useState(false);
     const currentIndex = images.indexOf(selectedImage);
 
     // Auto-slide logic
@@ -67,12 +68,17 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 - Strong Neon Border & Shadow
             */}
             <div
-                className="relative w-full h-[350px] md:h-[500px] bg-white overflow-hidden group transition-all duration-300 cursor-zoom-in" style={{
+                className="relative w-full h-[350px] md:h-[500px] bg-white overflow-hidden group transition-all duration-300 cursor-zoom-in touch-pan-y" style={{
                     borderRadius: '50px',
                     border: '1px solid var(--color-border)',
                 }}
                 onClick={() => setIsFullscreen(true)}
             >
+
+                {/* Skeleton Loader */}
+                {!isLoaded && (
+                    <div className="absolute inset-0 bg-muted animate-pulse" style={{ borderRadius: '46px' }} />
+                )}
 
                 {/* Standard Image Tag for maximum compatibility and instant switching */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -80,7 +86,11 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                     key={selectedImage}
                     src={selectedImage}
                     alt={productName}
-                    className="w-full h-full object-cover"
+                    onLoad={() => setIsLoaded(true)}
+                    className={clsx(
+                        "w-full h-full object-cover transition-opacity duration-300",
+                        isLoaded ? "opacity-100" : "opacity-0"
+                    )}
                     style={{ borderRadius: '46px' }}
                 />
 
@@ -93,15 +103,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                     <>
                         <button
                             onClick={handlePrev}
-                            className="absolute left-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white border border-border rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
+                            className="absolute left-4 top-1/2 -translate-y-1/2 p-4 md:p-3 bg-white/90 hover:bg-white border border-border rounded-full shadow-lg md:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10 active:scale-90"
                         >
-                            <ChevronLeft className="w-6 h-6 text-foreground" />
+                            <ChevronLeft className="w-6 h-6 md:w-6 md:h-6 text-foreground" />
                         </button>
                         <button
                             onClick={handleNext}
-                            className="absolute right-4 top-1/2 -translate-y-1/2 p-3 bg-white/80 hover:bg-white border border-border rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10"
+                            className="absolute right-4 top-1/2 -translate-y-1/2 p-4 md:p-3 bg-white/90 hover:bg-white border border-border rounded-full shadow-lg md:opacity-0 group-hover:opacity-100 transition-all duration-300 hover:scale-110 z-10 active:scale-90"
                         >
-                            <ChevronRight className="w-6 h-6 text-foreground" />
+                            <ChevronRight className="w-6 h-6 md:w-6 md:h-6 text-foreground" />
                         </button>
                     </>
                 )}

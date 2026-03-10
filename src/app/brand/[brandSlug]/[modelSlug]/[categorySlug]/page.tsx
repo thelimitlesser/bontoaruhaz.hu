@@ -1,9 +1,9 @@
 "use client";
 
-import { use, Suspense, useState, useEffect } from"react";
-import Link from"next/link";
-import Image from"next/image";
-import { notFound, useSearchParams } from"next/navigation";
+import { use, Suspense, useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { notFound, useSearchParams } from "next/navigation";
 import {
     getBrandBySlug,
     getModelBySlug,
@@ -11,13 +11,13 @@ import {
     getProducts,
     getSubcategoriesByCategory,
     getPartItemsBySubcategory
-} from"@/lib/vehicle-data";
-import { subcategories as allSubcategories, partItems as allPartItems } from"@/lib/parts-data";
-import { Filter } from"lucide-react";
-import { Navbar } from"@/components/navbar";
-import { AddToCartButton } from"@/components/add-to-cart-button";
-import { ProductCard } from"@/components/product-card";
-import { getSearchProducts } from"@/app/actions/product";
+} from "@/lib/vehicle-data";
+import { subcategories as allSubcategories, partItems as allPartItems } from "@/lib/parts-data";
+import { Filter } from "lucide-react";
+import { Navbar } from "@/components/navbar";
+import { AddToCartButton } from "@/components/add-to-cart-button";
+import { ProductCard } from "@/components/product-card";
+import { getSearchProducts } from "@/app/actions/product";
 
 function CategoryProductsContent({ params }: { params: { brandSlug: string; modelSlug: string; categorySlug: string } }) {
     const { brandSlug, modelSlug, categorySlug } = params;
@@ -34,11 +34,11 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
         notFound();
     }
 
-    const subcategories = getSubcategoriesByCategory(category.id).sort((a, b) => a.name.localeCompare(b.name,'hu'));
+    const subcategories = getSubcategoriesByCategory(category.id).sort((a, b) => a.name.localeCompare(b.name, 'hu'));
     const currentSubcategory = subcatSlug ? subcategories.find(s => s.slug === subcatSlug) : null;
 
     // Level 3 items for the selected subcategory
-    const partItems = currentSubcategory ? getPartItemsBySubcategory(currentSubcategory.id).sort((a, b) => a.name.localeCompare(b.name,'hu')) : [];
+    const partItems = currentSubcategory ? getPartItemsBySubcategory(currentSubcategory.id).sort((a, b) => a.name.localeCompare(b.name, 'hu')) : [];
     const currentPartItem = partItemSlug ? partItems.find(p => p.slug === partItemSlug) : null;
 
     const [realProducts, setRealProducts] = useState<any[]>([]);
@@ -74,21 +74,21 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
         <main className="pt-32 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto">
 
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-gray-500 mb-6 font-medium tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
-                <Link href="/" className="hover:text-[var(--color-primary)] transition-colors shrink-0">Autó kereső</Link>
-                <span className="shrink-0">/</span>
-                <Link href={`/brand/${brand.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0">{brand.name}</Link>
-                <span className="shrink-0">/</span>
-                <Link href={`/brand/${brand.slug}/${model.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0">{model.name}</Link>
-                <span className="shrink-0">/</span>
+            <div className="flex items-center gap-1 text-sm text-gray-500 mb-6 font-medium tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+                <Link href="/" className="hover:text-[var(--color-primary)] transition-colors shrink-0 p-2 -ml-2 rounded-lg hover:bg-foreground/5 active:scale-95">Autó kereső</Link>
+                <span className="shrink-0 opacity-40">/</span>
+                <Link href={`/brand/${brand.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 p-2 rounded-lg hover:bg-foreground/5 active:scale-95">{brand.name}</Link>
+                <span className="shrink-0 opacity-40">/</span>
+                <Link href={`/brand/${brand.slug}/${model.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 p-2 rounded-lg hover:bg-foreground/5 active:scale-95">{model.name}</Link>
+                <span className="shrink-0 opacity-40">/</span>
                 {currentSubcategory ? (
                     <>
-                        <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0">{category.name}</Link>
-                        <span className="shrink-0">/</span>
-                        <span className="text-gray-900 font-bold uppercase shrink-0">{currentSubcategory.name}</span>
+                        <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 p-2 rounded-lg hover:bg-foreground/5 active:scale-95">{category.name}</Link>
+                        <span className="shrink-0 opacity-40">/</span>
+                        <span className="text-gray-900 font-bold uppercase shrink-0 p-2">{currentSubcategory.name}</span>
                     </>
                 ) : (
-                    <span className="text-gray-900 font-bold uppercase shrink-0">{category.name}</span>
+                    <span className="text-gray-900 font-bold uppercase shrink-0 p-2">{category.name}</span>
                 )}
             </div>
 
@@ -135,7 +135,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                     <div className="flex flex-wrap gap-2 pb-2">
                         <Link
                             href={`/brand/${brand.slug}/${modelSlug}/${categorySlug}`}
-                            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${!currentSubcategory ?'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' :'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
+                            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${!currentSubcategory ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
                         >
                             Összes
                         </Link>
@@ -143,7 +143,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                             <Link
                                 key={subcat.id}
                                 href={`?subcat=${subcat.slug}`}
-                                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${currentSubcategory?.id === subcat.id ?'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' :'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
+                                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${currentSubcategory?.id === subcat.id ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
                             >
                                 {subcat.name}
                             </Link>
@@ -161,7 +161,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                             <div className="flex flex-wrap gap-2 pb-2">
                                 <Link
                                     href={`?subcat=${currentSubcategory.slug}`}
-                                    className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${!currentPartItem ?'bg-gray-900 text-white shadow-md' :'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
+                                    className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${!currentPartItem ? 'bg-gray-900 text-white shadow-md' : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
                                 >
                                     Bármelyik
                                 </Link>
@@ -169,7 +169,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                                     <Link
                                         key={item.id}
                                         href={`?subcat=${currentSubcategory.slug}&item=${item.slug}`}
-                                        className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${currentPartItem?.id === item.id ?'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' :'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
+                                        className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${currentPartItem?.id === item.id ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
                                     >
                                         {item.name}
                                     </Link>
@@ -191,7 +191,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                             {currentPartItem ? currentPartItem.name : (currentSubcategory ? currentSubcategory.name : category.name)} termékek
                         </h2>
                         <p className="text-gray-500 text-sm">
-                            Találatok: <span className="text-[var(--color-primary)] font-bold">{isLoading ?'...' : realProducts.length} db</span>
+                            Találatok: <span className="text-[var(--color-primary)] font-bold">{isLoading ? '...' : realProducts.length} db</span>
                         </p>
                     </header>
 

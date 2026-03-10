@@ -57,11 +57,11 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     model: modelName,
     sku: dbPart.sku,
     quantity: dbPart.stock,
-    shippingPrice: dbPart.shippingPrice,
-    weight: dbPart.weight,
-    length: dbPart.length,
-    width: dbPart.width,
-    height: dbPart.height,
+    shippingPrice: (dbPart as any).shippingPrice,
+    weight: (dbPart as any).weight,
+    length: (dbPart as any).length,
+    width: (dbPart as any).width,
+    height: (dbPart as any).height,
   };
 
   const galleryImages = images.length > 0 ? images : [mainImage];
@@ -77,13 +77,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="min-h-screen pb-24 px-4 md:px-8 relative z-0 bg-background" style={{ paddingTop: '100px' }}>
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen pb-24 px-4 md:px-8 relative z-0 bg-background overflow-x-hidden" style={{ paddingTop: '100px' }}>
+      <div className="max-w-7xl mx-auto space-y-6 w-full">
 
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center text-sm font-medium text-muted overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
-          <Link href="/" className="hover:text-[var(--color-primary)] transition-colors inline-flex items-center gap-2 shrink-0">
-            <ArrowLeft className="w-4 h-4" /> Vissza
+          <Link href="/" className="hover:text-[var(--color-primary)] transition-colors inline-flex items-center gap-2 shrink-0 p-2 -ml-2 rounded-lg hover:bg-foreground/5 active:scale-95">
+            <ArrowLeft className="w-5 h-5" /> <span className="text-base sm:text-sm">Vissza</span>
           </Link>
           <span className="mx-3 border-r h-4 border-border shrink-0"></span>
           {brandSlug ? (
@@ -129,7 +129,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
         {/* Title Area - Moved out of the Left Column for alignment */}
         <div className="space-y-4 pt-2">
-          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-foreground leading-[1.1] tracking-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-5xl font-black text-foreground leading-[1.1] tracking-tight break-words">
             {product.name}
           </h1>
 
@@ -249,10 +249,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                   <div>
                     <span className="text-xs font-bold text-muted uppercase tracking-widest block mb-1">Vételár</span>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-4xl sm:text-5xl font-black text-foreground tracking-tight">
+                      <span className="text-3xl sm:text-5xl font-black text-foreground tracking-tight">
                         {product.price.toLocaleString('hu-HU')}
                       </span>
-                      <span className="text-xl font-bold text-muted">Ft</span>
+                      <span className="text-lg sm:text-xl font-bold text-muted">Ft</span>
                     </div>
                   </div>
 
