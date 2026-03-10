@@ -74,20 +74,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 onClick={() => setIsFullscreen(true)}
             >
 
-                {/* Standard Image Tag for maximum compatibility */}
+                {/* Standard Image Tag for maximum compatibility and instant switching */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <AnimatePresence mode="wait">
-                    <motion.img
-                        key={selectedImage}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.5 }}
-                        src={selectedImage}
-                        alt={productName}
-                        className="w-full h-full object-cover" style={{ borderRadius: '46px' }}
-                    />
-                </AnimatePresence>
+                <img
+                    key={selectedImage}
+                    src={selectedImage}
+                    alt={productName}
+                    className="w-full h-full object-cover"
+                    style={{ borderRadius: '46px' }}
+                />
 
                 {/* Glass reflection effect */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-20 pointer-events-none" />
