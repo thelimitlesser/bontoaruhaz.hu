@@ -102,6 +102,7 @@ export function VehicleSelector() {
 
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
+        inputRef.current?.blur();
 
         // AI Search Path
         if (!aiQuery.trim()) return;
