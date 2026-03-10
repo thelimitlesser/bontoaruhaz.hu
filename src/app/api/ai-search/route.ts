@@ -57,75 +57,80 @@ export async function POST(req: Request) {
 
         const parsedResult = JSON.parse(result.response.text());
 
-        // 1. BRAND MATCHING
-        let finalBrand = null;
-        if (parsedResult.brand) {
-            const b = brands.find(x =>
-                x.slug.toLowerCase() === parsedResult.brand.toLowerCase() ||
-                x.name.toLowerCase() === parsedResult.brand.toLowerCase()
-            );
-            if (b) finalBrand = b.slug;
+        // Helper for weighted matching
+        function findBestMatch(list: any[], query: string) {
+            if (!query) return null;
+            const q = query.toLowerCase();
+
+            let best = null;
+            let bestScore = -1;
+
+            for (const item of list) {
+                let score = 0;
+                const name = item.name.toLowerCase();
+                const slug = item.slug.toLowerCase();
+                const keywords = item.keywords?.map((k: string) => k.toLowerCase()) || [];
+
+                if (name === q || slug === q) score = 100;
+                else if (name.startsWith(q)) score = 80;
+                else if (name.includes(q)) score = 60;
+                else if (keywords.includes(q)) score = 40;
+                else if (keywords.some((k: string) => k.includes(q))) score = 20;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    best = item;
+                }
+            }
+            return bestScore > 0 ? best : null;
         }
 
-        // 2. MODEL MATCHING
+        // 1. BRAND MATCHING
+        const matchedBrand = findBestMatch(brands, parsedResult.brand);
+        let finalBrand = matchedBrand?.slug || null;
+
+        // 2. MODEL MATCHING (Specific to Brand)
         let finalModel = null;
         if (parsedResult.model && finalBrand) {
-            const brandId = brands.find(b => b.slug === finalBrand)?.id;
-            const availableModels = models.filter(m => m.brandId === brandId);
-            const mQuery = String(parsedResult.model).toLowerCase();
-
-            const m = availableModels.find(x =>
-                x.slug.toLowerCase() === mQuery ||
-                x.name.toLowerCase().includes(mQuery) ||
-                mQuery.includes(x.name.toLowerCase()) ||
-                x.keywords?.some(k => k.toLowerCase() === mQuery)
-            );
-            if (m) finalModel = m.slug;
+            const bId = brands.find(b => b.slug === finalBrand)?.id;
+            const availableModels = models.filter(m => m.brandId === bId);
+            const matchedModel = findBestMatch(availableModels, parsedResult.model);
+            finalModel = matchedModel?.slug || null;
         }
 
-        // 3. CATEGORY MATCHING
+        // 3. HIERARCHICAL PART MATCHING (Look for best overall fit)
         let finalCategory = null;
-        if (parsedResult.category) {
-            const cQuery = String(parsedResult.category).toLowerCase();
-            const c = categories.find(x =>
-                x.slug.toLowerCase() === cQuery ||
-                x.name.toLowerCase().includes(cQuery) ||
-                cQuery.includes(x.name.toLowerCase()) ||
-                x.keywords?.some(k => k.toLowerCase().includes(cQuery))
-            );
-            if (c) finalCategory = c.slug;
-        }
-
-        // 4. SUBCATEGORY MATCHING
         let finalSubcategory = null;
-        if (parsedResult.subcategory && finalCategory) {
-            const catId = categories.find(c => c.slug === finalCategory)?.id;
-            const availableSubs = subcategories.filter(s => s.categoryId === catId);
-            const sQuery = String(parsedResult.subcategory).toLowerCase();
+        let finalItem = null;
 
-            const s = availableSubs.find(x =>
-                x.slug.toLowerCase() === sQuery ||
-                x.name.toLowerCase().includes(sQuery) ||
-                sQuery.includes(x.name.toLowerCase()) ||
-                x.keywords?.some(k => k.toLowerCase().includes(sQuery))
-            );
-            if (s) finalSubcategory = s.slug;
+        const matchedItemObj = findBestMatch(partItems, parsedResult.item);
+        const matchedSubObj = findBestMatch(subcategories, parsedResult.subcategory || parsedResult.item); // Fallback to item if subcat missing
+        const matchedCatObj = findBestMatch(categories, parsedResult.category || parsedResult.subcategory || parsedResult.item);
+
+        if (matchedItemObj) {
+            finalItem = matchedItemObj.slug;
+            const sub = subcategories.find(s => s.id === matchedItemObj.subcategoryId);
+            if (sub) {
+                finalSubcategory = sub.slug;
+                const cat = categories.find(c => c.id === sub.categoryId);
+                if (cat) finalCategory = cat.slug;
+            }
+        } else if (matchedSubObj) {
+            finalSubcategory = matchedSubObj.slug;
+            const cat = categories.find(c => c.id === matchedSubObj.categoryId);
+            if (cat) finalCategory = cat.slug;
+        } else if (matchedCatObj) {
+            finalCategory = matchedCatObj.slug;
         }
 
-        // 5. ITEM MATCHING
-        let finalItem = null;
-        if (parsedResult.item && finalSubcategory) {
-            const subId = subcategories.find(s => s.slug === finalSubcategory)?.id;
-            const availableItems = partItems.filter(p => p.subcategoryId === subId);
-            const iQuery = String(parsedResult.item).toLowerCase();
-
-            const i = availableItems.find(x =>
-                x.slug.toLowerCase() === iQuery ||
-                x.name.toLowerCase().includes(iQuery) ||
-                iQuery.includes(x.name.toLowerCase()) ||
-                x.keywords?.some(k => k.toLowerCase().includes(iQuery))
-            );
-            if (i) finalItem = i.slug;
+        // Special case: Search query might lead to a category/subcat directly if AI missed it
+        if (!finalCategory && !finalSubcategory && parsedResult.query) {
+            const matchedSub = findBestMatch(subcategories, parsedResult.query);
+            if (matchedSub) {
+                finalSubcategory = matchedSub.slug;
+                const cat = categories.find(c => c.id === matchedSub.categoryId);
+                if (cat) finalCategory = cat.slug;
+            }
         }
 
         return NextResponse.json({

@@ -125,6 +125,7 @@ export function VehicleSelector() {
 
             // Mark that this was an AI search so the results page can show special UI
             params.set("ai_powered", "true");
+            if (aiQuery) params.set("query", aiQuery);
 
             // Smart Routing based on AI results
             if (filters.brand && filters.model && filters.category) {
@@ -133,14 +134,19 @@ export function VehicleSelector() {
                 if (filters.item) params.set("item", filters.item);
                 router.push(`/brand/${filters.brand}/${filters.model}/${filters.category}?${params.toString()}`);
             } else if (filters.brand && filters.model) {
-                // We have Brand -> Model
+                // We have Brand -> Model, but maybe we have a subcategory/item inferred?
+                if (filters.subcategory) params.set("subcat", filters.subcategory);
+                if (filters.item) params.set("item", filters.item);
+
+                // If we have Brand/Model, go to model page.
+                // Note: The model page doesn't currently filter categories by query/subcat in a results view, 
+                // but it highlights them if counts>0.
                 router.push(`/brand/${filters.brand}/${filters.model}?${params.toString()}`);
             } else if (filters.brand) {
                 // We only have Brand
                 router.push(`/brand/${filters.brand}?${params.toString()}`);
             } else {
                 // Fallback to general search if no brand was identified
-                params.set("query", aiQuery);
                 router.push(`/search?${params.toString()}`);
             }
 
