@@ -105,7 +105,7 @@ export function SearchableSelect({
                             <Search className={clsx("absolute left-3 top-2.5 w-4 h-4", theme === "dark" ? "text-muted" : "text-gray-400")} />
                             <input
                                 ref={inputRef}
-                                type="text" className={clsx("w-full border border-transparent rounded-lg pl-9 pr-3 py-2 text-sm focus:outline-none focus:border-[var(--color-primary)] transition-colors",
+                                type="text" className={clsx("w-full border border-transparent rounded-lg pl-9 pr-3 py-2 text-base sm:text-sm focus:outline-none focus:border-[var(--color-primary)] transition-colors",
                                     theme === "dark" ? "bg-foreground/5 text-foreground placeholder-muted focus:bg-foreground/10" : "bg-gray-50 text-gray-900 placeholder-gray-500 focus:bg-gray-100")}
                                 placeholder="Keresés..." value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}

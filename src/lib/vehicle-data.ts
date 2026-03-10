@@ -32,8 +32,20 @@ export const categories = partsCategoriesData;
 export const partsSubcategories = partsSubcategoriesData;
 export const partItems = partsPartItemsData;
 
-import { Brand, Model } from './types';
-export type { Brand, Model };
+import { Brand as BrandType, Model as ModelType } from './types';
+
+// --- Types ---
+
+export interface Brand extends BrandType { }
+
+export interface Model {
+    id: string;
+    brandId: string;
+    name: string;
+    slug: string;
+    years?: string;
+    series?: string; // For grouping, e.g.,"MEGANE","ESPACE" 
+}
 
 export interface Category extends PartCategory { }
 

@@ -241,7 +241,11 @@ export function VehicleSelector() {
                                                     <Link
                                                         key={product.id}
                                                         href={`/product/${product.id}`}
-                                                        onClick={() => {
+                                                        onPointerDown={() => {
+                                                            inputRef.current?.blur();
+                                                            setShowDropdown(false);
+                                                        }}
+                                                        onClick={(e) => {
                                                             inputRef.current?.blur();
                                                             setShowDropdown(false);
                                                         }}
