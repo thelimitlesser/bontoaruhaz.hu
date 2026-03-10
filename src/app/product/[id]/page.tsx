@@ -77,8 +77,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   }
 
   return (
-    <div className="min-h-screen pb-24 px-4 md:px-8 relative z-0 bg-background overflow-x-hidden" style={{ paddingTop: '100px' }}>
-      <div className="max-w-7xl mx-auto space-y-6 w-full">
+    <div className="min-h-screen pb-24 px-4 md:px-8 relative z-0 bg-background overflow-x-hidden w-full max-w-[100vw]" style={{ paddingTop: '100px' }}>
+      <div className="max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden">
 
         {/* Breadcrumb Navigation */}
         <nav className="flex items-center text-sm font-medium text-muted overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">

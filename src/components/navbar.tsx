@@ -85,7 +85,7 @@ export function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-xl transition-all font-[family-name:var(--font-geist-sans)]">
+            <nav className="fixed top-0 left-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-xl transition-all font-[family-name:var(--font-geist-sans)] overflow-x-hidden">
                 <div className="w-full relative px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between max-w-7xl mx-auto">
                     {/* Logo */}
                     <Link href="/" className="-ml-1 sm:-ml-2 lg:-ml-4 flex items-center gap-1 sm:gap-3 text-[17px] sm:text-[28px] font-black tracking-tighter text-foreground z-10 group">

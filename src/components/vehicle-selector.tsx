@@ -59,6 +59,7 @@ export function VehicleSelector() {
     const [isInstantSearching, setIsInstantSearching] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const inputRef = useRef<HTMLInputElement>(null);
 
     // Click outside to close dropdown
     useEffect(() => {
@@ -188,6 +189,7 @@ export function VehicleSelector() {
                             )}
 
                             <input
+                                ref={inputRef}
                                 type="text" className={clsx("w-full bg-white border-2 border-[var(--color-primary)]/30 pl-9 sm:pl-11 pr-12 sm:pr-16 py-2 sm:py-4 text-[14px] sm:text-lg text-gray-900 focus:outline-none focus:border-[var(--color-primary)] transition-all shadow-inner h-[44px] sm:h-[60px] relative z-10",
                                     showDropdown
                                         ? "rounded-t-2xl rounded-b-none border-b-0" : "rounded-xl focus:ring-4 focus:ring-[var(--color-primary)]/10")}
@@ -216,7 +218,7 @@ export function VehicleSelector() {
                             {showDropdown && (
                                 <div
                                     ref={dropdownRef}
-                                    className="absolute top-full left-0 w-full mt-0 z-[100] bg-white rounded-b-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-2 border-t-[1px] border-[var(--color-primary)]/30 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[80vh] sm:max-h-[400px] overflow-y-auto" >
+                                    className="absolute top-full left-0 w-full mt-0 z-[100] bg-white rounded-b-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-2 border-t-[1px] border-[var(--color-primary)]/30 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[80vh] sm:max-h-[400px] overflow-y-auto overflow-x-hidden box-border" >
                                     {isInstantSearching ? (
                                         <div className="p-8 flex flex-col items-center justify-center text-muted-foreground gap-3">
                                             <Loader2 className="w-8 h-8 animate-spin text-[var(--color-primary)]" />
@@ -238,7 +240,10 @@ export function VehicleSelector() {
                                                     <Link
                                                         key={product.id}
                                                         href={`/product/${product.id}`}
-                                                        onClick={() => setShowDropdown(false)}
+                                                        onClick={() => {
+                                                            inputRef.current?.blur();
+                                                            setShowDropdown(false);
+                                                        }}
                                                         className="flex items-center gap-4 p-4 hover:bg-orange-50/50 transition-all group border-b border-gray-50 last:border-0" >
                                                         <div className="w-12 h-12 bg-white rounded-lg border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-[var(--color-primary)]/30 transition-colors">
                                                             <img src={imageUrl} alt={product.name} className="w-full h-full object-contain p-1 bg-white" />
