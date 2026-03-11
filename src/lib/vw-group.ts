@@ -1,10 +1,6 @@
 import { Model } from './types';
 
 export const vwGroupModels: Model[] = [
-    { "id": "audi-80", "brandId": "audi", "name": "80 (B1-B4)", "slug": "80", "series": "80" },
-    { "id": "audi-90", "brandId": "audi", "name": "90", "slug": "90", "series": "90" },
-    { "id": "audi-100", "brandId": "audi", "name": "100 (C1-C4)", "slug": "100", "series": "100" },
-    { "id": "audi-200", "brandId": "audi", "name": "200", "slug": "200", "series": "200" },
     { "id": "audi-v8", "brandId": "audi", "name": "V8", "slug": "v8", "series": "V8" },
     { "id": "audi-a1-8x", "brandId": "audi", "name": "A1 (8X)", "slug": "a1-8x", "series": "A1", "keywords": ["1.2 TFSI", "1.4 TFSI", "1.6 TDI", "2.0 TDI", "S1"] },
     { "id": "audi-a1-gb", "brandId": "audi", "name": "A1 (GB)", "slug": "a1-gb", "series": "A1", "keywords": ["25 TFSI", "30 TFSI", "35 TFSI", "40 TFSI"] },
