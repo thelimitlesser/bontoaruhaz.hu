@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import sharp from "sharp";
 import path from "path";
 import { promises as fs } from "fs";
+import { brands, models } from "@/lib/vehicle-data";
 
 export async function createProduct(formData: FormData) {
     const rawFormData = {
@@ -426,11 +427,32 @@ export async function getSearchProducts(params: {
     }
 
     if (query) {
-        const textSearch = [
+        const queryLower = query.toLowerCase();
+        const textSearch: any[] = [
             { name: { contains: query, mode: 'insensitive' } },
             { sku: { contains: query, mode: 'insensitive' } },
             { oemNumbers: { contains: query, mode: 'insensitive' } },
         ];
+
+        // Check for Brand/Model matches in the query string
+        const matchingBrands = brands.filter(b => queryLower.includes(b.name.toLowerCase()));
+
+        const matchingModels = models.filter(m => {
+            const mName = m.name.toLowerCase();
+            const cleanName = mName.replace(/[()]/g, '');
+            const mSeries = m.series?.toLowerCase() || '';
+
+            return queryLower.includes(cleanName) ||
+                (mSeries && queryLower.includes(mSeries)) ||
+                cleanName.split(/\s+\/\s+/).some(part => part.length > 1 && queryLower.includes(part.trim()));
+        });
+
+        if (matchingBrands.length > 0) {
+            textSearch.push({ brandId: { in: matchingBrands.map(b => b.id) } });
+        }
+        if (matchingModels.length > 0) {
+            textSearch.push({ modelId: { in: matchingModels.map(m => m.id) } });
+        }
 
         // If we already have a vehicle OR filter, we need to AND it with the text search
         if (where.OR) {
