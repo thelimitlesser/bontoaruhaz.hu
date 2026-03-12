@@ -134,6 +134,12 @@ export function VehicleSelector() {
                 // If it's a broad search (e.g., "Audi A7"), go to search page with brand filter and query
                 // This allows the search page to show all generations with switcher pills
                 if (filters.brand) params.set("brand", filters.brand);
+
+                // Preserve the categorized data to ensure an exact category match on the summary page
+                if (filters.category) params.set("cat", filters.category);
+                if (filters.subcategory) params.set("subcat", filters.subcategory);
+                if (filters.item) params.set("item", filters.item);
+
                 router.push(`/search?${params.toString()}`);
             } else if (filters.brand && filters.model && filters.category) {
                 // We have a full path: Brand -> Model -> Category

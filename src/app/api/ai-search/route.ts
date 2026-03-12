@@ -49,13 +49,18 @@ export async function POST(req: Request) {
         const { query } = await req.json();
         if (!query) return NextResponse.json({ error: "No query" }, { status: 400 });
 
+        console.log("AI Search API triggered for:", query);
+
         const model = ai.getGenerativeModel({ model: "gemini-flash-latest" });
 
+        console.log("Calling Gemini API...");
         const result = await generateWithRetry(model, systemInstruction + "\n\nKeresés: " + query);
+        console.log("Gemini API replied:", result?.response?.text());
 
         if (!result) throw new Error("No response from AI");
 
         const parsedResult = JSON.parse(result.response.text());
+        console.log("Parsed result:", parsedResult);
 
         // Helper for weighted matching
         function findBestMatch(list: any[], query: string) {

@@ -15,6 +15,12 @@ function SearchResultsContent() {
     const query = searchParams.get("query") || "";
     const brand = searchParams.get("brand") || undefined;
     const model = searchParams.get("model") || undefined;
+
+    // New exact-match category params for broad searches
+    const category = searchParams.get("cat") || undefined;
+    const subcategory = searchParams.get("subcat") || undefined;
+    const item = searchParams.get("item") || undefined;
+
     const aiPowered = searchParams.get("ai_powered") === "true";
 
     const [products, setProducts] = useState<any[]>([]);
@@ -28,6 +34,9 @@ function SearchResultsContent() {
                     query: query,
                     brand: brand,
                     model: model,
+                    category: category,
+                    subcategory: subcategory,
+                    partItem: item,
                     take: 24
                 });
                 setProducts(results);
