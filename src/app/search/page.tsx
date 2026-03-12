@@ -68,14 +68,64 @@ function SearchResultsContent() {
                 </div>
 
                 {aiPowered && (
-                    <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-100 px-3 py-1 rounded-full mb-4">
-                        <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
-                        <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wider">AI Segítséggel optimalizálva</span>
+                    <div className="flex flex-col gap-4 mb-6">
+                        <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-100 px-3 py-1 rounded-full w-fit">
+                            <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                            <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wider">AI Segítséggel optimalizálva</span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-1">Észlelt keresési feltételek:</span>
+
+                            {brand && (
+                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Márka</span>
+                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">{brand}</span>
+                                </div>
+                            )}
+
+                            {model ? (
+                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Modell</span>
+                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                        {products.find(p => p.modelId === model)?.modelName || model}
+                                    </span>
+                                </div>
+                            ) : brand && (
+                                <div className="px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-lg flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-blue-400 uppercase">Modell</span>
+                                    <span className="text-sm font-black text-blue-700 uppercase tracking-tight">Összes generáció</span>
+                                </div>
+                            )}
+
+                            {item ? (
+                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Alkatrész</span>
+                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                        {products.find(p => p.partItemId === item)?.partItemName || item.replace(/-/g, ' ')}
+                                    </span>
+                                </div>
+                            ) : subcategory ? (
+                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Kategória</span>
+                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                        {products.find(p => p.subcategoryId === subcategory)?.subcategoryName || subcategory.replace(/-/g, ' ')}
+                                    </span>
+                                </div>
+                            ) : category && (
+                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Főcsoport</span>
+                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                        {products.find(p => p.categoryId === category)?.categoryName || category.replace(/-/g, ' ')}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
                 <p className="text-gray-500 font-medium">
-                    Találatok a <span className="text-gray-900 font-bold">&quot;{query || brand || model}&quot;</span> kifejezésre.
+                    Találatok a <span className="text-gray-900 font-bold">&quot;{query}&quot;</span> kifejezésre.
                 </p>
 
                 {/* Generation / Model Switcher (Pills) */}
