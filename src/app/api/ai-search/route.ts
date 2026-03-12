@@ -86,16 +86,25 @@ export async function POST(req: Request) {
         }
 
         // 1. BRAND MATCHING
-        const matchedBrand = findBestMatch(brands, parsedResult.brand);
+        const matchedBrand = findBestMatch(brands.filter(b => !b.hidden), parsedResult.brand);
         let finalBrand = matchedBrand?.slug || null;
 
         // 2. MODEL MATCHING (Specific to Brand)
         let finalModel = null;
+        let isBroad = false;
         if (parsedResult.model && finalBrand) {
             const bId = brands.find(b => b.slug === finalBrand)?.id;
             const availableModels = models.filter(m => m.brandId === bId);
             const matchedModel = findBestMatch(availableModels, parsedResult.model);
             finalModel = matchedModel?.slug || null;
+
+            // Check if this matches multiple models in the same series
+            if (matchedModel) {
+                const sameSeries = availableModels.filter(m => m.series === matchedModel.series);
+                if (sameSeries.length > 1 && !parsedResult.model.toLowerCase().includes(matchedModel.name.toLowerCase().replace(/[()]/g, ''))) {
+                    isBroad = true;
+                }
+            }
         }
 
         // 3. HIERARCHICAL PART MATCHING (Look for best overall fit)
@@ -135,6 +144,7 @@ export async function POST(req: Request) {
 
         return NextResponse.json({
             ...parsedResult,
+            isBroad,
             brand: finalBrand,
             model: finalModel,
             category: finalCategory,

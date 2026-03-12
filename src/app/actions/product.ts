@@ -435,7 +435,7 @@ export async function getSearchProducts(params: {
         ];
 
         // Check for Brand/Model matches in the query string
-        const matchingBrands = brands.filter(b => queryLower.includes(b.name.toLowerCase()));
+        const matchingBrands = brands.filter(b => !b.hidden && queryLower.includes(b.name.toLowerCase()));
 
         const matchingModels = models.filter(m => {
             const mName = m.name.toLowerCase();
@@ -447,11 +447,40 @@ export async function getSearchProducts(params: {
                 cleanName.split(/\s+\/\s+/).some(part => part.length > 1 && queryLower.includes(part.trim()));
         });
 
-        if (matchingBrands.length > 0) {
-            textSearch.push({ brandId: { in: matchingBrands.map(b => b.id) } });
-        }
         if (matchingModels.length > 0) {
-            textSearch.push({ modelId: { in: matchingModels.map(m => m.id) } });
+            // Logic: If a user types "A6 C6", we want C6. If they type "A6", we want all A6 generations.
+            // First, find narrow matches (e.g. they typed the specific generation name)
+            const narrowMatches = matchingModels.filter(m => {
+                const nameInQuery = queryLower.includes(m.name.toLowerCase().replace(/[()]/g, ''));
+                return nameInQuery;
+            });
+
+            // Second, find series matches (e.g. they typed "A6")
+            const seriesMatches = matchingModels.filter(m => {
+                const seriesInQuery = m.series && queryLower.includes(m.series.toLowerCase());
+                return seriesInQuery;
+            });
+
+            // If they typed a specific series (like "A6"), we should include ALL models in that series,
+            // even if there's a narrow match for one specifically (e.g. "A6 C6"), because users might
+            // not know their exact generation and we have filter pills for them to narrow it down.
+            // So we combine the IDs of series matches and narrow matches.
+            // If neither applies (e.g. partial name match), we use all matching models.
+
+            let finalModelIds: string[] = [];
+
+            if (seriesMatches.length > 0) {
+                // They mentioned a series -> include all models in that series
+                finalModelIds = [...new Set([...seriesMatches.map(m => m.id), ...narrowMatches.map(m => m.id)])];
+            } else if (narrowMatches.length > 0) {
+                // They didn't mention a broad series, but mentioned a specific model
+                finalModelIds = narrowMatches.map(m => m.id);
+            } else {
+                // Just general partial matches
+                finalModelIds = matchingModels.map(m => m.id);
+            }
+
+            textSearch.push({ modelId: { in: finalModelIds } });
         }
 
         // If we already have a vehicle OR filter, we need to AND it with the text search
@@ -475,7 +504,17 @@ export async function getSearchProducts(params: {
         }
     });
 
-    return parts;
+    // Enhance results with human-readable model names from our vehicle-data
+    const enhancedParts = parts.map(part => {
+        const modelData = models.find(m => m.id === part.modelId);
+        return {
+            ...part,
+            brandName: brands.find(b => b.id === part.brandId)?.name || part.brandId,
+            modelName: modelData?.name || part.modelId
+        };
+    });
+
+    return enhancedParts;
 }
 export async function getCategoryProductCounts(brandId: string, modelId: string) {
     const counts = await prisma.part.groupBy({

@@ -56,6 +56,21 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
     );
 
     const [autoRef, setAutoRef] = useState(initialData?.productCode || "");
+    const [productName, setProductName] = useState(initialData?.name || "");
+    const [manualDescription, setManualDescription] = useState(() => {
+        if (!initialData?.description) return "";
+        // Try to strip header and footer if editing
+        const desc = initialData.description;
+        const footerStart = desc.indexOf("\n\nA hivatkozási számra hivatkozzon");
+        const headerEnd = desc.indexOf(".\n\n");
+        if (footerStart !== -1 && headerEnd !== -1) {
+            return desc.substring(headerEnd + 3, footerStart).trim();
+        }
+        return desc;
+    });
+
+    const [yearFrom, setYearFrom] = useState(initialData?.yearFrom?.toString() || "");
+    const [yearTo, setYearTo] = useState(initialData?.yearTo?.toString() || "");
 
     useEffect(() => {
         if (!initialData) {
@@ -63,10 +78,29 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
         }
     }, [initialData]);
 
+    // Automation Logic
+    useEffect(() => {
+        const brandName = brands.find(b => b.id === selectedBrand)?.name || "";
+        const modelName = getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name || "";
+        const partName = selectedPartItemObj?.name || "";
+        const years = yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : "";
+
+        const nameParts = [brandName, modelName, partName].filter(Boolean);
+
+        // Update name if we have at least one piece of info
+        if (nameParts.length > 0) {
+            const generatedName = `${nameParts.join(' ')}${years ? ` ${years}` : ''}`.trim();
+            setProductName(generatedName);
+        }
+
+    }, [selectedBrand, selectedModel, selectedPartItem, yearFrom, yearTo]);
+
     const availableModels = selectedBrand ? getModelsByBrand(selectedBrand) : [];
     const addAvailableModels = addBrand ? getModelsByBrand(addBrand) : [];
 
-    const brandOptions = brands.map(b => ({ value: b.id, label: b.name }));
+    const brandOptions = brands
+        .filter(b => !b.hidden)
+        .map(b => ({ value: b.id, label: b.name }));
     const modelOptions = availableModels.map(m => ({
         value: m.id,
         label: m.years ? `${m.name} (${m.years})` : m.name,
@@ -129,12 +163,21 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
             }
         });
 
-        // Add mandatory description footer
-        const footer = "\n\nA hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!";
-        const currentDesc = formData.get('description') as string;
-        if (currentDesc && !currentDesc.includes("A hivatkozási számra hivatkozzon")) {
-            formData.set('description', currentDesc + footer);
-        }
+        // 2. Automated Structured Description
+        const brandName = brands.find(b => b.id === selectedBrand)?.name || "";
+        const modelName = getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name || "";
+        const partName = selectedPartItemObj?.name || "";
+        const years = yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : "";
+
+        const header = (brandName && modelName && partName)
+            ? `Eladó gyári ${brandName} ${modelName} ${partName} ${years}.`
+            : "";
+
+        const footer = `\n\nA hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!\nHivatkozási szám: (${autoRef})`;
+
+        const finalDescription = `${header}${manualDescription ? `\n\n${manualDescription}` : ""}${footer}`;
+        formData.set('description', finalDescription);
+        formData.set('name', productName); // Ensure generated name is sent
 
         try {
             if (initialData?.id) {
@@ -201,12 +244,18 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Évjárat (mettől)</label>
-                                    <input name="yearFrom" type="number" defaultValue={initialData?.yearFrom || ""} placeholder="pl. 2012" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                                    <input
+                                        name="yearFrom" type="number"
+                                        value={yearFrom} onChange={(e) => setYearFrom(e.target.value)}
+                                        placeholder="pl. 2012" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                                 </div>
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium text-gray-700">Évjárat (meddig)</label>
-                                    <input name="yearTo" type="number" defaultValue={initialData?.yearTo || ""} placeholder="pl. 2020" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                                    <input
+                                        name="yearTo" type="number"
+                                        value={yearTo} onChange={(e) => setYearTo(e.target.value)}
+                                        placeholder="pl. 2020" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
                                 </div>
                             </div>
                         </div>
@@ -293,7 +342,8 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Megnevezés *</label>
-                        <input name="name" type="text" required defaultValue={initialData?.name || ""} placeholder="pl. Volkswagen Golf VII Generátor" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
+                        <input name="name" type="text" required value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="pl. Volkswagen Golf VII Generátor" className="w-full bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold" />
+                        <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">Automatikusan generált cím</p>
                     </div>
 
                     <div className="w-full">
@@ -358,13 +408,29 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Leírás</label>
+                    <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium text-gray-700">Egyedi Leírás (középső szöveg)</label>
+                        <span className="text-[10px] text-[var(--color-primary)] font-bold uppercase tracking-wider">Helyesírás-ellenőrző aktív</span>
+                    </div>
                     <textarea
-                        name="description" rows={4}
-                        defaultValue={initialData?.description || ""}
-                        placeholder="Részletes leírás az alkatrészről..."
-                        spellCheck="true" lang="hu"
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" ></textarea>
+                        name="manualDescription" rows={4}
+                        value={manualDescription}
+                        onChange={(e) => setManualDescription(e.target.value)}
+                        placeholder="Írd ide az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
+                        spellCheck={true} lang="hu"
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors resize-none" ></textarea>
+
+                    <div className="mt-4 p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg">
+                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Véglegesített Leírás betekintő:</h4>
+                        <div className="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed italic">
+                            {(selectedBrand && selectedModel && selectedPartItemObj) ? `Eladó gyári ${brands.find(b => b.id === selectedBrand)?.name} ${getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name} ${selectedPartItemObj?.name} ${yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : ""}.` : "[Automatikus leírás fejléc...]"}
+                            {"\n\n"}
+                            {manualDescription || "[Köztes egyedi szöveg helye...]"}
+                            {"\n\n"}
+                            A hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!{"\n"}
+                            Hivatkozási szám: ({autoRef})
+                        </div>
+                    </div>
                 </div>
 
 

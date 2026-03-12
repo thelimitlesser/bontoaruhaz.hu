@@ -81,7 +81,9 @@ export function ProductCard({ product }: { product: Product | any }) {
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                             <Tag className="w-3 h-3 text-[var(--color-primary)]" />
-                            <span className="text-xs text-muted uppercase tracking-wider">{displayBrand}</span>
+                            <span className="text-xs text-muted uppercase tracking-wider">
+                                {isPrisma ? `${product.brandName || product.brandId} ${product.modelName || ''}` : product.brand}
+                            </span>
                         </div>
                         {isPrisma && product.partner && (
                             <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-foreground/5 px-2 py-0.5 rounded">

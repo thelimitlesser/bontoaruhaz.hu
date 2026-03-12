@@ -83,6 +83,11 @@ export function Navbar() {
         { href: "/contact", label: "Kapcsolat", icon: Phone },
     ];
 
+    // Do not show the main Navbar in the Admin section
+    if (pathname?.startsWith("/admin")) {
+        return null;
+    }
+
     return (
         <>
             <nav className="fixed top-0 left-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-xl transition-all font-[family-name:var(--font-geist-sans)] overflow-x-hidden">

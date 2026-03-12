@@ -4,6 +4,7 @@ export interface Brand {
     slug: string;
     logo: string; // URL or Lucide Icon Name
     scale?: string; // Optional CSS scale class (e.g., "scale-100", "scale-125")
+    hidden?: boolean;
 }
 
 export interface Model {

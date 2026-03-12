@@ -130,7 +130,12 @@ export function VehicleSelector() {
             if (aiQuery) params.set("query", aiQuery);
 
             // Smart Routing based on AI results
-            if (filters.brand && filters.model && filters.category) {
+            if (filters.isBroad) {
+                // If it's a broad search (e.g., "Audi A7"), go to search page with brand filter and query
+                // This allows the search page to show all generations with switcher pills
+                if (filters.brand) params.set("brand", filters.brand);
+                router.push(`/search?${params.toString()}`);
+            } else if (filters.brand && filters.model && filters.category) {
                 // We have a full path: Brand -> Model -> Category
                 if (filters.subcategory) params.set("subcat", filters.subcategory);
                 if (filters.item) params.set("item", filters.item);
@@ -141,8 +146,6 @@ export function VehicleSelector() {
                 if (filters.item) params.set("item", filters.item);
 
                 // If we have Brand/Model, go to model page.
-                // Note: The model page doesn't currently filter categories by query/subcat in a results view, 
-                // but it highlights them if counts>0.
                 router.push(`/brand/${filters.brand}/${filters.model}?${params.toString()}`);
             } else if (filters.brand) {
                 // We only have Brand

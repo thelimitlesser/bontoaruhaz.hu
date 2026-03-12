@@ -1,14 +1,16 @@
 "use client";
 
 import { use, Suspense, useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { ProductCard } from "@/components/product-card";
 import { getSearchProducts } from "@/app/actions/product";
 import { Filter, Search, Loader2 } from "lucide-react";
 import Link from "next/link";
+import clsx from "clsx";
 
 function SearchResultsContent() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const query = searchParams.get("query") || "";
     const brand = searchParams.get("brand") || undefined;
@@ -66,6 +68,50 @@ function SearchResultsContent() {
                 <p className="text-gray-500 font-medium">
                     Találatok a <span className="text-gray-900 font-bold">&quot;{query || brand || model}&quot;</span> kifejezésre.
                 </p>
+
+                {/* Generation / Model Switcher (Pills) */}
+                {!isLoading && products.length > 0 && (
+                    <div className="mt-6 flex flex-wrap gap-2">
+                        <button
+                            onClick={() => {
+                                const params = new URLSearchParams(searchParams.toString());
+                                params.delete("model");
+                                router.push(`/search?${params.toString()}`);
+                            }}
+                            className={clsx(
+                                "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border-2",
+                                !model
+                                    ? "bg-gray-900 border-gray-900 text-white shadow-lg"
+                                    : "bg-white border-gray-100 text-gray-500 hover:border-gray-300"
+                            )}>
+                            Összes generáció
+                        </button>
+
+                        {/* Unique models in the result set */}
+                        {Array.from(new Set(products.map(p => p.modelId))).filter(Boolean).map(mId => {
+                            const modelData = products.find(p => p.modelId === mId)?.modelName || mId;
+                            const isSelected = model === mId;
+
+                            return (
+                                <button
+                                    key={mId}
+                                    onClick={() => {
+                                        const params = new URLSearchParams(searchParams.toString());
+                                        params.set("model", mId);
+                                        router.push(`/search?${params.toString()}`);
+                                    }}
+                                    className={clsx(
+                                        "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border-2",
+                                        isSelected
+                                            ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20"
+                                            : "bg-white border-gray-100 text-gray-500 hover:border-gray-300"
+                                    )}>
+                                    {modelData}
+                                </button>
+                            )
+                        })}
+                    </div>
+                )}
             </div>
 
             {/* Results Grid */}

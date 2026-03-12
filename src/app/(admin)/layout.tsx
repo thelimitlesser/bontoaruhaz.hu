@@ -1,11 +1,11 @@
-import Link from"next/link";
-import { LayoutDashboard, Package, ShoppingCart, Users, RotateCcw } from"lucide-react";
-import { createClient } from"@/lib/supabase/server";
-import { redirect } from"next/navigation";
-import { ensureUserExists } from"@/app/actions/user";
-import { AdminSidebar } from"@/components/admin/admin-nav";
+import Link from "next/link";
+import { LayoutDashboard, Package, ShoppingCart, Users, RotateCcw } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { ensureUserExists } from "@/app/actions/user";
+import { AdminSidebar } from "@/components/admin/admin-nav";
 
-export const dynamic ="force-dynamic";
+export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
     const dbUser = await ensureUserExists();
@@ -17,17 +17,17 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
     console.log(`AdminLayout: Found user ${dbUser.email} with role ${dbUser.role}`);
 
-    if (dbUser.role !=='ADMIN') {
+    if (dbUser.role !== 'ADMIN') {
         console.log(`AdminLayout: Access denied for ${dbUser.email}. Required: ADMIN, Found: ${dbUser.role}`);
         redirect("/");
     }
 
     return (
-        <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-900 font-sans pt-16 lg:pt-20">
+        <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-900 font-sans pt-16 lg:pt-0">
             <AdminSidebar user={{ fullName: dbUser.fullName, email: dbUser.email }} />
 
             {/* Main Content */}
-            <main className="flex-1 bg-gray-50 p-4 sm:p-8">
+            <main className="flex-1 lg:pl-72 bg-gray-50 p-4 sm:p-8">
                 {children}
             </main>
         </div>

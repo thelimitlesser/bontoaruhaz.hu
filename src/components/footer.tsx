@@ -1,7 +1,16 @@
-import Link from"next/link";
-import { Facebook, Instagram, Mail, Phone, MapPin } from"lucide-react";
+"use client";
+
+import Link from "next/link";
+import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 export function Footer() {
+    const pathname = usePathname();
+
+    if (pathname?.startsWith("/admin")) {
+        return null; // Don't show footer on admin pages
+    }
+
     return (
         <footer className="bg-foreground text-background/80 pt-16 pb-8 font-[family-name:var(--font-geist-sans)]">
             <div className="max-w-7xl mx-auto px-6">
@@ -12,7 +21,7 @@ export function Footer() {
                         <Link href="/" className="inline-flex items-center gap-2 text-xl sm:text-2xl font-black tracking-tighter text-background group mx-auto sm:mx-0">
                             <div className="relative w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                                 <img
-                                    src="/logo_orange.png" alt="Logo" className="w-full h-full object-contain" style={{ filter:"drop-shadow(0px 0px 5px rgba(249,115,22,0.6))" }}
+                                    src="/logo_orange.png" alt="Logo" className="w-full h-full object-contain" style={{ filter: "drop-shadow(0px 0px 5px rgba(249,115,22,0.6))" }}
                                 />
                             </div>
                             <span className="whitespace-nowrap">

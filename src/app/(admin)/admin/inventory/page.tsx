@@ -40,7 +40,9 @@ export default async function InventoryPage({
 
     // 2. Fetch Dropdown Data from vehicle-data directly based on inventory or just use all
     // To keep it simple and fast, we provide all brands that exist in vehicle-data
-    const makeOptions = brands.map(b => ({ value: b.id, label: b.name }));
+    const makeOptions = brands
+        .filter(b => !b.hidden)
+        .map(b => ({ value: b.id, label: b.name }));
 
     // For models, if a make is selected, provide its models
     const availableModels = make ? getModelsByBrand(make) : [];

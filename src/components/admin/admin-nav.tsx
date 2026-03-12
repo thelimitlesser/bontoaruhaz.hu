@@ -48,7 +48,7 @@ export function AdminSidebar({ user }: AdminNavProps) {
     return (
         <>
             {/* Mobile Header */}
-            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 flex items-center justify-between px-4">
+            <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-[100] flex items-center justify-between px-4 shadow-sm">
                 <Link href="/" className="flex items-center gap-2">
                     <img src="/logo_orange.png" alt="Logo" className="w-8 h-8 object-contain" />
                     <span className="font-black text-lg tracking-tighter">
@@ -65,13 +65,13 @@ export function AdminSidebar({ user }: AdminNavProps) {
             {/* Backdrop for Mobile */}
             {isOpen && (
                 <div
-                    className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity duration-300" onClick={closeMenu}
+                    className="lg:hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[90] transition-opacity duration-300" onClick={closeMenu}
                 />
             )}
 
             {/* Sidebar container */}
             <aside
-                className={`fixed lg:static inset-y-0 left-0 w-72 bg-white border-r border-gray-100 flex flex-col z-50 transition-transform duration-300 lg:translate-x-0 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+                className={`fixed inset-y-0 left-0 w-72 bg-white border-r border-gray-100 flex flex-col z-[100] transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
             >
                 {/* Logo & Close (Mobile) */}
                 <div className="p-6 h-20 flex items-center justify-between border-b border-gray-50">
