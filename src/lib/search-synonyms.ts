@@ -1,0 +1,37 @@
+/**
+ * Synonym dictionary for common Hungarian automotive terms.
+ * Maps colloquial or common terms to technical search keywords.
+ */
+export const partSynonyms: Record<string, string[]> = {
+    "lámpa": ["fényszóró", "hátsólámpa", "ködlámpa", "irányjelző", "index", "világítás"],
+    "fény": ["fényszóró", "világítás"],
+    "tükör": ["visszapillantó", "oldaltükör"],
+    "visszapillantó": ["tükör"],
+    "váltó": ["sebességváltó", "automata váltó", "kézi váltó"],
+    "sebességváltó": ["váltó"],
+    "gumi": ["gumiabroncs", "abroncs"],
+    "abroncs": ["gumiabroncs", "gumi"],
+    "felni": ["keréktárcsa", "alufelni", "acélfelni"],
+    "felnigarnitúra": ["keréktárcsa", "felni"],
+    "kerék": ["keréktárcsa", "gumiabroncs", "felni"],
+    "motor": ["erőforrás", "hajtómű", "blokk"],
+    "blokk": ["motor", "hengerfej"],
+    "lökhárító": ["lökös", "ütköző"],
+    "lökös": ["lökhárító"],
+    "szélvédő": ["üveg", "ablak"],
+    "ablak": ["szélvédő", "oldalüveg"],
+    "teleszkóp": ["lengéscsillapító", "gátló"],
+    "gátló": ["lengéscsillapító"],
+    "fék": ["féktárcsa", "fékbetét", "féknyereg", "fékmunkahenger"],
+    "ajtó": ["oldalajtó", "csomagtérajtó", "géptető"],
+    "hátsó ajtó": ["csomagtérajtó", "ötödik ajtó"],
+    "motorháztető": ["géptető", "motorház"],
+    "géptető": ["motorháztető"],
+    "ülés": ["fotel", "belső"],
+    "kárpit": ["belső", "ajtókárpit"],
+    "kormány": ["volán"],
+    "hűtő": ["vízhűtő", "klímahűtő", "intercooler"],
+    "műszerfal": ["óraegység", "kilométeróra"],
+    "generátor": ["töltés"],
+    "önindító": ["indítómotor"],
+};

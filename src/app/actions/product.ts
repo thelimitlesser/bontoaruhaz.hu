@@ -7,7 +7,9 @@ import { createClient } from "@/lib/supabase/server";
 import sharp from "sharp";
 import path from "path";
 import { promises as fs } from "fs";
-import { brands, models } from "@/lib/vehicle-data";
+import { brands, models, partItems, categories, partsSubcategories as subcategories } from "@/lib/vehicle-data";
+import { partSynonyms } from "@/lib/search-synonyms";
+import { findClosestMatches } from "@/lib/string-similarity";
 
 export async function createProduct(formData: FormData) {
     const rawFormData = {
@@ -19,6 +21,7 @@ export async function createProduct(formData: FormData) {
         priceNet: Math.round(parseInt(formData.get('priceGross') as string) / 1.27),
         description: formData.get('description') as string,
         oemNumbers: formData.get('oemNumbers') as string, // stored as CSV string
+        engineCode: formData.get('engineCode') as string,
         condition: formData.get('condition') as string,
         stock: parseInt(formData.get('stock') as string),
         brandId: formData.get('brandId') as string,
@@ -147,6 +150,7 @@ export async function createProduct(formData: FormData) {
         data: {
             name: rawFormData.name,
             sku: rawFormData.sku,
+            engineCode: rawFormData.engineCode,
             productCode: rawFormData.productCode,
             description: rawFormData.description,
             priceGross: rawFormData.priceGross,
@@ -196,6 +200,7 @@ export async function updateProduct(id: string, formData: FormData) {
         oemNumbers: formData.get('oemNumbers') as string,
         condition: formData.get('condition') as string,
         stock: parseInt(formData.get('stock') as string),
+        engineCode: formData.get('engineCode') as string,
         brandId: formData.get('brandId') as string,
         modelId: formData.get('modelId') as string,
         categoryId: formData.get('categoryId') as string,
@@ -276,6 +281,7 @@ export async function updateProduct(id: string, formData: FormData) {
         data: {
             name: rawFormData.name,
             sku: rawFormData.sku,
+            engineCode: rawFormData.engineCode,
             productCode: rawFormData.productCode,
             description: rawFormData.description,
             priceGross: rawFormData.priceGross,
@@ -379,29 +385,40 @@ export async function getSearchProducts(params: {
     query?: string;
     take?: number;
 }) {
-    const { brand, model, category, subcategory, partItem, year, minPrice, maxPrice, query, take } = params;
+    let { query, year: searchYear } = params;
+    const { brand, model, category, subcategory, partItem, minPrice, maxPrice, take } = params;
+
+    // Smart year detection from query (e.g. "Audi A6 2018")
+    if (query && !searchYear) {
+        const yearMatch = query.match(/\b(19[5-9]\d|20[0-2]\d|2030)\b/);
+        if (yearMatch) {
+            searchYear = parseInt(yearMatch[0]);
+            // Remove the year from the query to avoid noise in text search
+            query = query.replace(yearMatch[0], '').trim().replace(/\s+/g, ' ');
+        }
+    }
 
     const where: any = {};
 
     const vehicleFilters: any[] = [];
-    if (brand || model || year) {
+    if (brand || model || searchYear) {
         const primaryMatch: any = {};
         if (brand) primaryMatch.brandId = brand;
         if (model) primaryMatch.modelId = model;
-        if (year) {
+        if (searchYear) {
             primaryMatch.AND = [
-                { OR: [{ yearFrom: null }, { yearFrom: { lte: year } }] },
-                { OR: [{ yearTo: null }, { yearTo: { gte: year } }] }
+                { OR: [{ yearFrom: null }, { yearFrom: { lte: searchYear } }] },
+                { OR: [{ yearTo: null }, { yearTo: { gte: searchYear } }] }
             ];
         }
 
         const compatibilityMatch: any = {};
         if (brand) compatibilityMatch.brandId = brand;
         if (model) compatibilityMatch.modelId = model;
-        if (year) {
+        if (searchYear) {
             compatibilityMatch.AND = [
-                { OR: [{ yearFrom: null }, { yearFrom: { lte: year } }] },
-                { OR: [{ yearTo: null }, { yearTo: { gte: year } }] }
+                { OR: [{ yearFrom: null }, { yearFrom: { lte: searchYear } }] },
+                { OR: [{ yearTo: null }, { yearTo: { gte: searchYear } }] }
             ];
         }
 
@@ -426,18 +443,38 @@ export async function getSearchProducts(params: {
         if (maxPrice) where.priceGross.lte = maxPrice;
     }
 
+    const matchingBrands: any[] = [];
+    const matchingModels: any[] = [];
+
     if (query) {
         const queryLower = query.toLowerCase();
+        const queryWords = queryLower.split(/\s+/).filter(w => w.length > 2);
+
+        const synonymsToSearch = new Set<string>();
+        queryWords.forEach(word => {
+            if (partSynonyms[word]) {
+                partSynonyms[word].forEach(s => synonymsToSearch.add(s));
+            }
+        });
+
         const textSearch: any[] = [
             { name: { contains: query, mode: 'insensitive' } },
             { sku: { contains: query, mode: 'insensitive' } },
             { oemNumbers: { contains: query, mode: 'insensitive' } },
         ];
 
-        // Check for Brand/Model matches in the query string
-        const matchingBrands = brands.filter(b => !b.hidden && queryLower.includes(b.name.toLowerCase()));
+        // Add synonyms to text search if any found
+        if (synonymsToSearch.size > 0) {
+            synonymsToSearch.forEach(synonym => {
+                textSearch.push({ name: { contains: synonym, mode: 'insensitive' } });
+            });
+        }
 
-        const matchingModels = models.filter(m => {
+        // Check for Brand/Model matches in the query string
+        const brandsFound = brands.filter(b => !b.hidden && queryLower.includes(b.name.toLowerCase()));
+        matchingBrands.push(...brandsFound);
+
+        const modelsFound = models.filter(m => {
             const mName = m.name.toLowerCase();
             const cleanName = mName.replace(/[()]/g, '');
             const mSeries = m.series?.toLowerCase() || '';
@@ -446,41 +483,46 @@ export async function getSearchProducts(params: {
                 (mSeries && queryLower.includes(mSeries)) ||
                 cleanName.split(/\s+\/\s+/).some(part => part.length > 1 && queryLower.includes(part.trim()));
         });
+        matchingModels.push(...modelsFound);
 
         if (matchingModels.length > 0) {
             // Logic: If a user types "A6 C6", we want C6. If they type "A6", we want all A6 generations.
-            // First, find narrow matches (e.g. they typed the specific generation name)
             const narrowMatches = matchingModels.filter(m => {
                 const nameInQuery = queryLower.includes(m.name.toLowerCase().replace(/[()]/g, ''));
                 return nameInQuery;
             });
 
-            // Second, find series matches (e.g. they typed "A6")
             const seriesMatches = matchingModels.filter(m => {
                 const seriesInQuery = m.series && queryLower.includes(m.series.toLowerCase());
                 return seriesInQuery;
             });
 
-            // If they typed a specific series (like "A6"), we should include ALL models in that series,
-            // even if there's a narrow match for one specifically (e.g. "A6 C6"), because users might
-            // not know their exact generation and we have filter pills for them to narrow it down.
-            // So we combine the IDs of series matches and narrow matches.
-            // If neither applies (e.g. partial name match), we use all matching models.
-
             let finalModelIds: string[] = [];
 
             if (seriesMatches.length > 0) {
-                // They mentioned a series -> include all models in that series
                 finalModelIds = [...new Set([...seriesMatches.map(m => m.id), ...narrowMatches.map(m => m.id)])];
             } else if (narrowMatches.length > 0) {
-                // They didn't mention a broad series, but mentioned a specific model
                 finalModelIds = narrowMatches.map(m => m.id);
             } else {
-                // Just general partial matches
                 finalModelIds = matchingModels.map(m => m.id);
             }
 
-            textSearch.push({ modelId: { in: finalModelIds } });
+            textSearch.push({
+                OR: [
+                    { modelId: { in: finalModelIds } },
+                    { compatibilities: { some: { modelId: { in: finalModelIds } } } }
+                ]
+            });
+        }
+
+        if (matchingBrands.length > 0) {
+            const brandIds = matchingBrands.map(b => b.id);
+            textSearch.push({
+                OR: [
+                    { brandId: { in: brandIds } },
+                    { compatibilities: { some: { brandId: { in: brandIds } } } }
+                ]
+            });
         }
 
         // If we already have a vehicle OR filter, we need to AND it with the text search
@@ -514,7 +556,57 @@ export async function getSearchProducts(params: {
         };
     });
 
-    return enhancedParts;
+    // For refined detection labels
+    const seriesNames = new Set(matchingModels.map(m => m.series).filter(Boolean));
+    let detectedModelLabel = matchingModels[0]?.name;
+    if (seriesNames.size === 1) {
+        detectedModelLabel = Array.from(seriesNames)[0] as string;
+    }
+
+    let suggestion: string | undefined;
+
+    // Fuzzy search logic if no results found
+    if (enhancedParts.length === 0 && query && query.length > 2) {
+        const dictionary = [
+            ...brands.filter(b => !b.hidden).map(b => b.name),
+            ...models.map(m => m.name),
+            ...models.map(m => m.series).filter(Boolean) as string[],
+            ...partItems.map(p => p.name),
+            ...categories.map(c => c.name),
+            ...subcategories.map(s => s.name),
+            // Flat list of all keywords
+            ...categories.flatMap(c => c.keywords || []),
+            ...subcategories.flatMap(s => s.keywords || [])
+        ];
+
+        // Clean query of detected year to avoid confusing the typo search
+        const queryWithoutYear = query.replace(/\b(19|20)\d{2}\b/g, '').trim();
+        const words = queryWithoutYear.split(/\s+/);
+
+        const correctedWords = words.map(word => {
+            if (word.length < 4) return word; // Skip very short words
+            const matches = findClosestMatches(word, dictionary, 0.75); // Lowered threshold slightly
+            return matches.length > 0 ? matches[0].word : word;
+        });
+
+        const correctedQuery = correctedWords.join(' ');
+        if (correctedQuery.toLowerCase() !== query.toLowerCase()) {
+            suggestion = correctedQuery;
+
+            // If the user wants auto-correction for "recognizable" typos (score > 0.9), 
+            // we could potentially re-run the search here, but for now let's just suggest.
+        }
+    }
+
+    return {
+        parts: enhancedParts,
+        meta: {
+            detectedYear: searchYear,
+            detectedBrand: matchingBrands[0]?.name,
+            detectedModel: detectedModelLabel,
+            suggestion
+        }
+    };
 }
 export async function getCategoryProductCounts(brandId: string, modelId: string) {
     const counts = await prisma.part.groupBy({

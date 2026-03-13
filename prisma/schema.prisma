@@ -65,19 +65,20 @@ model Part {
   partnerId       String
   brandId         String?
   modelId         String?
+  engineCode      String?
   partItemId      String?
   yearFrom        Int?
   yearTo          Int?
   images          String
   stock           Int                 @default(1)
-  weight          Float?              // in kg
-  height          Float?              // in cm
-  width           Float?              // in cm
-  length          Float?              // in cm
-  shippingPrice   Int?                // calculated shipping fee
   createdAt       DateTime            @default(now())
   isUniversal     Boolean             @default(false)
   productCode     String?
+  height          Float?
+  length          Float?
+  shippingPrice   Int?
+  weight          Float?
+  width           Float?
   orderItems      OrderItem[]
   partner         PartnerProfile      @relation(fields: [partnerId], references: [id])
   compatibilities PartCompatibility[]

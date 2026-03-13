@@ -5,9 +5,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { ProductCard } from "@/components/product-card";
 import { getSearchProducts } from "@/app/actions/product";
-import { Filter, Search, Loader2 } from "lucide-react";
+import { Filter, Search, Loader2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
+import { categories, subcategories, partItems } from "@/lib/parts-data";
 
 function SearchResultsContent() {
     const router = useRouter();
@@ -25,8 +26,16 @@ function SearchResultsContent() {
 
     const [products, setProducts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [detectedMeta, setDetectedMeta] = useState<{
+        detectedYear?: number;
+        detectedBrand?: string;
+        detectedModel?: string;
+        suggestion?: string;
+    }>({});
 
     useEffect(() => {
+        let isStale = false;
+
         const fetchResults = async () => {
             setIsLoading(true);
             try {
@@ -39,20 +48,32 @@ function SearchResultsContent() {
                     partItem: item,
                     take: 24
                 });
-                setProducts(results);
+
+                if (!isStale) {
+                    setProducts(results.parts);
+                    setDetectedMeta(results.meta);
+                }
             } catch (error) {
-                console.error("Search error:", error);
+                if (!isStale) {
+                    console.error("Search error:", error);
+                }
             } finally {
-                setIsLoading(false);
+                if (!isStale) {
+                    setIsLoading(false);
+                }
             }
         };
 
-        if (query || brand || model) {
+        if (query || brand || model || category || subcategory || item) {
             fetchResults();
         } else {
             setIsLoading(false);
         }
-    }, [query, brand, model]);
+
+        return () => {
+            isStale = true;
+        };
+    }, [query, brand, model, category, subcategory, item]);
 
     return (
         <main className="pt-32 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto">
@@ -77,24 +98,32 @@ function SearchResultsContent() {
                         <div className="flex flex-wrap items-center gap-2">
                             <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-1">Észlelt keresési feltételek:</span>
 
-                            {brand && (
+                            {(brand || detectedMeta.detectedBrand) && (
                                 <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
                                     <span className="text-[10px] font-bold text-gray-400 uppercase">Márka</span>
-                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">{brand}</span>
+                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">{brand || detectedMeta.detectedBrand}</span>
                                 </div>
                             )}
 
-                            {model ? (
+                            {(model || detectedMeta.detectedModel) ? (
                                 <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
                                     <span className="text-[10px] font-bold text-gray-400 uppercase">Modell</span>
                                     <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                                        {products.find(p => p.modelId === model)?.modelName || model}
+                                        {products.find(p => p.modelId === model)?.modelName || model || detectedMeta.detectedModel}
                                     </span>
                                 </div>
-                            ) : brand && (
+                            ) : (brand || detectedMeta.detectedBrand) && (
                                 <div className="px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-lg flex items-center gap-2">
                                     <span className="text-[10px] font-bold text-blue-400 uppercase">Modell</span>
                                     <span className="text-sm font-black text-blue-700 uppercase tracking-tight">Összes generáció</span>
+                                </div>
+                            )}
+
+                            {/* Detected Year */}
+                            {detectedMeta.detectedYear && (
+                                <div className="px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-lg shadow-sm flex items-center gap-2">
+                                    <span className="text-[10px] font-bold text-orange-400 uppercase">Évjárat</span>
+                                    <span className="text-sm font-black text-orange-700 uppercase tracking-tight">{detectedMeta.detectedYear}</span>
                                 </div>
                             )}
 
@@ -130,122 +159,196 @@ function SearchResultsContent() {
 
                 {/* Generation / Model Switcher (Pills) */}
                 {!isLoading && products.length > 0 && (
-                    <div className="mt-6 flex flex-col gap-6">
-                        <div className="flex flex-wrap gap-2">
-                            <button
-                                onClick={() => {
-                                    const params = new URLSearchParams(searchParams.toString());
-                                    params.delete("model");
-                                    router.push(`/search?${params.toString()}`);
-                                }}
-                                className={clsx(
-                                    "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border-2",
-                                    !model
-                                        ? "bg-gray-900 border-gray-900 text-white shadow-lg"
-                                        : "bg-white border-gray-100 text-gray-500 hover:border-gray-300"
-                                )}>
-                                Összes generáció
-                            </button>
-
-                            {/* Unique models in the result set */}
-                            {Array.from(new Set(products.map(p => p.modelId))).filter(Boolean).map(mId => {
-                                const modelData = products.find(p => p.modelId === mId)?.modelName || mId;
-                                const isSelected = model === mId;
-
-                                return (
-                                    <button
-                                        key={mId}
-                                        onClick={() => {
-                                            const params = new URLSearchParams(searchParams.toString());
-                                            params.set("model", mId);
-                                            router.push(`/search?${params.toString()}`);
-                                        }}
-                                        className={clsx(
-                                            "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border-2",
-                                            isSelected
-                                                ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20"
-                                                : "bg-white border-gray-100 text-gray-500 hover:border-gray-300"
-                                        )}>
-                                        {modelData}
-                                    </button>
-                                )
-                            })}
-                        </div>
-
-                        {/* Category / Part Item Filter Capsules */}
+                    <div className="mt-6 flex flex-col gap-8">
+                        {/* Models */}
                         <div className="flex flex-col gap-3">
                             <div className="flex items-center gap-2">
-                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded">Szűrés alkatrészre</span>
-                                {(category || subcategory || item) && (
-                                    <button
-                                        onClick={() => {
-                                            const params = new URLSearchParams(searchParams.toString());
-                                            params.delete("cat");
-                                            params.delete("subcat");
-                                            params.delete("item");
-                                            router.push(`/search?${params.toString()}`);
-                                        }}
-                                        className="text-[10px] font-bold text-[var(--color-primary)] uppercase hover:underline"
-                                    >
-                                        Szűrés törlése
-                                    </button>
-                                )}
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded">Modell generációk</span>
                             </div>
-
                             <div className="flex flex-wrap gap-2">
-                                {/* If no specific part filter active, show broad categories from results */}
-                                {!(category || subcategory || item) ? (
-                                    Array.from(new Set(products.map(p => p.categoryId))).filter(Boolean).map(cId => {
-                                        const cName = products.find(p => p.categoryId === cId)?.categoryName || cId;
+                                <button
+                                    onClick={() => {
+                                        const params = new URLSearchParams(searchParams.toString());
+                                        params.delete("model");
+                                        router.push(`/search?${params.toString()}`);
+                                    }}
+                                    className={clsx(
+                                        "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border-2",
+                                        !model
+                                            ? "bg-gray-900 border-gray-900 text-white shadow-lg"
+                                            : "bg-white border-gray-100 text-gray-500 hover:border-gray-300"
+                                    )}>
+                                    Összes modell
+                                </button>
+
+                                {Array.from(new Set(products.map(p => p.modelId))).filter(Boolean).map(mId => {
+                                    const modelData = products.find(p => p.modelId === mId)?.modelName || mId;
+                                    const isSelected = model === mId;
+
+                                    return (
+                                        <button
+                                            key={mId}
+                                            onClick={() => {
+                                                const params = new URLSearchParams(searchParams.toString());
+                                                params.set("model", mId);
+                                                router.push(`/search?${params.toString()}`);
+                                            }}
+                                            className={clsx(
+                                                "px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border-2",
+                                                isSelected
+                                                    ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20"
+                                                    : "bg-white border-gray-100 text-gray-500 hover:border-gray-300"
+                                            )}>
+                                            {modelData}
+                                        </button>
+                                    )
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Hierarchical Filters */}
+                        <div className="flex flex-col gap-6">
+                            {/* Level 1: Categories */}
+                            <div className="flex flex-col gap-3">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded">Főcsoportok</span>
+                                    {(category || subcategory || item) && (
+                                        <button
+                                            onClick={() => {
+                                                const params = new URLSearchParams(searchParams.toString());
+                                                params.delete("cat");
+                                                params.delete("subcat");
+                                                params.delete("item");
+                                                router.push(`/search?${params.toString()}`);
+                                            }}
+                                            className="text-[10px] font-bold text-[var(--color-primary)] uppercase hover:underline"
+                                        >
+                                            Összes kategória
+                                        </button>
+                                    )}
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {/* Get categories that are present in the results OR use specific ones if already filtered */}
+                                    {Array.from(new Set([
+                                        ...products.map(p => p.categoryId),
+                                        ...(category ? [category] : [])
+                                    ])).filter(Boolean).map(cId => {
+                                        const cat = categories.find(c => c.id === cId);
+                                        const isSelected = category === cId;
+                                        if (!cat) return null;
+
                                         return (
                                             <button
                                                 key={cId}
                                                 onClick={() => {
                                                     const params = new URLSearchParams(searchParams.toString());
                                                     params.set("cat", cId);
-                                                    router.push(`/search?${params.toString()}`);
-                                                }}
-                                                className="px-5 py-2.5 rounded-2xl bg-white/50 backdrop-blur-sm border border-gray-100 text-xs font-black text-gray-600 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-orange-50/50 hover:-translate-y-0.5 transition-all shadow-sm uppercase tracking-wider"
-                                            >
-                                                {cName}
-                                            </button>
-                                        );
-                                    })
-                                ) : (
-                                    // If a category is active but not a specific part yet, show subcategories/items
-                                    Array.from(new Set(products.map(p => p.partItemId || p.subcategoryId))).filter(Boolean).slice(0, 12).map(id => {
-                                        const p = products.find(p => p.partItemId === id || p.subcategoryId === id);
-                                        const name = p?.partItemName || p?.subcategoryName || id;
-                                        const isSelected = item === id || subcategory === id;
-
-                                        return (
-                                            <button
-                                                key={id}
-                                                onClick={() => {
-                                                    const params = new URLSearchParams(searchParams.toString());
-                                                    if (p?.partItemId) {
-                                                        params.set("item", id);
-                                                        params.delete("subcat"); // Clear subcat if we select a specific item
-                                                    } else {
-                                                        params.set("subcat", id);
-                                                        params.delete("item"); // Clear item if we select a subcategory
-                                                    }
+                                                    params.delete("subcat");
+                                                    params.delete("item");
                                                     router.push(`/search?${params.toString()}`);
                                                 }}
                                                 className={clsx(
                                                     "px-5 py-2.5 rounded-2xl border text-xs font-black transition-all shadow-sm uppercase tracking-wider",
                                                     isSelected
-                                                        ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20"
+                                                        ? "bg-gray-900 border-gray-900 text-white shadow-lg"
                                                         : "bg-white/50 backdrop-blur-sm border-gray-100 text-gray-600 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-orange-50/50 hover:-translate-y-0.5"
                                                 )}
                                             >
-                                                {name}
+                                                {cat.name}
                                             </button>
                                         );
-                                    })
-                                )}
+                                    })}
+                                </div>
                             </div>
+
+                            {/* Level 2: Subcategories */}
+                            {category && (
+                                <div className="flex flex-col gap-3 p-5 bg-gray-50/50 border border-gray-100 rounded-3xl animate-in fade-in slide-in-from-top-2 duration-300">
+                                    <div className="flex items-center gap-2">
+                                        <ChevronRight className="w-4 h-4 text-gray-400" />
+                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Alkatrész csoportok</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {subcategories
+                                            .filter(sc => sc.categoryId === category)
+                                            .filter(sc => products.some(p => p.subcategoryId === sc.id) || subcategory === sc.id)
+                                            .map(sc => {
+                                                const isSelected = subcategory === sc.id;
+                                                return (
+                                                    <button
+                                                        key={sc.id}
+                                                        onClick={() => {
+                                                            const params = new URLSearchParams(searchParams.toString());
+                                                            params.set("subcat", sc.id);
+                                                            params.delete("item");
+                                                            router.push(`/search?${params.toString()}`);
+                                                        }}
+                                                        className={clsx(
+                                                            "px-5 py-2.5 rounded-2xl border text-xs font-black transition-all shadow-sm uppercase tracking-wider",
+                                                            isSelected
+                                                                ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20"
+                                                                : "bg-white border-gray-100 text-gray-600 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-orange-50/50"
+                                                        )}
+                                                    >
+                                                        {sc.name}
+                                                    </button>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Level 3: Part Items */}
+                            {subcategory && (
+                                <div className="flex flex-col gap-3 p-5 bg-white border border-[var(--color-primary)]/10 rounded-3xl animate-in fade-in slide-in-from-top-2 duration-300 shadow-xl shadow-[var(--color-primary)]/5">
+                                    <div className="flex items-center gap-2">
+                                        <ChevronRight className="w-4 h-4 text-[var(--color-primary)]" />
+                                        <span className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest text-opacity-70">Konkrét alkatrészek</span>
+                                    </div>
+                                    <div className="flex flex-wrap gap-2">
+                                        {partItems
+                                            .filter(pi => pi.subcategoryId === subcategory)
+                                            .filter(pi => products.some(p => p.partItemId === pi.id) || item === pi.id)
+                                            .map(pi => {
+                                                const isSelected = item === pi.id;
+                                                return (
+                                                    <button
+                                                        key={pi.id}
+                                                        onClick={() => {
+                                                            const params = new URLSearchParams(searchParams.toString());
+                                                            params.set("item", pi.id);
+                                                            router.push(`/search?${params.toString()}`);
+                                                        }}
+                                                        className={clsx(
+                                                            "px-5 py-2.5 rounded-2xl border text-xs font-black transition-all shadow-sm uppercase tracking-wider",
+                                                            isSelected
+                                                                ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20"
+                                                                : "bg-gray-50 border-transparent text-gray-500 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-white"
+                                                        )}
+                                                    >
+                                                        {pi.name}
+                                                    </button>
+                                                );
+                                            })}
+                                    </div>
+                                </div>
+                            )}
                         </div>
+                    </div>
+                )}
+
+                {/* Did you mean? Suggestion */}
+                {detectedMeta.suggestion && (
+                    <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-2">
+                        <div className="w-8 h-8 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-600">
+                            <Search className="w-4 h-4" />
+                        </div>
+                        <p className="text-sm text-blue-900">
+                            Nincs találat erre: <span className="font-bold underline italic">"{query}"</span>.
+                            Erre gondoltál: <Link href={`/search?query=${encodeURIComponent(detectedMeta.suggestion)}&ai_powered=true`} className="font-black text-blue-600 hover:underline cursor-pointer decoration-2 underline-offset-4 decoration-blue-200">
+                                {detectedMeta.suggestion}
+                            </Link>?
+                        </p>
                     </div>
                 )}
             </div>

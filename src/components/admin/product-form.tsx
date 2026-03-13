@@ -393,11 +393,17 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 )}
 
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Cikkszám (Gyári szám) *</label>
                         <input name="sku" type="text" required defaultValue={initialData?.sku || ""} placeholder="pl. 5G1941005" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
                         <p className="text-xs text-gray-500 mt-1">Hivatalos gyári azonosító kód.</p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Motorkód</label>
+                        <input name="engineCode" type="text" defaultValue={initialData?.engineCode || ""} placeholder="pl. ASZ" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
+                        <p className="text-xs text-gray-500 mt-1">Pl. ASZ, BRE, AVF</p>
                     </div>
 
                     <div className="space-y-2">
