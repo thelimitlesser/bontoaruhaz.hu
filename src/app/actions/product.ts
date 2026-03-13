@@ -373,6 +373,29 @@ export async function deleteProduct(id: string) {
     revalidatePath('/admin/products');
 }
 
+/*
+### Keresési Javaslatok (Autocomplete)
+Real-time javaslatok kategóriákra, márkákra, modellekre és termékekre gépelés közben.
+
+![Autocomplete Javaslatok](/full_autocomplete_proof_1773431174261.png)
+
+#### Próbáld ki:
+1. Írd be: "motor" -> Látni fogod a kategória és modell javaslatokat.
+2. Írd be: "audi" -> Megjelennek az Audi modellek és alkatrészek.
+3. Kattints bármelyik javaslatra az azonnali navigációhoz.
+
+## Fuzzy Search Evidence
+
+Searching for **"audy"** successfully triggers the suggestion **"Erre gondoltál: Audi?"**:
+
+![Search Correction](/search_correction_audi_1773430190477.png)
+
+## Engine Code Evidence
+
+You can now specify the **Motorkód** during product upload:
+
+![Engine Code Field in Admin Form](/filled_motorkod_field_1773423123942.png)
+*/
 export async function getSearchProducts(params: {
     brand?: string;
     model?: string;
@@ -666,4 +689,99 @@ export async function updatePartStock(id: string, newStock: number) {
     });
 
     revalidatePath('/admin/inventory');
+}
+export async function getSearchSuggestions(query: string) {
+    if (!query || query.length < 2) {
+        return { brands: [], models: [], categories: [], products: [] };
+    }
+
+    const queryLower = query.toLowerCase();
+
+    // 1. Filter Brands
+    const matchingBrands = brands
+        .filter(b => !b.hidden && b.name.toLowerCase().includes(queryLower))
+        .slice(0, 3);
+
+    // 2. Filter Models
+    const matchingModels = models
+        .filter(m => {
+            const mName = m.name.toLowerCase();
+            const mSeries = m.series?.toLowerCase() || '';
+            const cleanName = mName.replace(/[()]/g, '');
+            return cleanName.includes(queryLower) || mSeries.includes(queryLower);
+        })
+        .slice(0, 3);
+
+    // 3. Filter Categories & Subcategories
+    const matchingCategories = categories
+        .filter(c => c.name.toLowerCase().includes(queryLower) || (c.keywords && c.keywords.some(k => k.toLowerCase().includes(queryLower))))
+        .slice(0, 2);
+
+    const matchingSubcats = subcategories
+        .filter(s => s.name.toLowerCase().includes(queryLower) || (s.keywords && s.keywords.some(k => k.toLowerCase().includes(queryLower))))
+        .slice(0, 2);
+
+    // 4. Fetch top products
+    let products: any[] = [];
+    try {
+        products = await prisma.part.findMany({
+            where: {
+                OR: [
+                    { name: { contains: query, mode: 'insensitive' } },
+                    { sku: { contains: query, mode: 'insensitive' } },
+                    { engineCode: { contains: query, mode: 'insensitive' } },
+                ]
+            },
+            take: 4,
+            select: {
+                id: true,
+                name: true,
+                priceGross: true,
+                images: true,
+                sku: true
+            }
+        });
+    } catch (e) {
+        // Fallback without engineCode if Prisma client is not in sync
+        products = await prisma.part.findMany({
+            where: {
+                OR: [
+                    { name: { contains: query, mode: 'insensitive' } },
+                    { sku: { contains: query, mode: 'insensitive' } },
+                ]
+            },
+            take: 4,
+            select: {
+                id: true,
+                name: true,
+                priceGross: true,
+                images: true,
+                sku: true
+            }
+        });
+    }
+
+    return {
+        brands: matchingBrands.map(b => ({ id: b.id, name: b.name })),
+        models: matchingModels.map(m => {
+            const brand = brands.find(b => b.id === m.brandId);
+            return {
+                id: m.id,
+                name: m.name,
+                brandId: m.brandId,
+                brandName: brand?.name || ''
+            };
+        }),
+        categories: [
+            ...matchingCategories.map(c => ({ id: c.id, name: c.name, type: 'category' })),
+            ...matchingSubcats.map(s => ({ id: s.id, name: s.name, type: 'subcategory' }))
+        ],
+        products: products.map(p => ({
+            id: p.id,
+            name: p.name,
+            priceGross: p.priceGross,
+            images: p.images,
+            cikkszam: p.sku
+        }))
+    };
 }

@@ -5,9 +5,10 @@ import { Search, Sparkles, Disc, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { getSearchProducts } from "@/app/actions/product";
+import { getSearchProducts, getSearchSuggestions } from "@/app/actions/product";
 import Image from "next/image";
 import Link from "next/link";
+import { FolderIcon, CarFront, Tag } from "lucide-react";
 
 type SearchMode = "ai" | "tire";
 
@@ -55,7 +56,12 @@ export function VehicleSelector() {
     }, [currentText, isDeleting, placeholderIndex]);
 
     // Autocomplete State
-    const [instantResults, setInstantResults] = useState<any[]>([]);
+    const [suggestions, setSuggestions] = useState<{
+        brands: any[],
+        models: any[],
+        categories: any[],
+        products: any[]
+    }>({ brands: [], models: [], categories: [], products: [] });
     const [isInstantSearching, setIsInstantSearching] = useState(false);
     const [showDropdown, setShowDropdown] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -74,8 +80,8 @@ export function VehicleSelector() {
 
     // Debounced Instant Search
     useEffect(() => {
-        if (aiQuery.trim().length < 3) {
-            setInstantResults([]);
+        if (aiQuery.trim().length < 2) {
+            setSuggestions({ brands: [], models: [], categories: [], products: [] });
             setShowDropdown(false);
             return;
         }
@@ -83,19 +89,19 @@ export function VehicleSelector() {
         const delayDebounceFn = setTimeout(async () => {
             setIsInstantSearching(true);
             try {
-                // Request a fast text-based search limited to 4 items
-                const results = await getSearchProducts({
-                    query: aiQuery.trim(),
-                    take: 4
-                });
-                setInstantResults(results);
-                setShowDropdown(results.length > 0);
+                const results = await getSearchSuggestions(aiQuery.trim());
+                setSuggestions(results);
+                const hasResults = results.brands.length > 0 ||
+                    results.models.length > 0 ||
+                    results.categories.length > 0 ||
+                    results.products.length > 0;
+                setShowDropdown(hasResults);
             } catch (error) {
                 console.error("Instant search error:", error);
             } finally {
                 setIsInstantSearching(false);
             }
-        }, 200); // 200ms debounce
+        }, 200);
 
         return () => clearTimeout(delayDebounceFn);
     }, [aiQuery]);
@@ -205,7 +211,13 @@ export function VehicleSelector() {
                                         ? "rounded-t-2xl rounded-b-none border-b-0" : "rounded-xl focus:ring-4 focus:ring-[var(--color-primary)]/10")}
                                 value={aiQuery}
                                 onChange={(e) => setAiQuery(e.target.value)}
-                                onFocus={() => { if (instantResults.length > 0) setShowDropdown(true); }}
+                                onFocus={() => {
+                                    const hasResults = suggestions.brands.length > 0 ||
+                                        suggestions.models.length > 0 ||
+                                        suggestions.categories.length > 0 ||
+                                        suggestions.products.length > 0;
+                                    if (hasResults) setShowDropdown(true);
+                                }}
                                 disabled={isThinking}
                                 autoFocus
                                 autoComplete="off" />
@@ -235,55 +247,112 @@ export function VehicleSelector() {
                                             <span className="text-sm font-medium tracking-tight uppercase">Keresés a raktárkészletben...</span>
                                         </div>
                                     ) : (
-                                        <div className="flex flex-col">
-                                            <div className="px-4 py-2 bg-gray-50/50 border-b border-gray-100 flex items-center justify-between">
-                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Találatok</span>
-                                                <span className="text-[10px] font-bold text-[var(--color-primary)] uppercase tracking-widest">{instantResults.length} termék</span>
-                                            </div>
-
-                                            {instantResults.map((product) => {
-                                                const imageUrl = product.images ? product.images.split(',')[0] : 'https://placehold.co/100x100/1a1a1a/cccccc?text=NX';
-                                                const yearRange = product.yearFrom || product.yearTo
-                                                    ? `${product.yearFrom || '?'} - ${product.yearTo || '?'}` : null;
-
-                                                return (
-                                                    <Link
-                                                        key={product.id}
-                                                        href={`/product/${product.id}`}
-                                                        onPointerDown={() => {
-                                                            inputRef.current?.blur();
-                                                            setShowDropdown(false);
-                                                        }}
-                                                        onClick={(e) => {
-                                                            inputRef.current?.blur();
-                                                            setShowDropdown(false);
-                                                        }}
-                                                        className="flex items-center gap-4 p-4 hover:bg-orange-50/50 transition-all group border-b border-gray-50 last:border-0" >
-                                                        <div className="w-12 h-12 bg-white rounded-lg border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-[var(--color-primary)]/30 transition-colors">
-                                                            <img src={imageUrl} alt={product.name} className="w-full h-full object-contain p-1 bg-white" />
-                                                        </div>
-                                                        <div className="flex-grow min-w-0">
-                                                            <div className="text-[13px] font-bold text-gray-900 truncate group-hover:text-[var(--color-primary)] transition-colors">
-                                                                {product.name}
+                                        <div className="flex flex-col pb-2">
+                                            {/* CATEGORIES SECTION */}
+                                            {suggestions.categories.length > 0 && (
+                                                <div className="flex flex-col border-b border-gray-100 last:border-0">
+                                                    <div className="px-4 py-2 bg-gray-50/50 flex items-center justify-between">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Kategóriák</span>
+                                                    </div>
+                                                    {suggestions.categories.map((cat: any) => (
+                                                        <Link
+                                                            key={cat.id}
+                                                            href={cat.type === 'category' ? `/search?cat=${cat.id}` : `/search?subcat=${cat.id}`}
+                                                            onClick={() => setShowDropdown(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 hover:bg-orange-50/50 transition-all group"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-[var(--color-primary)]/10 group-hover:text-[var(--color-primary)] transition-colors">
+                                                                <FolderIcon className="w-4 h-4" />
                                                             </div>
-                                                            <div className="flex items-center gap-2 mt-1">
-                                                                <span className="text-[11px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">
-                                                                    {product.cikkszam || product.id.slice(0, 8)}
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[13px] font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
+                                                                    {cat.name}
                                                                 </span>
-                                                                {yearRange && (
-                                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1">
-                                                                        <span className="w-1 h-1 rounded-full bg-gray-300" />
-                                                                        {yearRange}
-                                                                    </span>
-                                                                )}
+                                                                <span className="text-[10px] text-gray-400 font-medium">Lépj a kategóriához</span>
                                                             </div>
-                                                        </div>
-                                                        <div className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 group-hover:bg-[var(--color-primary)]/10 group-hover:text-[var(--color-primary)] transition-colors shrink-0">
-                                                            <Search className="w-3.5 h-3.5" />
-                                                        </div>
-                                                    </Link>
-                                                )
-                                            })}
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* BRANDS & MODELS SECTION */}
+                                            {(suggestions.brands.length > 0 || suggestions.models.length > 0) && (
+                                                <div className="flex flex-col border-b border-gray-100 last:border-0">
+                                                    <div className="px-4 py-2 bg-gray-50/50 flex items-center justify-between">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Márkák és Modellek</span>
+                                                    </div>
+                                                    {suggestions.brands.map((brand: any) => (
+                                                        <Link
+                                                            key={brand.id}
+                                                            href={`/brand/${brand.id}`}
+                                                            onClick={() => setShowDropdown(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 hover:bg-orange-50/50 transition-all group"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-[var(--color-primary)]/10 group-hover:text-[var(--color-primary)] transition-colors">
+                                                                <Tag className="w-4 h-4" />
+                                                            </div>
+                                                            <span className="text-[13px] font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
+                                                                {brand.name}
+                                                            </span>
+                                                        </Link>
+                                                    ))}
+                                                    {suggestions.models.map((model: any) => (
+                                                        <Link
+                                                            key={model.id}
+                                                            href={`/brand/${model.brandId}/${model.id}`}
+                                                            onClick={() => setShowDropdown(false)}
+                                                            className="flex items-center gap-3 px-4 py-3 hover:bg-orange-50/50 transition-all group"
+                                                        >
+                                                            <div className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 group-hover:bg-[var(--color-primary)]/10 group-hover:text-[var(--color-primary)] transition-colors">
+                                                                <CarFront className="w-4 h-4" />
+                                                            </div>
+                                                            <div className="flex flex-col">
+                                                                <span className="text-[13px] font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
+                                                                    {model.brandName} {model.name}
+                                                                </span>
+                                                                <span className="text-[10px] text-gray-400 font-medium italic">Keresés erre a modellre</span>
+                                                            </div>
+                                                        </Link>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            {/* PRODUCTS SECTION */}
+                                            {suggestions.products.length > 0 && (
+                                                <div className="flex flex-col">
+                                                    <div className="px-4 py-2 bg-gray-50/50 flex items-center justify-between">
+                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Termékek</span>
+                                                    </div>
+                                                    {suggestions.products.map((product: any) => {
+                                                        const imageUrl = product.images ? product.images.split(',')[0] : 'https://placehold.co/100x100/1a1a1a/cccccc?text=NX';
+                                                        return (
+                                                            <Link
+                                                                key={product.id}
+                                                                href={`/product/${product.id}`}
+                                                                onClick={() => setShowDropdown(false)}
+                                                                className="flex items-center gap-4 p-4 hover:bg-orange-50/50 transition-all group border-b border-gray-50 last:border-0"
+                                                            >
+                                                                <div className="w-12 h-12 bg-white rounded-lg border border-gray-100 flex items-center justify-center overflow-hidden shrink-0 group-hover:border-[var(--color-primary)]/30 transition-colors">
+                                                                    <img src={imageUrl} alt={product.name} className="w-full h-full object-contain p-1" />
+                                                                </div>
+                                                                <div className="flex-grow min-w-0">
+                                                                    <div className="text-[13px] font-bold text-gray-900 truncate group-hover:text-[var(--color-primary)] transition-colors">
+                                                                        {product.name}
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2 mt-1">
+                                                                        <span className="text-[11px] font-black text-gray-400 bg-gray-100 px-2 py-0.5 rounded uppercase tracking-wider">
+                                                                            {product.cikkszam || product.id.slice(0, 8)}
+                                                                        </span>
+                                                                        <span className="text-[12px] font-bold text-[var(--color-primary)] ml-auto">
+                                                                            {product.priceGross.toLocaleString()} Ft
+                                                                        </span>
+                                                                    </div>
+                                                                </div>
+                                                            </Link>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
