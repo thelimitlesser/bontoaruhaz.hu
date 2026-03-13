@@ -16,8 +16,14 @@ JSON Response Format:
   "subcategory": "Turbófeltöltő" | null,
   "item": "Turbó" | null,
   "query": "search term or SKU" | null,
-  "sku": "specific part number if found" | null
-}`;
+  "sku": "specific part number if found" | null,
+  "is_broad": boolean // Set to true if ONLY a series name (e.g. "Audi A6") is provided without a generation code (e.g. "C6", "4F")
+}
+
+Strict Rules:
+1. If the user mentions a specific generation/chassis (e.g. "C6", "Mk4", "B8", "2012-es"), use that in 'model'.
+2. If the user is broad (e.g. "Audi A6 ajtó", "VW Golf váltó"), set 'model' to ONLY the series name (e.g. "A6", "Golf") and 'is_broad' to true.
+3. DO NOT guess a generation if it's not explicitly in the query. For broad queries, keep 'model' simple.`;
 
 async function generateWithRetry(model: any, prompt: string, retries = 3, delay = 1000) {
     for (let i = 0; i < retries; i++) {
@@ -96,18 +102,32 @@ export async function POST(req: Request) {
 
         // 2. MODEL MATCHING (Specific to Brand)
         let finalModel = null;
-        let isBroad = false;
+        let isBroad = parsedResult.is_broad || false;
+
         if (parsedResult.model && finalBrand) {
             const bId = brands.find(b => b.slug === finalBrand)?.id;
             const availableModels = models.filter(m => m.brandId === bId);
             const matchedModel = findBestMatch(availableModels, parsedResult.model);
             finalModel = matchedModel?.slug || null;
 
-            // Check if this matches multiple models in the same series
+            // Double check for broadness if matched part of a series
             if (matchedModel) {
                 const sameSeries = availableModels.filter(m => m.series === matchedModel.series);
-                if (sameSeries.length > 1 && !parsedResult.model.toLowerCase().includes(matchedModel.name.toLowerCase().replace(/[()]/g, ''))) {
-                    isBroad = true;
+
+                // If it's a series with multiple generations, and the user's model query 
+                // doesn't contain the generation-specific identifiers from the matched name
+                const matchedNameClean = matchedModel.name.toLowerCase().replace(/[()]/g, '');
+                const aiModelClean = parsedResult.model.toLowerCase();
+
+                if (sameSeries.length > 1) {
+                    // If AI returned a very short model (like "A6", "Golf") it's definitely broad
+                    if (aiModelClean.length <= matchedModel.series.length + 2) {
+                        isBroad = true;
+                    }
+                    // Or if AI returned a specific one but original query was generic
+                    else if (!aiModelClean.includes(matchedNameClean) && !query.toLowerCase().includes(matchedNameClean)) {
+                        isBroad = true;
+                    }
                 }
             }
         }
