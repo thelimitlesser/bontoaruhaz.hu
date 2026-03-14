@@ -172,8 +172,8 @@ export const subcategories: Subcategory[] = [
     { id: "sc-electric-5", categoryId: "electric-motor", name: "AKKUMULÁTOR (12V) ÉS TARTOZÉKAI", slug: "akkumulator-12v" },
     { id: "sc-wiring-4", categoryId: "wiring", name: "BIZTOSÍTÉKTÁBLA ÉS RELÉDOBOZ", slug: "biztositektabla" },
     { id: "sc-engine-9", categoryId: "engine", name: "KENÉSI RENDSZER", slug: "kenesi-rendszer", keywords: ["olaj", "szivattyú", "karter"] },
-    { id: "sc-engine-10", categoryId: "engine", name: "KIPUFOGÓGÁZ VISSZAVEZETÉS (EGR)", slug: "egr-rendszer", keywords: ["egr", "visszavezetés", "szelep"] },
-    { id: "sc-interior-6", categoryId: "interior", name: "MŰSZERFAL ÉS KEZELŐSZERVEK", slug: "muszerfal-es-kezeles" },
+    { id: "sc-engine-10", categoryId: "engine", name: "KIPUFOGÓGÁZ VISSZAVEZETÉS (EGR)", slug: "egr-rendszer", keywords: ["egr", "visszavezetés", "szelep", "hűtő", "cooler"] },
+    { id: "sc-interior-6", categoryId: "interior", name: "MŰSZERFAL ÉS KEZELŐSZERVEK", slug: "muszerfal-es-kezeles", keywords: ["óraegység", "pixelhiba", "kesztyűtartó", "szellőző", "konzol"] },
     { id: "sc-body-8", categoryId: "body-exterior", name: "VÁZSZERKEZETI ELEMEK", slug: "vazszerkezeti-elemek", keywords: ["nyúlvány", "oszlop", "negyed"] },
 ];
 
@@ -948,5 +948,17 @@ export const partItems: PartItem[] = [
     { id: "pi-steer-n-9", subcategoryId: "sc-steering-2", name: "Kormánymű gumiharang", slug: "kormanymu-gumiharang" },
     { id: "pi-steer-n-10", subcategoryId: "sc-steering-2", name: "Szervóolaj tartály", slug: "szervoolaj-tartaly" },
     { id: "pi-steer-n-11", subcategoryId: "sc-steering-2", name: "Szervócső (Nyomó/Visszafolyó)", slug: "szervocso" },
+
+    // --- NEW: KIEGÉSZÍTŐ BIZTONSÁGI ELEMEK ---
+    { id: "pi-saf-n-1", subcategoryId: "sc-safety-1", name: "Függönylégzsák (Bal/Jobb)", slug: "fuggonylegzsak" },
+    { id: "pi-saf-n-2", subcategoryId: "sc-safety-1", name: "Térdlégzsák (Vezető/Utas)", slug: "terdlegzsak" },
+    { id: "pi-saf-n-3", subcategoryId: "sc-safety-1", name: "Üléslégzsák (Oldallégzsák)", slug: "uleslegzsak" },
+    { id: "pi-saf-n-4", subcategoryId: "sc-safety-2", name: "Légzsák átvezető szalag / Csúszógyűrű", slug: "legzsak-atvezeto" },
+    { id: "pi-saf-n-5", subcategoryId: "sc-safety-2", name: "Ütközés érzékelő (Szenzor)", slug: "utkozes-erzekelo" },
+
+    // --- NEW: NAGYFESZÜLTSÉGŰ ELEKTRONIKA ---
+    { id: "pi-ev-n-1", subcategoryId: "sc-fuel-3", name: "Inverter / Konverter (HV)", slug: "hv-inverter" },
+    { id: "pi-ev-n-2", subcategoryId: "sc-fuel-3", name: "Hűtővíz szivattyú (Elektromos/HV)", slug: "hv-vizszivattyu" },
+    { id: "pi-ev-n-3", subcategoryId: "sc-fuel-3", name: "Belső égésű motor (Hibrid hatótávnövelő)", slug: "hibrid-motor-alk" }
 ];
 
