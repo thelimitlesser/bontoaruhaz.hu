@@ -54,7 +54,9 @@ export const subcategories: Subcategory[] = [
     { id: "sc-body-3", categoryId: "body-exterior", name: "MOTORHÁZTETŐ", slug: "motorhazteto", keywords: ["gépháztető", "tető", "hood"] },
     { id: "sc-body-4", categoryId: "body-exterior", name: "SÁRVÉDŐ", slug: "sarvedo", keywords: ["sárvédőív", "fender"] },
     { id: "sc-body-5", categoryId: "body-exterior", name: "CSOMAGTÉRAJTÓ", slug: "csomagterajto", keywords: ["ötödik ajtó", "hátfaly", "trunk"] },
-    { id: "sc-body-6", categoryId: "body-exterior", name: "ZÁRHÍD", slug: "zarhid", keywords: ["homlokfal", "tartó"] },
+    { id: "sc-body-6", categoryId: "body-exterior", name: "ZÁRHÍD", slug: "zarhid", keywords: ["homlokfal", "tartó", "keret"] },
+    { id: "sc-body-9", categoryId: "body-exterior", name: "PLATÓ ÉS TARTOZÉKAI", slug: "plato", keywords: ["pickup", "platódoboz", "hátfal-nyitó"] },
+    { id: "sc-body-10", categoryId: "body-exterior", name: "KAROSSZÉRIA CSOMAG / ORR-RÉSZ", slug: "karosszeria-csomag", keywords: ["szett", "komplett eleje", "bontott eleje"] },
 
     // 2. Lámpa, index, világítás
     { id: "sc-lights-1", categoryId: "lights", name: "FÉNYSZÓRÓ", slug: "fenyszoro", keywords: ["lámpa", "első lámpa", "fényszóró", "xenon", "led", "halogén"] },
@@ -194,6 +196,8 @@ export const partItems: PartItem[] = [
     { id: "pi-door-13", subcategoryId: "subcat-body-exterior-1000", name: "Ajtó belső nyitó bowden", slug: "ajto-nyito-bowden" },
     { id: "pi-door-14", subcategoryId: "subcat-body-exterior-1000", name: "Ajtó díszléc / koptató", slug: "ajto-diszlec-body" },
     { id: "pi-door-15", subcategoryId: "subcat-body-exterior-1000", name: "Ajtó belső merevítő", slug: "ajto-merevito" },
+    { id: "pi-door-16", subcategoryId: "subcat-body-exterior-1000", name: "Tolóajtó (Oldal / Teherautó)", slug: "toloajto" },
+    { id: "pi-door-17", subcategoryId: "subcat-body-exterior-1000", name: "Tolóajtó görgő / Sín", slug: "toloajto-gorgo" },
 
 
 
@@ -206,7 +210,9 @@ export const partItems: PartItem[] = [
     { id: "pi-bump-5", subcategoryId: "sc-body-2", name: "Lökhárító rács (középső)", slug: "lokharito-racs-kozepso" },
     { id: "pi-bump-6", subcategoryId: "sc-body-2", name: "Lökhárító rács (oldalsó - ködlámpánál)", slug: "lokharito-racs-oldalso" },
     { id: "pi-bump-7", subcategoryId: "sc-body-2", name: "Lökhárító koptató / spoiler", slug: "lokharito-koptato" },
-    { id: "pi-bump-8", subcategoryId: "sc-body-2", name: "Lökhárító tartó / merevítő", slug: "lokharito-tarto-merevito" },
+    { id: "pi-bump-8", subcategoryId: "sc-body-2", name: "Lökhárító merevítő (Első fém/műanyag)", slug: "lokharito-merevito-elso" },
+    { id: "pi-bump-14", subcategoryId: "sc-body-2", name: "Lökhárító merevítő (Hátsó fém/műanyag)", slug: "lokharito-merevito-hatso" },
+    { id: "pi-bump-15", subcategoryId: "sc-body-2", name: "Lökhárító tartó / konzol szett", slug: "lokharito-tarto-szett" },
     { id: "pi-bump-9", subcategoryId: "sc-body-2", name: "Lökhárító tartó konzol (Bal oldali)", slug: "lokharito-konzol-bal" },
     { id: "pi-bump-10", subcategoryId: "sc-body-2", name: "Lökhárító tartó konzol (Jobb oldali)", slug: "lokharito-konzol-jobb" },
     { id: "pi-bump-11", subcategoryId: "sc-body-2", name: "Lökhárító díszléc (króm/fekete)", slug: "lokharito-diszlec" },
@@ -234,6 +240,7 @@ export const partItems: PartItem[] = [
     { id: "pi-fend-7", subcategoryId: "sc-body-4", name: "Sárvédő dobbetét (Hátsó - Bal)", slug: "sarvedo-dobbetet-hatso-bal" },
     { id: "pi-fend-8", subcategoryId: "sc-body-4", name: "Sárvédő dobbetét (Hátsó - Jobb)", slug: "sarvedo-dobbetet-hatso-jobb" },
     { id: "pi-fend-9", subcategoryId: "sc-body-4", name: "Sárvédő díszléc / szélesítés", slug: "sarvedo-szelesites" },
+    { id: "pi-fend-10", subcategoryId: "sc-body-4", name: "Doblemez (Fém sárvédő belső ív)", slug: "doblemez-fem" },
 
 
     // Level 3 - CSOMAGTÉRAJTÓ
@@ -934,6 +941,9 @@ export const partItems: PartItem[] = [
     { id: "pi-stru-7", subcategoryId: "sc-body-8", name: "Hátsó sárvédő negyed (Bal)", slug: "bal-hatso-negyed" },
     { id: "pi-stru-8", subcategoryId: "sc-body-8", name: "Hátsó sárvédő negyed (Jobb)", slug: "jobb-hatso-negyed" },
     { id: "pi-stru-9", subcategoryId: "sc-body-8", name: "Tetőszerkezet / Keret", slug: "tetokeret" },
+    { id: "pi-stru-10", subcategoryId: "sc-body-8", name: "Hátfal lemez (Komplett hátsó panel)", slug: "hatfal-lemez" },
+    { id: "pi-stru-11", subcategoryId: "sc-body-8", name: "Sárvédő torony (Gólyaláb ház)", slug: "sarvedo-torony" },
+    { id: "pi-stru-12", subcategoryId: "sc-body-8", name: "Torony merevítő (Gyári)", slug: "torony-merevito" },
 
     // --- NEW: MŰSZERFAL ÉS KEZELŐSZERVEK ---
     { id: "pi-dash-1", subcategoryId: "sc-interior-6", name: "Műszerfal párna / Borítás (Airbag-es)", slug: "muszerfal-parna-airbag" },
@@ -959,6 +969,19 @@ export const partItems: PartItem[] = [
     // --- NEW: NAGYFESZÜLTSÉGŰ ELEKTRONIKA ---
     { id: "pi-ev-n-1", subcategoryId: "sc-fuel-3", name: "Inverter / Konverter (HV)", slug: "hv-inverter" },
     { id: "pi-ev-n-2", subcategoryId: "sc-fuel-3", name: "Hűtővíz szivattyú (Elektromos/HV)", slug: "hv-vizszivattyu" },
-    { id: "pi-ev-n-3", subcategoryId: "sc-fuel-3", name: "Belső égésű motor (Hibrid hatótávnövelő)", slug: "hibrid-motor-alk" }
+    { id: "pi-ev-n-3", subcategoryId: "sc-fuel-3", name: "Belső égésű motor (Hibrid hatótávnövelő)", slug: "hibrid-motor-alk" },
+
+    // --- NEW: PLATÓ ÉS TARTOZÉKAI ---
+    { id: "pi-plat-1", subcategoryId: "sc-body-9", name: "Plató lemez / Fenéklemez", slug: "plato-lemez" },
+    { id: "pi-plat-2", subcategoryId: "sc-body-9", name: "Plató oldalfal (Bal/Jobb)", slug: "plato-oldalfal" },
+    { id: "pi-plat-3", subcategoryId: "sc-body-9", name: "Plató hátfal / Nyitó ajtó", slug: "plato-hatfal" },
+    { id: "pi-plat-4", subcategoryId: "sc-body-9", name: "Plató bélés (Műanyag)", slug: "plato-beles" },
+    { id: "pi-plat-5", subcategoryId: "sc-body-9", name: "Plató doboz / Felépítmény", slug: "plato-doboz" },
+    { id: "pi-plat-6", subcategoryId: "sc-body-9", name: "Plató roló / Fedél", slug: "plato-rolo" },
+
+    // --- NEW: KAROSSZÉRIA CSOMAG ---
+    { id: "pi-pack-1", subcategoryId: "sc-body-10", name: "Komplett gépjármű eleje (Szettben)", slug: "komplett-eleje-szett" },
+    { id: "pi-pack-2", subcategoryId: "sc-body-10", name: "Vágott karosszéria negyed szett", slug: "vagott-karosszeria-szett" },
+    { id: "pi-pack-3", subcategoryId: "sc-body-10", name: "Orr-vázkeret (Hűtőkkel, lámpákkal)", slug: "orr-vazkeret" }
 ];
 
