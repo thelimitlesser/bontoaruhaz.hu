@@ -171,6 +171,10 @@ export const subcategories: Subcategory[] = [
     { id: "sc-locks-3", categoryId: "locks", name: "EGYÉB SZERKEZETEK ÉS MECHANIKÁK", slug: "egyeb-szerkezetek" },
     { id: "sc-electric-5", categoryId: "electric-motor", name: "AKKUMULÁTOR (12V) ÉS TARTOZÉKAI", slug: "akkumulator-12v" },
     { id: "sc-wiring-4", categoryId: "wiring", name: "BIZTOSÍTÉKTÁBLA ÉS RELÉDOBOZ", slug: "biztositektabla" },
+    { id: "sc-engine-9", categoryId: "engine", name: "KENÉSI RENDSZER", slug: "kenesi-rendszer", keywords: ["olaj", "szivattyú", "karter"] },
+    { id: "sc-engine-10", categoryId: "engine", name: "KIPUFOGÓGÁZ VISSZAVEZETÉS (EGR)", slug: "egr-rendszer", keywords: ["egr", "visszavezetés", "szelep"] },
+    { id: "sc-interior-6", categoryId: "interior", name: "MŰSZERFAL ÉS KEZELŐSZERVEK", slug: "muszerfal-es-kezeles" },
+    { id: "sc-body-8", categoryId: "body-exterior", name: "VÁZSZERKEZETI ELEMEK", slug: "vazszerkezeti-elemek", keywords: ["nyúlvány", "oszlop", "negyed"] },
 ];
 
 export const partItems: PartItem[] = [
@@ -905,6 +909,44 @@ export const partItems: PartItem[] = [
     // --- NEW: AKKUMULÁTOR (12V) ÉS TARTOZÉKAI ---
     { id: "pi-batt-1", subcategoryId: "sc-electric-5", name: "Indítóakkumulátor (12V)", slug: "inditoakkumulator" },
     { id: "pi-batt-2", subcategoryId: "sc-electric-5", name: "Akkumulátor tartó tálca", slug: "akku-talca" },
-    { id: "pi-batt-3", subcategoryId: "sc-electric-5", name: "Akkumulátor kábel / Saru", slug: "akku-kabel-saru" }
+    { id: "pi-batt-3", subcategoryId: "sc-electric-5", name: "Akkumulátor kábel / Saru", slug: "akku-kabel-saru" },
+
+    // --- NEW: KENÉSI RENDSZER ---
+    { id: "pi-lub-1", subcategoryId: "sc-engine-9", name: "Olajteknő / Karter (Lemez/Alu)", slug: "olajtekno-karter" },
+    { id: "pi-lub-2", subcategoryId: "sc-engine-9", name: "Olajszivattyú", slug: "olajszivattyu" },
+    { id: "pi-lub-3", subcategoryId: "sc-engine-9", name: "Olajhűtő", slug: "olajhuto" },
+    { id: "pi-lub-4", subcategoryId: "sc-engine-9", name: "Olajszűrő ház / tartó", slug: "olajszuro-haz" },
+    { id: "pi-lub-5", subcategoryId: "sc-engine-9", name: "Olajnívó pálca és vezetőcső", slug: "olajnivo-palca" },
+    { id: "pi-lub-6", subcategoryId: "sc-engine-9", name: "Olajbetöltő sapka", slug: "olajbetolto-sapka" },
+
+    // --- NEW: KIPUFOGÓGÁZ VISSZAVEZETÉS (EGR) ---
+    { id: "pi-egr-1", subcategoryId: "sc-engine-10", name: "EGR szelep (Elektromos/Vákuumos)", slug: "egr-szelep-alk" },
+    { id: "pi-egr-2", subcategoryId: "sc-engine-10", name: "EGR hűtő", slug: "egr-huto" },
+    { id: "pi-egr-3", subcategoryId: "sc-engine-10", name: "EGR cső", slug: "egr-cso" },
+
+    // --- NEW: VÁZSZERKEZETI ELEMEK ---
+    { id: "pi-stru-1", subcategoryId: "sc-body-8", name: "Hossznyúlvány (Bal első)", slug: "bal-elso-nyulvany" },
+    { id: "pi-stru-2", subcategoryId: "sc-body-8", name: "Hossznyúlvány (Jobb első)", slug: "jobb-elso-nyulvany" },
+    { id: "pi-stru-3", subcategoryId: "sc-body-8", name: "B-oszlop (Bal)", slug: "bal-b-oszlop" },
+    { id: "pi-stru-4", subcategoryId: "sc-body-8", name: "B-oszlop (Jobb)", slug: "jobb-b-oszlop" },
+    { id: "pi-stru-5", subcategoryId: "sc-body-8", name: "Küszöb vázszerkezet / Lemez (Bal)", slug: "bal-kuszob-vaz" },
+    { id: "pi-stru-6", subcategoryId: "sc-body-8", name: "Küszöb vázszerkezet / Lemez (Jobb)", slug: "jobb-kuszob-vaz" },
+    { id: "pi-stru-7", subcategoryId: "sc-body-8", name: "Hátsó sárvédő negyed (Bal)", slug: "bal-hatso-negyed" },
+    { id: "pi-stru-8", subcategoryId: "sc-body-8", name: "Hátsó sárvédő negyed (Jobb)", slug: "jobb-hatso-negyed" },
+    { id: "pi-stru-9", subcategoryId: "sc-body-8", name: "Tetőszerkezet / Keret", slug: "tetokeret" },
+
+    // --- NEW: MŰSZERFAL ÉS KEZELŐSZERVEK ---
+    { id: "pi-dash-1", subcategoryId: "sc-interior-6", name: "Műszerfal párna / Borítás (Airbag-es)", slug: "muszerfal-parna-airbag" },
+    { id: "pi-dash-2", subcategoryId: "sc-interior-6", name: "Műszerfal párna / Borítás (Csupasz)", slug: "muszerfal-parna-ures" },
+    { id: "pi-dash-3", subcategoryId: "sc-interior-6", name: "Kesztyűtartó fedél / Doboz", slug: "kesztyutarto-alk" },
+    { id: "pi-dash-4", subcategoryId: "sc-interior-6", name: "Középkonzol díszbetét / Keret", slug: "kozepkonzol-keret" },
+    { id: "pi-dash-5", subcategoryId: "sc-interior-6", name: "Szellőzőrács (Középső)", slug: "szellozoracs-kozep" },
+    { id: "pi-dash-6", subcategoryId: "sc-interior-6", name: "Szellőzőrács (Oldalsó)", slug: "szellozoracs-oldal" },
+    { id: "pi-dash-7", subcategoryId: "sc-interior-6", name: "Világításkapcsoló (Főkapcsoló)", slug: "vilagtaskapcsolo-fo" },
+
+    // --- NEW: KORMÁNYZÁSI KIEGÉSZÍTŐK ---
+    { id: "pi-steer-n-9", subcategoryId: "sc-steering-2", name: "Kormánymű gumiharang", slug: "kormanymu-gumiharang" },
+    { id: "pi-steer-n-10", subcategoryId: "sc-steering-2", name: "Szervóolaj tartály", slug: "szervoolaj-tartaly" },
+    { id: "pi-steer-n-11", subcategoryId: "sc-steering-2", name: "Szervócső (Nyomó/Visszafolyó)", slug: "szervocso" },
 ];
 
