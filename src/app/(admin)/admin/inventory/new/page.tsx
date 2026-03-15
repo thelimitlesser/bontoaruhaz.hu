@@ -8,7 +8,7 @@ export default async function NewProductPage() {
     return (
         <div className="space-y-6">
             <div className="flex items-center gap-4">
-                <Link href="/admin/products" className="p-2 hover:bg-white/10 rounded-full transition-colors">
+                <Link href="/admin/inventory" className="p-2 hover:bg-white/10 rounded-full transition-colors">
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
                 <div>

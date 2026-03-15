@@ -72,7 +72,7 @@ export default async function InventoryPage({
                     </p>
                 </div>
                 <div className="flex gap-3">
-                    <Link href="/admin/products/new" className="bg-[var(--color-primary)] hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-orange-900/20">
+                    <Link href="/admin/inventory/new" className="bg-[var(--color-primary)] hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-orange-900/20">
                         <Plus className="w-5 h-5" />
                         Új Alkatrész
                     </Link>

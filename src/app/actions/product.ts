@@ -370,7 +370,7 @@ export async function deleteProduct(id: string) {
     });
 
     revalidatePath('/admin/inventory');
-    revalidatePath('/admin/products');
+    revalidatePath('/admin/inventory');
 }
 
 /*
