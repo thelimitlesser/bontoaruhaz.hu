@@ -76,8 +76,34 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     yearString = `${dbPart.yearTo}-ig`;
   }
 
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": `${brandName} ${modelName} ${dbPart.name} ${yearString}`,
+    "image": images.length > 0 ? images : [mainImage],
+    "description": dbPart.description || `Bontott ${brandName} ${modelName} alkatrész.`,
+    "sku": dbPart.sku,
+    "mpn": dbPart.productCode,
+    "brand": {
+      "@type": "Brand",
+      "name": brandName
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `https://bontoaruhaz.hu/product/${dbPart.id}`,
+      "priceCurrency": dbPart.currency || "HUF",
+      "price": dbPart.priceGross,
+      "availability": dbPart.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "condition": dbPart.condition === "NEW" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition"
+    }
+  };
+
   return (
     <div className="min-h-screen pb-24 px-4 md:px-8 relative z-0 bg-background overflow-x-hidden w-full max-w-[100vw]" style={{ paddingTop: '100px' }}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <div className="max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden">
 
         {/* Breadcrumb Navigation */}
