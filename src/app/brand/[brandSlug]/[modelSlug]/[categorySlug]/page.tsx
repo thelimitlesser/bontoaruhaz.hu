@@ -58,7 +58,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                     partItem: currentPartItem?.id,
                     year: yearInt && !isNaN(yearInt) ? yearInt : undefined,
                 });
-                setRealProducts(results);
+                setRealProducts(results.parts);
             } catch (error) {
                 console.error("Failed to fetch products:", error);
             } finally {
