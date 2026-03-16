@@ -236,9 +236,33 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                       Termékleírás
                     </h3>
                     <div className="text-muted leading-relaxed max-w-none prose">
-                      {dbPart.description.split('\\n').map((line, i) => (
-                        <p key={i} className="mb-2">{line}</p>
-                      ))}
+                      {/* Automated Header */}
+                    <p className="font-bold mb-4 text-foreground uppercase tracking-tight">
+                      ELADÓ {product.condition.toLowerCase()} {brandName} {modelName} {dbPart.name}
+                    </p>
+
+                    {/* Custom Body Text */}
+                    {dbPart.description && dbPart.description.split('\\n').map((line, i) => (
+                      <p key={i} className="mb-2">{line}</p>
+                    ))}
+
+                    {/* Automated Footer */}
+                    <div className="mt-8 pt-6 border-t border-border space-y-4 text-sm italic">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-foreground/[0.03] rounded-lg">
+                          <Truck className="w-4 h-4 text-[var(--color-primary)]" />
+                        </div>
+                        <p className="text-muted">Szállítási idő: <span className="font-bold text-foreground">2-3 munkanap.</span></p>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <div className="p-2 bg-foreground/[0.03] rounded-lg shrink-0">
+                          <AlertCircle className="w-4 h-4 text-[var(--color-primary)]" />
+                        </div>
+                        <p className="text-muted leading-snug">
+                          Ha bármi kérdése van az alkatrésszel kapcsolatban, kérjük hivatkozzon a termék hivatkozási számára: <span className="font-bold text-foreground">{dbPart.productCode || "-"}</span>
+                        </p>
+                      </div>
+                    </div>
                     </div>
                   </div>
                   <div className="h-px bg-border w-full" />

@@ -34,7 +34,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
     const titleParts = [brandName, modelName, dbPart.name, yearString].filter(Boolean);
     const title = `${titleParts.join(' ')} - BONTÓÁRUHÁZ`;
-    const description = `Minőségi bontott ${brandName} ${modelName} alkatrész: ${dbPart.name}. Garanciával, gyors szállítással Magyarország egész területén.`;
+    const description = `Bontott ${brandName} ${modelName} alkatrész: ${dbPart.name}. Szállítás: 2-3 munkanap. Garanciával, az ország egész területén.`;
 
     return {
         title,
