@@ -27,8 +27,30 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
         notFound();
     }
 
+    const jsonLd = {
+        "@context": "https://schema.org",
+        "@type": "CollectionPage",
+        "name": `Bontott ${brand.name} ${model.name} alkatrészek`,
+        "description": `Kategóriánkénti bontott alkatrész válogatás ${brand.name} ${model.name} gépjárműhöz.`,
+        "url": `https://bontoaruhaz.hu/brand/${brand.slug}/${model.slug}`,
+        "mainEntity": {
+            "@type": "ItemList",
+            "numberOfItems": categories.length,
+            "itemListElement": categories.map((cat, index) => ({
+                "@type": "ListItem",
+                "position": index + 1,
+                "name": `${cat.name} alkatrészek`,
+                "url": `https://bontoaruhaz.hu/brand/${brand.slug}/${model.slug}/${cat.slug}`
+            }))
+        }
+    };
+
     return (
         <div className="min-h-screen bg-[#f8f9fa] font-[family-name:var(--font-geist-sans)]">
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
             <Navbar />
 
             <main className="pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto">

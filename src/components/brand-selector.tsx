@@ -34,7 +34,7 @@ export function BrandSelector() {
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                     src={brand.logo}
-                                    alt={brand.name}
+                                    alt={`${brand.name} logo - Bontott ${brand.name} alkatrészek`}
                                     className={`w-full h-full object-contain transition-all duration-300 opacity-80 group-hover:opacity-100 ${brand.logo.endsWith('.png')
                                         ? "mix-blend-multiply" : "filter brightness-0"}`}
                                 />
