@@ -1,5 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { NextResponse } from "next/server";
+import { headers } from "next/headers";
+import { rateLimit } from "@/lib/rate-limit";
 import { categories, partsSubcategories as subcategories, partItems, brands, models } from "@/lib/vehicle-data";
 
 // Initialize Gemini Client
@@ -54,6 +56,25 @@ export async function POST(req: Request) {
     try {
         const { query } = await req.json();
         if (!query) return NextResponse.json({ error: "No query" }, { status: 400 });
+
+        // Rate Limiting
+        const headersList = await headers();
+        const ip = headersList.get("x-forwarded-for") || "anonymous";
+        const limiter = rateLimit(ip, 10, 60000); // 10 requests per minute
+
+        if (!limiter.success) {
+            return NextResponse.json(
+                { error: "Túl sok kérés. Kérjük próbálja újra később." },
+                { 
+                    status: 429,
+                    headers: {
+                        "X-RateLimit-Limit": "10",
+                        "X-RateLimit-Remaining": "0",
+                        "X-RateLimit-Reset": limiter.reset.toString()
+                    }
+                }
+            );
+        }
 
         console.log("AI Search API triggered for:", query);
 
