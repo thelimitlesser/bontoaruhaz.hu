@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Facebook, Instagram, Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 export function Footer() {
@@ -34,13 +34,13 @@ export function Footer() {
                     </div>
 
                     {/* Quick Links */}
-                    <div className="flex flex-col items-center sm:items-start space-y-4">
-                        <h4 className="text-background font-bold uppercase tracking-wider text-sm mb-2">Információk</h4>
-                        <Link href="/about" className="hover:text-[var(--color-primary)] transition-colors text-sm">Rólunk</Link>
-                        <Link href="/faq" className="hover:text-[var(--color-primary)] transition-colors text-sm">Gyakori Kérdések</Link>
-                        <Link href="/warranty" className="hover:text-[var(--color-primary)] transition-colors text-sm">Garancia és Visszaküldés</Link>
-                        <Link href="/terms" className="hover:text-[var(--color-primary)] transition-colors text-sm">Általános Szerződési Feltételek</Link>
-                        <Link href="/privacy" className="hover:text-[var(--color-primary)] transition-colors text-sm">Adatvédelmi Tájékoztató</Link>
+                    <div className="flex flex-col items-center sm:items-start space-y-1">
+                        <h4 className="text-background font-bold uppercase tracking-wider text-sm mb-4">Információk</h4>
+                        <Link href="/about" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Rólunk</Link>
+                        <Link href="/faq" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Gyakori Kérdések</Link>
+                        <Link href="/warranty" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Garancia és Visszaküldés</Link>
+                        <Link href="/terms" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Általános Szerződési Feltételek</Link>
+                        <Link href="/privacy" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Adatvédelmi Tájékoztató</Link>
                     </div>
 
                     {/* Contact */}
@@ -60,27 +60,15 @@ export function Footer() {
                         </div>
                     </div>
 
-                    {/* Social & Payment */}
-                    <div className="flex flex-col items-center sm:items-start space-y-4">
-                        <h4 className="text-background font-bold uppercase tracking-wider text-sm mb-2">Kövess minket</h4>
-                        <div className="flex gap-4">
-                            <a href="#" className="w-10 h-10 rounded-full bg-background/5 flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white transition-all text-background">
-                                <Facebook className="w-5 h-5" />
-                            </a>
-                            <a href="#" className="w-10 h-10 rounded-full bg-background/5 flex items-center justify-center hover:bg-[var(--color-primary)] hover:text-white transition-all text-background">
-                                <Instagram className="w-5 h-5" />
-                            </a>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Copyright */}
                 <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-background/40 gap-4 text-center sm:text-left">
                     <p>© {new Date().getFullYear()} BONTÓÁRUHÁZ. Minden jog fenntartva.</p>
-                    <div className="flex flex-wrap items-center justify-center gap-4">
-                        <Link href="/terms" className="hover:text-background transition-colors">ÁSZF</Link>
-                        <Link href="/privacy" className="hover:text-background transition-colors">Adatvédelem</Link>
-                        <Link href="/impressum" className="hover:text-background transition-colors">Impresszum</Link>
+                    <div className="flex flex-wrap items-center justify-center gap-6">
+                        <Link href="/terms" className="hover:text-background transition-colors py-2 px-3 -my-2 rounded-md">ÁSZF</Link>
+                        <Link href="/privacy" className="hover:text-background transition-colors py-2 px-3 -my-2 rounded-md">Adatvédelem</Link>
+                        <Link href="/impressum" className="hover:text-background transition-colors py-2 px-3 -my-2 rounded-md">Impresszum</Link>
                     </div>
                 </div>
             </div>

@@ -12,7 +12,7 @@ export default function Home() {
       <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start w-full max-w-full">
 
         {/* HERO SECTION */}
-        <section className="relative w-full min-h-[85vh] flex items-center justify-center p-2 sm:p-20 mt-16 sm:mt-20 z-0">
+        <section className="relative w-full min-h-[85dvh] flex items-center justify-center p-2 sm:p-20 mt-16 sm:mt-20 z-0">
           {/* Animated Background */}
           <HeroBackground />
 
@@ -61,7 +61,7 @@ export default function Home() {
       </main>
 
       {/* Background Decor */}
-      <div className="fixed top-0 left-0 w-full h-full -z-10 bg-[url('/grid.svg')] opacity-20 pointer-events-none"></div>
+      <div className="fixed top-0 left-0 w-full h-[100dvh] -z-10 bg-[url('/grid.svg')] opacity-20 pointer-events-none"></div>
     </div>
   );
 }

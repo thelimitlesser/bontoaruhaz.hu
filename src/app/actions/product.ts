@@ -664,19 +664,28 @@ export async function getCategoryProductCounts(brandId: string, modelId: string)
 }
 
 export async function getNextReferenceNumber() {
-    const result = await prisma.part.aggregate({
-        _max: {
+    // We need to find the highest NUMERIC productCode.
+    // Aggregating _max on a string field does lexicographical comparison (e.g. "TEST-1" > "1000")
+    // So we fetch and filter in memory for now.
+    const parts = await prisma.part.findMany({
+        where: {
+            productCode: { not: null }
+        },
+        select: {
             productCode: true
         }
     });
 
-    const maxCode = result._max.productCode;
+    const numericCodes = parts
+        .map(p => p.productCode!)
+        .filter(code => /^\d+$/.test(code))
+        .map(code => parseInt(code));
 
-    if (!maxCode || isNaN(parseInt(maxCode))) {
+    if (numericCodes.length === 0) {
         return "1000";
     }
 
-    const nextCode = parseInt(maxCode) + 1;
+    const nextCode = Math.max(...numericCodes) + 1;
     return nextCode.toString();
 }
 

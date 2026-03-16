@@ -90,7 +90,7 @@ export function Navbar() {
 
     return (
         <>
-            <nav className="fixed top-0 left-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-xl transition-all font-[family-name:var(--font-geist-sans)] overflow-x-hidden">
+            <nav className="fixed top-0 left-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-xl transition-all font-[family-name:var(--font-geist-sans)] overflow-x-hidden pt-[env(safe-area-inset-top)]">
                 <div className="w-full relative px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between max-w-7xl mx-auto">
                     {/* Logo */}
                     <Link href="/" className="-ml-1 sm:-ml-2 lg:-ml-4 flex items-center gap-1 sm:gap-3 text-[17px] sm:text-[28px] font-black tracking-tighter text-foreground z-10 group">
@@ -121,11 +121,12 @@ export function Navbar() {
                     {/* Actions */}
                     <div className="flex items-center gap-0.5 sm:gap-4">
                         <button
-                            className="relative group p-2 rounded-full hover:bg-foreground/5 transition-colors" onClick={() => setIsCartOpen(true)}
+                            className="relative group p-3 rounded-full hover:bg-foreground/5 transition-colors" onClick={() => setIsCartOpen(true)}
+                            aria-label="Kosár"
                         >
                             <ShoppingCart className="w-6 h-6 text-muted group-hover:text-foreground transition-colors" />
                             {totalItems > 0 && (
-                                <span className="absolute -top-1 -right-1 w-5 h-5 bg-[var(--color-primary)] rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow-sm">
+                                <span className="absolute top-1 right-1 w-5 h-5 bg-[var(--color-primary)] rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow-sm">
                                     {totalItems}
                                 </span>
                             )}
@@ -134,7 +135,9 @@ export function Navbar() {
                         {/* User Profile Tool Toggle */}
                         <div className="relative">
                             <button
-                                className="relative group p-2 rounded-full hover:bg-foreground/5 transition-colors flex items-center justify-center" onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                className="relative group p-3 rounded-full hover:bg-foreground/5 transition-colors flex items-center justify-center" 
+                                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                                aria-label="Profil"
                             >
                                 <User className={clsx("w-6 h-6 transition-colors", user ? "text-[var(--color-primary)]" : "text-muted group-hover:text-foreground")} />
                             </button>
@@ -142,7 +145,9 @@ export function Navbar() {
 
                         {/* Mobile Menu Toggle */}
                         <button
-                            className="md:hidden text-foreground hover:text-[var(--color-primary)]" onClick={() => setIsOpen(!isOpen)}
+                            className="md:hidden text-foreground hover:text-[var(--color-primary)] p-3 -mr-2 rounded-full transition-colors" 
+                            onClick={() => setIsOpen(!isOpen)}
+                            aria-label="Menü"
                         >
                             {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
                         </button>

@@ -19,6 +19,7 @@ interface SearchableSelectProps {
     label?: string;
     name?: string;
     theme?: "dark" | "light";
+    variant?: "default" | "minimal";
 }
 
 export function SearchableSelect({
@@ -30,6 +31,7 @@ export function SearchableSelect({
     label,
     name,
     theme = "dark",
+    variant = "default",
 }: SearchableSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -76,27 +78,51 @@ export function SearchableSelect({
 
 
     return (
-        <div className="relative" ref={containerRef}>
+        <div className={clsx("relative w-full", isOpen && "z-20")} ref={containerRef}>
             {name && <input type="hidden" name={name} value={value} />}
             {label && <label className="block text-xs text-muted mb-1 ml-1">{label}</label>}
 
             <button
                 type="button" onClick={() => !disabled && setIsOpen(!isOpen)}
                 disabled={disabled}
-                className={clsx("w-full text-left rounded-lg px-4 py-3 flex items-center justify-between transition-all outline-none border", // changed rounded-xl to rounded-lg to match other admin inputs
-                    disabled ? "opacity-50 cursor-not-allowed border-transparent text-muted" :
-                        theme === "dark" ? "bg-foreground/5 border-border text-foreground hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)]" : "bg-gray-50 border-gray-200 text-gray-900 hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)]",
-                    isOpen && "border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]")}
+                className={clsx(
+                    "w-full text-left flex items-center transition-all outline-none",
+                    variant === "minimal" ? "justify-center" : "rounded-lg px-4 py-3 border justify-between",
+                    // Base styles by variant
+                    variant === "minimal" 
+                        ? "bg-transparent border-none px-2 py-3" 
+                        : theme === "dark" 
+                            ? "bg-foreground/5 border-border" 
+                            : "bg-gray-50 border-gray-200",
+                    // State styles
+                    disabled 
+                        ? "opacity-50 cursor-not-allowed text-muted" 
+                        : "hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)]",
+                    // Text colors by theme
+                    !disabled && (theme === "dark" ? "text-foreground" : "text-gray-900"),
+                    // Active state
+                    isOpen && variant !== "minimal" && "border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]"
+                )}
             >
-                <span className={clsx("block truncate", !selectedOption && (theme === "dark" ? "text-muted" : "text-gray-500"))}>
-                    {selectedOption ? selectedOption.label : placeholder}
-                </span>
-                <ChevronDown className={clsx("w-4 h-4 transition-transform", isOpen && "rotate-180", theme === "dark" ? "text-muted" : "text-gray-500")} />
+                <div className={clsx("flex items-center gap-2 min-w-0 px-2", variant === "minimal" ? "justify-center w-full" : "")}>
+                    <span className={clsx("truncate font-medium transition-colors",
+                        variant === "minimal" && "text-center flex-1",
+                        !selectedOption
+                            ? (theme === "dark" ? "text-muted" : "text-gray-400")
+                            : "text-[var(--color-primary)]"
+                    )}>
+                        {selectedOption ? selectedOption.label : placeholder}
+                    </span>
+                    <ChevronDown className={clsx("w-3.5 h-3.5 shrink-0 transition-transform",
+                        isOpen && "rotate-180",
+                        selectedOption ? "text-[var(--color-primary)]/70" : (theme === "dark" ? "text-muted" : "text-gray-400")
+                    )} />
+                </div>
             </button>
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className={clsx("absolute z-50 w-full mt-2 border rounded-xl shadow-xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top",
+                <div className={clsx("absolute z-[100] left-0 right-0 mt-2 border rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-100 origin-top",
                     theme === "dark" ? "bg-background/95 backdrop-blur-xl border-border" : "bg-white border-gray-200")}>
 
                     {/* Search Input */}
@@ -115,7 +141,7 @@ export function SearchableSelect({
                     </div>
 
                     {/* Options List */}
-                    <div className={clsx("max-h-[220px] overflow-y-auto scrollbar-thin scrollbar-track-transparent", theme === "dark" ? "scrollbar-thumb-foreground/20" : "scrollbar-thumb-gray-200")}>
+                    <div className={clsx("min-h-[185px] max-h-[185px] overflow-y-auto scrollbar-thin scrollbar-track-transparent rounded-b-xl flex flex-col", theme === "dark" ? "scrollbar-thumb-foreground/20" : "scrollbar-thumb-gray-200")}>
                         {filteredOptions.length === 0 ? (
                             <div className={clsx("px-4 py-8 text-center text-sm", theme === "dark" ? "text-muted" : "text-gray-500")}>
                                 Nincs találat.
@@ -133,7 +159,7 @@ export function SearchableSelect({
                                                 {groupOptions.map((option) => (
                                                     <li key={option.value}>
                                                         <button
-                                                            type="button" className={clsx("w-full text-left px-5 py-2 text-sm transition-colors flex items-center justify-between group",
+                                                            type="button" className={clsx("w-full text-left px-5 py-3 text-sm transition-colors flex items-center justify-between group",
                                                                 value === option.value
                                                                     ? theme === "dark" ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]" : "bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold" : theme === "dark" ? "text-foreground hover:bg-foreground/5 hover:text-[var(--color-primary)]" : "text-gray-700 hover:bg-gray-50 hover:text-[var(--color-primary)]")}
                                                             onClick={() => {
@@ -154,7 +180,7 @@ export function SearchableSelect({
                                         {filteredOptions.map((option) => (
                                             <li key={option.value}>
                                                 <button
-                                                    type="button" className={clsx("w-full text-left px-4 py-2.5 text-sm transition-colors flex items-center justify-between group",
+                                                    type="button" className={clsx("w-full text-left px-5 py-3 text-sm transition-colors flex items-center justify-between group",
                                                         value === option.value
                                                             ? theme === "dark" ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]" : "bg-[var(--color-primary)]/10 text-[var(--color-primary)] font-bold" : theme === "dark" ? "text-foreground hover:bg-foreground/5 hover:text-[var(--color-primary)]" : "text-gray-700 hover:bg-gray-50 hover:text-[var(--color-primary)]")}
                                                     onClick={() => {
