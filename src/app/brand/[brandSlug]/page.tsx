@@ -162,7 +162,6 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
                                                 </div>
                                                 <div>
                                                     <div className="text-[13px] font-black text-[var(--color-primary)] uppercase leading-tight">NEM TALÁLOD?</div>
-                                                    <div className="text-[13px] font-black text-gray-400 uppercase leading-tight">KERESD ITT!</div>
                                                 </div>
                                             </div>
                                         </Link>

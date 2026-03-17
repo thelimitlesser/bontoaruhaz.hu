@@ -9,19 +9,9 @@ import { getCategoryProductCounts } from"@/app/actions/product";
 
 export default function ModelCategoryPage({ params }: { params: Promise<{ brandSlug: string; modelSlug: string }> }) {
     const { brandSlug, modelSlug } = use(params);
-    const [counts, setCounts] = useState<Record<string, number>>({});
-    const [loading, setLoading] = useState(true);
 
     const brand = getBrandBySlug(brandSlug);
     const model = getModelBySlug(modelSlug);
-
-    useEffect(() => {
-        if (brand && model) {
-            getCategoryProductCounts(brand.id, model.id)
-                .then(setCounts)
-                .finally(() => setLoading(false));
-        }
-    }, [brand, model]);
 
     if (!brand || !model) {
         notFound();
@@ -81,8 +71,6 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                     {categories.map((cat) => {
                         const Icon = cat.icon;
-                        const count = counts[cat.id] || 0;
-                        const hasProducts = count > 0;
 
                         return (
                             <Link
@@ -92,7 +80,7 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
                                 {/* Icon */}
                                 <Icon className="w-12 h-12 shrink-0 object-contain transition-all duration-300 group-hover:scale-110 text-[var(--color-primary)] opacity-80 group-hover:opacity-100" strokeWidth={1.5} />
 
-                                {/* Name & Count */}
+                                {/* Name */}
                                 <div className="flex-1 min-w-0">
                                     <h3 className="font-bold text-lg leading-tight transition-colors text-gray-900 group-hover:text-[var(--color-primary)] break-words">
                                         {cat.name.split('/').map((part, i, arr) => (
@@ -102,15 +90,6 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
                                             </span>
                                         ))}
                                     </h3>
-                                    {!loading && hasProducts && (
-                                        <div className="text-[10px] font-black uppercase tracking-widest mt-1 flex items-center gap-1.5 text-[var(--color-primary)]">
-                                            <PackageSearch className="w-3 h-3" />
-                                            {count} db készleten
-                                        </div>
-                                    )}
-                                    {loading && (
-                                        <div className="h-3 w-16 bg-gray-100 animate-pulse rounded mt-1" />
-                                    )}
                                 </div>
 
                                 {/* Subtle Indicator */}
@@ -129,7 +108,6 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
                             <h3 className="font-black text-[var(--color-primary)] text-[14px] leading-tight uppercase">
                                 NEM TALÁLOD?
                             </h3>
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">KERESD ITT!</p>
                         </div>
                     </Link>
                 </div>
