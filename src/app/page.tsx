@@ -18,7 +18,7 @@ export default function Home() {
 
           <div className="relative z-10 w-full max-w-4xl flex flex-col items-center gap-3 sm:gap-8 text-center px-1 sm:px-0">
 
-            <div id="ai-search" className="scroll-mt-24 relative flex flex-col items-center gap-1 text-center pt-2 pb-1 sm:py-6 px-2 sm:px-4 w-full">
+            <div id="kereso" className="scroll-mt-32 relative flex flex-col items-center gap-1 text-center pt-2 pb-1 sm:py-6 px-2 sm:px-4 w-full">
               {/* Subtle black spread for contrast */}
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0)_60%)] blur-sm -z-10 rounded-full w-[100%] h-[100%] left-0 top-0 pointer-events-none"></div>
 

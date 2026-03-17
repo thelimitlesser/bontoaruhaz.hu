@@ -102,7 +102,7 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
 
                     {/*"Not found" LAST CARD */}
                     <Link
-                        href="/#ai-search" className="group relative bg-white border border-dashed border-[var(--color-primary)]/40 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 active:scale-[0.98]" >
+                        href="/#kereso" className="group relative bg-white border border-dashed border-[var(--color-primary)]/40 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 active:scale-[0.98]" >
                         <Search className="w-12 h-12 shrink-0 text-[var(--color-primary)] opacity-80 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" strokeWidth={2} />
                         <div>
                             <h3 className="font-black text-[var(--color-primary)] text-[14px] leading-tight uppercase">

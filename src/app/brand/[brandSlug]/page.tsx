@@ -155,7 +155,7 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
                                         </div>
                                     ) : (
                                         <Link
-                                            key="help-box" href="/#ai-search" className="block p-5 bg-white rounded-xl border-2 border-dashed border-gray-100 hover:border-[var(--color-primary)] hover:bg-orange-50/30 transition-all group shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)]" >
+                                            key="help-box" href="/#kereso" className="block p-5 bg-white rounded-xl border-2 border-dashed border-gray-100 hover:border-[var(--color-primary)] hover:bg-orange-50/30 transition-all group shadow-[0_2px_12px_-3px_rgba(0,0,0,0.04)]" >
                                             <div className="flex items-center gap-4">
                                                 <div className="w-10 h-10 rounded-lg bg-orange-100/50 flex items-center justify-center text-[var(--color-primary)] group-hover:scale-110 transition-transform">
                                                     <SearchX size={20} />
