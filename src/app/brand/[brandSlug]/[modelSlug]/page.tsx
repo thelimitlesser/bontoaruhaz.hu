@@ -113,27 +113,20 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
                 </div>
 
                 {/* Trust Badges */}
-                <div className="mt-20 border-t border-gray-200 pt-10 grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                            <span className="text-sm font-black text-[#1a1a1a] uppercase tracking-wider">1.5M+ Alkatrész</span>
-                        </div>
-                        <p className="text-xs text-gray-500 font-medium">Folyamatosan frissülő készlet Magyarország legnagyobb bontóiból.</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
+                <div className="mt-20 border-t border-gray-200 pt-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                    <div className="flex flex-col gap-2 items-center text-center">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-[var(--color-primary)]" />
-                            <span className="text-sm font-black text-[#1a1a1a] uppercase tracking-wider">15 Nap Garancia</span>
+                            <span className="text-sm font-black text-[#1a1a1a] uppercase tracking-wider">14 Nap Garancia</span>
                         </div>
                         <p className="text-xs text-gray-500 font-medium">Minden alkatrészre pénzvisszafizetési garanciát vállalunk.</p>
                     </div>
-                    <div className="flex flex-col gap-2">
+                    <div className="flex flex-col gap-2 items-center text-center">
                         <div className="flex items-center gap-3">
                             <div className="w-2 h-2 rounded-full bg-orange-500" />
-                            <span className="text-sm font-black text-[#1a1a1a] uppercase tracking-wider">Gyors kiszállítás</span>
+                            <span className="text-sm font-black text-[#1a1a1a] uppercase tracking-wider">Gyors szállítás</span>
                         </div>
-                        <p className="text-xs text-gray-500 font-medium">Akár 24 órán belüli szállítás az ország egész területén.</p>
+                        <p className="text-xs text-gray-500 font-medium">1-3 napon belüli szállítás az ország egész területén.</p>
                     </div>
                 </div>
 
