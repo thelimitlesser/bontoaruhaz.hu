@@ -324,32 +324,34 @@ export function VehicleSelector() {
 
                 {activeTab === "code" && (
                     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="flex flex-col gap-2">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Cikkszám vagy Hivatkozási szám</label>
-                            <div className="relative flex items-center group">
-                                <div className="absolute left-4 z-10 text-gray-400 group-focus-within:text-[var(--color-primary)] transition-colors">
+                        <div className="flex flex-col md:grid md:grid-cols-[1fr_auto] bg-white border-2 border-gray-100 rounded-2xl relative transition-all shadow-sm divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                            <div className="min-h-[64px] flex items-center w-full min-w-0 relative group">
+                                <div className="absolute left-6 z-10 text-gray-400 group-focus-within:text-[var(--color-primary)] transition-colors">
                                     <Hash className="w-5 h-5" />
                                 </div>
                                 <input
                                     type="text"
                                     value={codeQuery}
                                     onChange={(e) => setCodeQuery(e.target.value)}
-                                    placeholder="Pl.: 5G1941005 vagy 1004"
-                                    className="w-full h-[64px] bg-gray-50 border-2 border-gray-100 rounded-2xl pl-12 pr-16 py-4 text-lg focus:outline-none focus:border-[var(--color-primary)] focus:bg-white transition-all"
+                                    placeholder="Cikkszám vagy hivatkozási szám (Pl.: 5G1 941 005)"
+                                    className="w-full h-[64px] bg-transparent border-none pl-14 pr-8 py-4 text-base sm:text-lg focus:outline-none placeholder:text-gray-300 font-bold"
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                 />
+                            </div>
+
+                            <div className="p-2 flex items-center justify-center bg-gray-50/30 md:bg-transparent">
                                 <button
                                     onClick={() => handleSearch()}
                                     disabled={!codeQuery.trim()}
                                     className={clsx(
-                                        "absolute right-2 top-2 bottom-2 aspect-square md:aspect-auto md:px-6 rounded-xl flex items-center justify-center transition-all duration-300 gap-2 font-black text-white shrink-0",
+                                        "h-14 md:h-12 w-full md:w-auto md:px-10 rounded-2xl flex items-center justify-center transition-all duration-300 gap-3 font-black text-white shrink-0 focus:outline-none focus-visible:ring-0",
                                         codeQuery.trim()
-                                            ? "bg-[var(--color-primary)] hover:bg-orange-600 shadow-md hover:scale-[1.02]"
-                                            : "bg-gray-200 text-gray-300 cursor-not-allowed"
+                                            ? "bg-[var(--color-primary)] hover:bg-orange-600 shadow-md hover:scale-[1.01] active:scale-95"
+                                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
                                     )}
                                 >
                                     <Search className="w-5 h-5 stroke-[2.5]" />
-                                    <span className="hidden md:inline uppercase tracking-widest text-[11px]">Keresés</span>
+                                    <span className="uppercase tracking-widest text-[12px]">Keresés</span>
                                 </button>
                             </div>
                         </div>
