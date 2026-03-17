@@ -220,15 +220,15 @@ export function VehicleSelector() {
     });
 
     return (
-        <div className="w-full max-w-5xl mx-auto rounded-3xl shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] relative bg-white/95 backdrop-blur-xl border border-white/20 transform transition-all duration-500 hover:shadow-[0_48px_80px_-24px_rgba(219,81,60,0.25)]">
+        <div className="w-full max-w-5xl mx-auto rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] relative bg-white/95 backdrop-blur-xl border border-white/20 transform transition-all duration-500 hover:shadow-[0_48px_80px_-24px_rgba(219,81,60,0.25)]">
 
             {/* Premium Header / Tab Switcher */}
-            <div className="flex items-center justify-between p-1 bg-gray-100/50 rounded-t-3xl border-b border-gray-100">
+            <div className="flex items-center justify-between p-1.5 bg-gray-100/50 rounded-t-[2.5rem] border-b border-gray-100">
                 <div className="flex w-full overflow-x-auto scrollbar-hide">
                     <button
                         onClick={() => setActiveTab("manual")}
                         className={clsx(
-                            "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-2xl whitespace-nowrap focus:outline-none focus-visible:ring-0",
+                            "flex-1 flex items-center justify-center gap-2 py-3.5 px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
                             activeTab === "manual" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
                         )}
                     >
@@ -238,7 +238,7 @@ export function VehicleSelector() {
                     <button
                         onClick={() => setActiveTab("code")}
                         className={clsx(
-                            "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-2xl whitespace-nowrap focus:outline-none focus-visible:ring-0",
+                            "flex-1 flex items-center justify-center gap-2 py-3.5 px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
                             activeTab === "code" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
                         )}
                     >
@@ -248,7 +248,7 @@ export function VehicleSelector() {
                     <button
                         onClick={() => setActiveTab("ai")}
                         className={clsx(
-                            "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-2xl whitespace-nowrap focus:outline-none focus-visible:ring-0",
+                            "flex-1 flex items-center justify-center gap-2 py-3.5 px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
                             activeTab === "ai" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
                         )}
                     >
@@ -261,8 +261,8 @@ export function VehicleSelector() {
             <div className="p-4 sm:p-10">
                 {activeTab === "manual" && (
                     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="flex flex-col md:grid md:grid-cols-[1fr_1fr_1fr_auto] bg-white border-2 border-gray-100 rounded-2xl relative transition-all shadow-sm divide-y md:divide-y-0 md:divide-x divide-gray-100">
-                            <div className="min-h-[64px] flex items-center w-full min-w-0 rounded-t-2xl md:rounded-t-none md:rounded-l-2xl">
+                        <div className="flex flex-col md:grid md:grid-cols-[1fr_1fr_1fr_auto] bg-white border-2 border-gray-100 rounded-[2rem] relative transition-all shadow-sm divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                            <div className="min-h-[64px] flex items-center w-full min-w-0 rounded-t-[2rem] md:rounded-t-none md:rounded-l-[2rem]">
                                 <SearchableSelect
                                     theme="light"
                                     variant="minimal"
@@ -304,7 +304,7 @@ export function VehicleSelector() {
                                     onClick={() => handleSearch()}
                                     disabled={!selectedBrand || !selectedModel || !selectedPartItem}
                                     className={clsx(
-                                        "h-14 md:h-12 w-full md:w-auto md:px-10 rounded-2xl flex items-center justify-center transition-all duration-300 gap-3 font-black text-white shrink-0 focus:outline-none focus-visible:ring-0",
+                                        "h-14 md:h-12 w-full md:w-auto md:px-10 rounded-3xl flex items-center justify-center transition-all duration-300 gap-3 font-black text-white shrink-0 focus:outline-none focus-visible:ring-0",
                                         (selectedBrand && selectedModel && selectedPartItem)
                                             ? "bg-[var(--color-primary)] hover:bg-orange-600 shadow-md hover:scale-[1.01] active:scale-95"
                                             : "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -324,7 +324,7 @@ export function VehicleSelector() {
 
                 {activeTab === "code" && (
                     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="flex flex-col md:grid md:grid-cols-[1fr_auto] bg-white border-2 border-gray-100 rounded-2xl relative transition-all shadow-sm divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                        <div className="flex flex-col md:grid md:grid-cols-[1fr_auto] bg-white border-2 border-gray-100 rounded-[2rem] relative transition-all shadow-sm divide-y md:divide-y-0 md:divide-x divide-gray-100">
                             <div className="min-h-[64px] flex items-center w-full min-w-0 relative group">
                                 <div className="absolute left-6 z-10 text-gray-400 group-focus-within:text-[var(--color-primary)] transition-colors">
                                     <Hash className="w-5 h-5" />
@@ -344,7 +344,7 @@ export function VehicleSelector() {
                                     onClick={() => handleSearch()}
                                     disabled={!codeQuery.trim()}
                                     className={clsx(
-                                        "h-14 md:h-12 w-full md:w-auto md:px-10 rounded-2xl flex items-center justify-center transition-all duration-300 gap-3 font-black text-white shrink-0 focus:outline-none focus-visible:ring-0",
+                                        "h-14 md:h-12 w-full md:w-auto md:px-10 rounded-3xl flex items-center justify-center transition-all duration-300 gap-3 font-black text-white shrink-0 focus:outline-none focus-visible:ring-0",
                                         codeQuery.trim()
                                             ? "bg-[var(--color-primary)] hover:bg-orange-600 shadow-md hover:scale-[1.01] active:scale-95"
                                             : "bg-gray-200 text-gray-400 cursor-not-allowed"
@@ -386,7 +386,7 @@ export function VehicleSelector() {
                                         type="text"
                                         className={clsx(
                                             "w-full bg-gray-50 border-2 border-gray-100 pl-12 pr-16 py-4 text-base sm:text-xl text-gray-900 focus:outline-none focus:border-[var(--color-primary)] focus:bg-white transition-all shadow-sm h-[64px] relative z-20",
-                                            showDropdown ? "rounded-t-2xl rounded-b-none border-b-0" : "rounded-2xl"
+                                            showDropdown ? "rounded-t-[2rem] rounded-b-none border-b-0" : "rounded-[2rem]"
                                         )}
                                         value={aiQuery}
                                         onChange={(e) => setAiQuery(e.target.value)}
@@ -405,7 +405,7 @@ export function VehicleSelector() {
                                         type="submit"
                                         disabled={isThinking || !aiQuery.trim()}
                                         className={clsx(
-                                            "absolute right-2 top-2 bottom-2 z-30 aspect-square rounded-xl flex items-center justify-center transition-all",
+                                            "absolute right-2 top-2 bottom-2 z-30 aspect-square rounded-[1.5rem] flex items-center justify-center transition-all",
                                             aiQuery.trim() && !isThinking ? "bg-[var(--color-primary)] text-white shadow-md hover:scale-105" : "bg-white text-gray-300"
                                         )}
                                     >
@@ -419,7 +419,7 @@ export function VehicleSelector() {
                                     {showDropdown && (
                                         <div
                                             ref={dropdownRef}
-                                            className="absolute top-full left-0 w-full mt-0 z-[100] bg-white rounded-b-2xl shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-2 border-t-[1px] border-[var(--color-primary)]/30 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[80vh] sm:max-h-[400px] overflow-y-auto overflow-x-hidden box-border"
+                                            className="absolute top-full left-0 w-full mt-0 z-[100] bg-white rounded-b-[2rem] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border-2 border-t-[1px] border-[var(--color-primary)]/30 animate-in fade-in slide-in-from-top-2 duration-200 max-h-[80vh] sm:max-h-[400px] overflow-y-auto overflow-x-hidden box-border"
                                         >
                                             {isInstantSearching ? (
                                                 <div className="p-8 flex flex-col items-center justify-center text-muted-foreground gap-3">

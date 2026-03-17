@@ -112,7 +112,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                         <input
                             id="year-filter" type="number" placeholder="Pl. 2012" value={yearFilter}
                             onChange={(e) => setYearFilter(e.target.value)}
-                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 transition-all" />
+                            className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-3 text-sm font-bold text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 transition-all" />
                         {yearFilter && (
                             <button
                                 onClick={() => setYearFilter("")}

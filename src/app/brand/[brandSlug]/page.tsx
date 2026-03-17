@@ -69,7 +69,7 @@ export default function BrandPage({ params }: { params: Promise<{ brandSlug: str
                 </div>
 
                 {/* Search Bar - Precise Proportions and Gradient */}
-                <div className="flex flex-col md:flex-row gap-0 mb-10 shadow-[0_4px_30px_rgba(0,0,0,0.03)] rounded-2xl overflow-hidden border border-gray-100">
+                <div className="flex flex-col md:flex-row gap-0 mb-10 shadow-[0_4px_30px_rgba(0,0,0,0.03)] rounded-[2rem] overflow-hidden border border-gray-100">
                     <div className="relative flex-grow bg-white">
                         <input
                             type="text" placeholder="Keress modell, széria vagy kód (pl. E46) alapján..." value={searchTerm}
