@@ -60,7 +60,7 @@ export function DictionaryEditor({
                     res = await createBrand({ id: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), name: editForm.name, slug: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), logo: '/brands/default.svg' });
                     setBrands([...brands, res]);
                 } else if (editingItem.type === 'model') {
-                    res = await createModel({ id: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), brandId: selectedBrandId, name: editForm.name, slug: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-') });
+                    res = await createModel({ id: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), brandId: selectedBrandId, name: editForm.name, slug: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), series: editForm.series, years: editForm.years });
                     setModels([...models, res]);
                 } else if (editingItem.type === 'category') {
                     res = await createCategory({ id: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), name: editForm.name, slug: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-') });
@@ -78,7 +78,7 @@ export function DictionaryEditor({
                     const res = await updateBrand(editingItem.id, { name: editForm.name });
                     setBrands(brands.map(b => b.id === res.id ? res : b));
                 } else if (editingItem.type === 'model') {
-                    const res = await updateModel(editingItem.id, { name: editForm.name, years: editForm.years });
+                    const res = await updateModel(editingItem.id, { name: editForm.name, years: editForm.years, series: editForm.series });
                     setModels(models.map(m => m.id === res.id ? res : m));
                 } else if (editingItem.type === 'category') {
                     const res = await updateCategory(editingItem.id, { name: editForm.name });
@@ -169,9 +169,9 @@ export function DictionaryEditor({
                                     <div className="flex-1 min-w-0 pr-2" onClick={() => onSelect(item.id)}>
                                         <p className={`text-sm truncate font-medium ${activeId === item.id ? 'text-[var(--color-primary)]' : 'text-gray-700'}`}>{item.name} {item.years && <span className="text-gray-400 font-normal text-xs ml-1">({item.years})</span>}</p>
                                     </div>
-                                    <div className="flex items-center gap-1 opacity-0 hover:opacity-100 focus-within:opacity-100" style={{ opacity: activeId === item.id ? 1 : undefined }}>
-                                        <button onClick={(e) => { e.stopPropagation(); startEditing(type, item); }} className="text-gray-400 hover:text-[var(--color-primary)] p-1 rounded"><Edit2 className="w-3.5 h-3.5"/></button>
-                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(type, item.id); }} className="text-gray-400 hover:text-red-500 p-1 rounded"><Trash2 className="w-3.5 h-3.5"/></button>
+                                    <div className="flex items-center gap-1 flex-shrink-0">
+                                        <button onClick={(e) => { e.stopPropagation(); startEditing(type, item); }} className="text-gray-400 hover:text-[var(--color-primary)] p-1 rounded transition-colors"><Edit2 className="w-3.5 h-3.5"/></button>
+                                        <button onClick={(e) => { e.stopPropagation(); handleDelete(type, item.id); }} className="text-gray-400 hover:text-red-500 p-1 rounded transition-colors"><Trash2 className="w-3.5 h-3.5"/></button>
                                         <ChevronRight className={`w-4 h-4 ml-1 ${activeId === item.id ? 'text-[var(--color-primary)]' : 'text-gray-300'}`} />
                                     </div>
                                 </>
@@ -209,14 +209,90 @@ export function DictionaryEditor({
                     {renderList("Autómárkák", "brand", brands, selectedBrandId, setSelectedBrandId)}
                     
                     {selectedBrandId ? (
-                        renderList(
-                            `${brands.find(b => b.id === selectedBrandId)?.name} Modellek`, 
-                            "model", 
-                            models.filter(m => m.brandId === selectedBrandId), 
-                            null, 
-                            () => {},
-                            [{ name: 'years', label: 'Évjárat (pl: 2004-2008)' }]
-                        )
+                        <div className="flex-1 bg-white border border-gray-200 rounded-xl overflow-hidden flex flex-col h-[600px] w-full md:w-2/3">
+                            <div className="p-4 bg-gray-50 border-b border-gray-200 flex justify-between items-center sticky top-0 z-10">
+                                <h2 className="font-bold text-gray-800">{brands.find(b => b.id === selectedBrandId)?.name} Modellek ({models.filter(m => m.brandId === selectedBrandId).length})</h2>
+                                <button 
+                                    onClick={() => startEditing('model', { id: 'NEW', name: '', series: '', years: '' })}
+                                    className="text-xs bg-[var(--color-primary)] text-white px-3 py-1.5 rounded-md font-bold flex items-center gap-1 hover:bg-orange-600 transition-colors"
+                                >
+                                    <Plus className="w-4 h-4" /> Új Modell
+                                </button>
+                            </div>
+                            
+                            <div className="overflow-y-auto p-4 space-y-4 custom-scrollbar">
+                                {editingItem?.id === 'NEW' && editingItem.type === 'model' && (
+                                    <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg shadow-sm space-y-3 mb-4">
+                                        <h3 className="font-bold text-sm text-orange-900 mb-1 border-b border-orange-200 pb-1">Új Modell Létrehozása</h3>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-orange-800 uppercase">Modell neve *</label>
+                                                <input autoFocus placeholder="pl. A4" value={editForm.name || ''} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-inner"/>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-orange-800 uppercase">Főcím / Kategória</label>
+                                                <input placeholder="pl. Középkategória" value={editForm.series || ''} onChange={e => setEditForm({...editForm, series: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-inner"/>
+                                            </div>
+                                            <div className="space-y-1 md:col-span-2">
+                                                <label className="text-[10px] font-bold text-orange-800 uppercase">Évjárat</label>
+                                                <input placeholder="pl. 2004-2008" value={editForm.years || ''} onChange={e => setEditForm({...editForm, years: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-inner"/>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-3 pt-2">
+                                            <button onClick={handleSave} className="flex-1 bg-green-500 hover:bg-green-600 text-white py-2 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors"><Save className="w-4 h-4"/> Mentés</button>
+                                            <button onClick={cancelEditing} className="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 rounded-md text-sm font-bold flex items-center justify-center gap-2 transition-colors"><X className="w-4 h-4"/> Mégse</button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {Object.entries(
+                                    models.filter(m => m.brandId === selectedBrandId).reduce((acc: any, model) => {
+                                        const series = model.series || "Egyéb modellek";
+                                        if (!acc[series]) acc[series] = [];
+                                        acc[series].push(model);
+                                        return acc;
+                                    }, {})
+                                ).map(([seriesName, seriesModels]: [string, any]) => (
+                                    <div key={seriesName} className="border border-gray-200 rounded-xl overflow-hidden mb-4 shadow-sm">
+                                        <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
+                                            <h3 className="font-bold text-gray-700 uppercase tracking-wider text-xs">{seriesName}</h3>
+                                            <span className="bg-white text-gray-400 text-xs font-bold px-2 py-0.5 rounded-full border border-gray-200">{seriesModels.length} modell</span>
+                                        </div>
+                                        <div className="divide-y divide-gray-100">
+                                            {seriesModels.map((item: any) => (
+                                                <div key={item.id} className="flex items-center justify-between p-3 hover:bg-gray-50 group">
+                                                    {editingItem?.id === item.id && editingItem?.type === 'model' ? (
+                                                        <div className="flex-1 bg-orange-50 border border-orange-200 p-3 rounded-lg flex flex-col gap-3 my-1">
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                                <input autoFocus placeholder="Neve" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="flex-1 px-3 py-1.5 border border-[var(--color-primary)]/50 focus:border-[var(--color-primary)] outline-none rounded-md text-sm shadow-inner" />
+                                                                <input placeholder="Főcím/Kategória (Series)" value={editForm.series || ''} onChange={e => setEditForm({...editForm, series: e.target.value})} className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm shadow-inner" />
+                                                                <input placeholder="Évjárat" value={editForm.years || ''} onChange={e => setEditForm({...editForm, years: e.target.value})} className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm shadow-inner md:col-span-2" />
+                                                            </div>
+                                                            <div className="flex gap-2 justify-end mt-1">
+                                                                <button onClick={handleSave} className="bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded-md text-xs font-bold flex gap-1 items-center"><Save className="w-3.5 h-3.5"/> Mentés</button>
+                                                                <button onClick={cancelEditing} className="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-1.5 rounded-md text-xs font-bold flex gap-1 items-center"><X className="w-3.5 h-3.5"/> Mégse</button>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            <div className="flex-1 min-w-0 pr-4">
+                                                                <p className="text-sm font-bold text-gray-800">{item.name}</p>
+                                                                {item.years && <p className="text-xs text-gray-500 mt-0.5">{item.years}</p>}
+                                                            </div>
+                                                            <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                                <button onClick={() => startEditing('model', item)} className="bg-white border border-gray-200 text-gray-500 hover:text-[var(--color-primary)] hover:border-[var(--color-primary)] p-1.5 rounded-md shadow-sm transition-all"><Edit2 className="w-4 h-4"/></button>
+                                                                <button onClick={() => handleDelete('model', item.id)} className="bg-white border border-gray-200 text-gray-500 hover:text-red-500 hover:border-red-500 p-1.5 rounded-md shadow-sm transition-all"><Trash2 className="w-4 h-4"/></button>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                ))}
+                                {models.filter(m => m.brandId === selectedBrandId).length === 0 && <p className="text-center text-sm text-gray-400 py-12 italic">Nincsenek modellek ehhez a márkához</p>}
+                            </div>
+                        </div>
                     ) : (
                         <div className="flex-1 bg-gray-50/50 border border-dashed border-gray-200 rounded-xl flex items-center justify-center flex-col text-gray-400 h-[600px]">
                             <Car className="w-12 h-12 mb-4 opacity-20" />
