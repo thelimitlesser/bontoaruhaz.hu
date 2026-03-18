@@ -65,7 +65,6 @@ model Part {
   partnerId       String
   brandId         String?
   modelId         String?
-  engineCode      String?
   partItemId      String?
   yearFrom        Int?
   yearTo          Int?
@@ -79,24 +78,34 @@ model Part {
   shippingPrice   Int?
   weight          Float?
   width           Float?
+  engineCode      String?
   orderItems      OrderItem[]
+  VehicleBrand    VehicleBrand?       @relation(fields: [brandId], references: [id])
+  PartCategory    PartCategory?       @relation(fields: [categoryId], references: [id])
+  VehicleModel    VehicleModel?       @relation(fields: [modelId], references: [id])
+  PartItem        PartItem?           @relation(fields: [partItemId], references: [id])
   partner         PartnerProfile      @relation(fields: [partnerId], references: [id])
+  PartSubcategory PartSubcategory?    @relation(fields: [subcategoryId], references: [id])
   compatibilities PartCompatibility[]
+  reservations    Reservation[]
 }
 
 model Order {
-  id              String      @id @default(uuid())
-  userId          String?
-  status          String      @default("PENDING")
-  totalAmount     Int
-  shippingAddress String
-  billingAddress  String
-  createdAt       DateTime    @default(now())
-  paymentMethod   String      @default("CARD")
-  paymentStatus   String      @default("PENDING")
-  shippingMethod  String      @default("DELIVERY")
-  user            User?       @relation(fields: [userId], references: [id])
-  items           OrderItem[]
+  id                    String      @id @default(uuid())
+  userId                String?
+  status                String      @default("PENDING")
+  totalAmount           Int
+  shippingAddress       String
+  billingAddress        String
+  createdAt             DateTime    @default(now())
+  paymentMethod         String      @default("CARD")
+  paymentStatus         String      @default("PENDING")
+  shippingMethod        String      @default("DELIVERY")
+  stripePaymentIntentId String?     // ID for Stripe Authorization/PaymentIntent
+  trackingNumber        String?     // Pannon XP tracking number
+  invoiceId             String?     // Számlázz.hu invoice ID/Number
+  user                  User?       @relation(fields: [userId], references: [id])
+  items                 OrderItem[]
 }
 
 model OrderItem {
@@ -136,11 +145,80 @@ model SearchLog {
 }
 
 model PartCompatibility {
-  id       String @id @default(uuid())
-  partId   String
-  brandId  String
-  modelId  String
-  yearFrom Int?
-  yearTo   Int?
-  part     Part   @relation(fields: [partId], references: [id], onDelete: Cascade)
+  id           String       @id @default(uuid())
+  partId       String
+  brandId      String
+  modelId      String
+  yearFrom     Int?
+  yearTo       Int?
+  VehicleModel VehicleModel @relation(fields: [modelId], references: [id])
+  part         Part         @relation(fields: [partId], references: [id], onDelete: Cascade)
+}
+
+model PartCategory {
+  id              String            @id
+  name            String
+  slug            String            @unique
+  iconName        String?
+  keywords        String[]
+  Part            Part[]
+  PartSubcategory PartSubcategory[]
+}
+
+model PartItem {
+  id              String          @id
+  subcategoryId   String
+  name            String
+  slug            String
+  keywords        String[]
+  Part            Part[]
+  PartSubcategory PartSubcategory @relation(fields: [subcategoryId], references: [id])
+}
+
+model PartSubcategory {
+  id           String       @id
+  categoryId   String
+  name         String
+  slug         String
+  keywords     String[]
+  Part         Part[]
+  PartItem     PartItem[]
+  PartCategory PartCategory @relation(fields: [categoryId], references: [id])
+}
+
+model VehicleBrand {
+  id           String         @id
+  name         String
+  slug         String         @unique
+  logo         String
+  hidden       Boolean        @default(false)
+  scale        String?
+  Part         Part[]
+  VehicleModel VehicleModel[]
+}
+
+model VehicleModel {
+  id                String              @id
+  brandId           String
+  name              String
+  slug              String
+  series            String?
+  keywords          String[]
+  years             String?
+  Part              Part[]
+  PartCompatibility PartCompatibility[]
+  VehicleBrand      VehicleBrand        @relation(fields: [brandId], references: [id])
+}
+model Reservation {
+  id        String   @id @default(uuid())
+  partId    String
+  sessionId String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
+
+  @@unique([partId, sessionId])
+  @@index([partId])
+  @@index([sessionId])
+  @@index([expiresAt])
 }

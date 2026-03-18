@@ -3,6 +3,7 @@ import Link from"next/link";
 import { ArrowLeft, User, MapPin, Package, CreditCard, Truck } from"lucide-react";
 import { OrderStatusUpdater } from"./status-updater";
 import { PaymentStatusUpdater } from"./payment-status-updater";
+import { ApproveOrderButton } from"./approve-button";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const { id } = await params;
@@ -34,8 +35,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 </div>
             </div>
 
-            <div className="mb-6">
+            <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                 <PaymentStatusUpdater orderId={order.id} currentPaymentStatus={order.paymentStatus ||'PENDING'} />
+                <ApproveOrderButton orderId={order.id} status={order.status} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

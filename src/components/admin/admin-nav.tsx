@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, Users, RotateCcw, Menu, X, ChevronRight } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, RotateCcw, Menu, X, ChevronRight, Database } from "lucide-react";
 
 interface NavLinkProps {
     href: string;
@@ -102,6 +102,7 @@ export function AdminSidebar({ user }: AdminNavProps) {
                         Rendszer
                     </div>
                     <NavLink href="/admin/users" icon={<Users />} label="Felhasználók" onClick={closeMenu} />
+                    <NavLink href="/admin/dictionary" icon={<Database />} label="Szótárak (Márkák, Kategóriák)" onClick={closeMenu} />
                 </nav>
 
                 {/* User Profile Area */}

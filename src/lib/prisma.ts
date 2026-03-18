@@ -1,20 +1,17 @@
-import { PrismaClient } from"@prisma/client";
-// Force reload for schema update
-
-
-const globalForPrisma = global as unknown as { prisma: PrismaClient };
-
-// Force re-initialization once to pick up the new schema fields (phoneNumber, shippingAddress)
-if (process.env.NODE_ENV !=="production") {
-    (global as any).prisma = undefined;
-}
+import { PrismaClient } from "@prisma/client";
 
 const prismaClientSingleton = () => {
-    return new PrismaClient({
-        log: ["query"],
-    });
+  return new PrismaClient({
+    log: ["query"],
+  });
 };
 
-export const prisma = globalForPrisma.prisma || prismaClientSingleton();
+type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
 
-if (process.env.NODE_ENV !=="production") globalForPrisma.prisma = prisma;
+const globalForPrisma = globalThis as unknown as {
+  prisma: PrismaClientSingleton | undefined;
+};
+
+export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
+
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;

@@ -1,11 +1,18 @@
 "use client";
 
-import { useState } from"react";
-import Link from"next/link";
-import { ArrowLeft, CreditCard, Truck, ShieldCheck, Mail, MapPin, User } from"lucide-react";
-import { useCart } from"@/context/cart-context";
-import Image from"next/image";
-import { useRouter } from"next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { ArrowLeft, CreditCard, Truck, ShieldCheck, Mail, MapPin, User } from "lucide-react";
+import { useCart } from "@/context/cart-context";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import { PaymentForm } from "./payment-form";
+import { createPaymentIntent } from "@/app/actions/payment";
+import { calculateShippingPriceForItems } from "@/lib/shipping/pannon-xp";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
 export default function CheckoutPage() {
     const { items, totalPrice, totalItems } = useCart();
@@ -13,36 +20,64 @@ export default function CheckoutPage() {
 
     // Basic form state
     const [formData, setFormData] = useState({
-        email:"",
-        firstName:"",
-        lastName:"",
-        address:"",
-        city:"",
-        postalCode:"",
-        phone:"",
-        companyName:"",
-        taxNumber:"",
-        billingPostalCode:"",
-        billingCity:"",
-        billingAddress:"" });
+        email: "",
+        firstName: "",
+        lastName: "",
+        address: "",
+        city: "",
+        postalCode: "",
+        phone: "",
+        companyName: "",
+        taxNumber: "",
+        billingPostalCode: "",
+        billingCity: "",
+        billingAddress: ""
+    });
 
     const [isCompany, setIsCompany] = useState(false);
     const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
-    const [shippingMethod, setShippingMethod] = useState<'delivery' |'pickup'>('delivery');
+    const [shippingMethod, setShippingMethod] = useState<'delivery' | 'pickup'>('delivery');
+    const [clientSecret, setClientSecret] = useState<string | null>(null);
+
+    const [shippingCost, setShippingCost] = useState(0);
+
+    useEffect(() => {
+        if (shippingMethod === 'delivery' && items.length > 0) {
+            setShippingCost(calculateShippingPriceForItems(items));
+        } else {
+            setShippingCost(0);
+        }
+    }, [items, shippingMethod]);
+
+    const grandTotal = totalPrice + shippingCost;
+
+    const isFormValid = useCallback(() => {
+        const basicValid = formData.lastName && formData.firstName && formData.email && formData.phone && formData.postalCode && formData.city && formData.address;
+        const companyValid = !isCompany || (formData.companyName && formData.taxNumber);
+        const billingValid = billingSameAsShipping || (formData.billingPostalCode && formData.billingCity && formData.billingAddress);
+        return !!(basicValid && companyValid && billingValid);
+    }, [formData, isCompany, billingSameAsShipping]);
+
+    // Fetch PaymentIntent when the form becomes valid OR when the total changes
+    useEffect(() => {
+        if (isFormValid() && grandTotal > 0) {
+            const fetchSecret = async () => {
+                try {
+                    const res = await createPaymentIntent(grandTotal);
+                    setClientSecret(res.clientSecret);
+                } catch (err) {
+                    console.error("Failed to fetch client secret:", err);
+                }
+            };
+            fetchSecret();
+        } else {
+            setClientSecret(null);
+        }
+    }, [formData, isCompany, billingSameAsShipping, shippingMethod, grandTotal, isFormValid]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
-
-    const isFormValid = () => {
-        const basicValid = formData.lastName && formData.firstName && formData.email && formData.phone && formData.postalCode && formData.city && formData.address;
-        const companyValid = !isCompany || (formData.companyName && formData.taxNumber);
-        const billingValid = billingSameAsShipping || (formData.billingPostalCode && formData.billingCity && formData.billingAddress);
-        return basicValid && companyValid && billingValid;
-    };
-
-    const shippingCost = shippingMethod ==='delivery' && totalItems > 0 ? 1990 : 0;
-    const grandTotal = totalPrice + shippingCost;
 
     if (items.length === 0) {
         return (
@@ -71,7 +106,7 @@ export default function CheckoutPage() {
                         <ArrowLeft className="w-4 h-4" /> Vissza
                     </Link>
                     <h1 className="text-xl sm:text-2xl font-bold text-foreground">Pénztár</h1>
-                    <div className="w-12 sm:w-24" /> {/* Spacer for centering if needed, or keeping layout balanced */}
+                    <div className="w-12 sm:w-24" />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
@@ -92,6 +127,7 @@ export default function CheckoutPage() {
                                         <input
                                             type="text" name="lastName" value={formData.lastName}
                                             onChange={handleChange}
+                                            required
                                             className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="Kovács" />
                                     </div>
                                     <div className="flex-1 space-y-2">
@@ -99,6 +135,7 @@ export default function CheckoutPage() {
                                         <input
                                             type="text" name="firstName" value={formData.firstName}
                                             onChange={handleChange}
+                                            required
                                             className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="János" />
                                     </div>
                                 </div>
@@ -107,6 +144,7 @@ export default function CheckoutPage() {
                                     <input
                                         type="email" name="email" value={formData.email}
                                         onChange={handleChange}
+                                        required
                                         className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="janos.kovacs@email.com" />
                                 </div>
                                 <div className="space-y-2">
@@ -114,6 +152,7 @@ export default function CheckoutPage() {
                                     <input
                                         type="tel" name="phone" value={formData.phone}
                                         onChange={handleChange}
+                                        required
                                         className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="+36 30 123 4567" />
                                 </div>
                             </div>
@@ -132,6 +171,7 @@ export default function CheckoutPage() {
                                         <input
                                             type="text" name="postalCode" value={formData.postalCode}
                                             onChange={handleChange}
+                                            required
                                             className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="1052" />
                                     </div>
                                     <div className="flex-1 space-y-2">
@@ -139,6 +179,7 @@ export default function CheckoutPage() {
                                         <input
                                             type="text" name="city" value={formData.city}
                                             onChange={handleChange}
+                                            required
                                             className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="Budapest" />
                                     </div>
                                 </div>
@@ -147,89 +188,9 @@ export default function CheckoutPage() {
                                     <input
                                         type="text" name="address" value={formData.address}
                                         onChange={handleChange}
-                                        className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="Petőfi Sándor utca 12. 2. em. 4." />
+                                        required
+                                        className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="Petőfi Sándor utca 12." />
                                 </div>
-                            </div>
-                        </section>
-
-                        {/* Billing Info */}
-                        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 md:p-8">
-                            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-6 flex items-center gap-3">
-                                <CreditCard className="w-5 h-5 text-[var(--color-primary)]" />
-                                Számlázási adatok
-                            </h2>
-
-                            <div className="space-y-6">
-                                {/* Company Toggle */}
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox" id="isCompany" checked={isCompany}
-                                        onChange={(e) => setIsCompany(e.target.checked)}
-                                        className="w-5 h-5 rounded border-border bg-muted/5 text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)]" />
-                                    <label htmlFor="isCompany" className="text-foreground text-sm cursor-pointer select-none">
-                                        Céges számlát kérek (Adószám megadása)
-                                    </label>
-                                </div>
-
-                                {/* Company Fields */}
-                                {isCompany && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-8 border-l-2 border-[var(--color-primary)]/20 animate-in fade-in slide-in-from-top-2">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Cégnév</label>
-                                            <input
-                                                type="text" name="companyName" value={formData.companyName}
-                                                onChange={handleChange}
-                                                className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="Minta Kft." />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Adószám</label>
-                                            <input
-                                                type="text" name="taxNumber" value={formData.taxNumber}
-                                                onChange={handleChange}
-                                                className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="12345678-2-42" />
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Billing Address Toggle */}
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox" id="billingSameAsShipping" checked={billingSameAsShipping}
-                                        onChange={(e) => setBillingSameAsShipping(e.target.checked)}
-                                        className="w-5 h-5 rounded border-border bg-muted/5 text-[var(--color-primary)] focus:ring-[var(--color-primary)] accent-[var(--color-primary)]" />
-                                    <label htmlFor="billingSameAsShipping" className="text-foreground text-sm cursor-pointer select-none">
-                                        A számlázási cím megegyezik a szállítási címmel
-                                    </label>
-                                </div>
-
-                                {/* Separate Billing Address Fields */}
-                                {!billingSameAsShipping && (
-                                    <div className="space-y-4 pl-8 border-l-2 border-border animate-in fade-in slide-in-from-top-2">
-                                        <div className="flex flex-col md:flex-row gap-4">
-                                            <div className="w-full md:w-1/3 space-y-2">
-                                                <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Irányítószám</label>
-                                                <input
-                                                    type="text" name="billingPostalCode" value={formData.billingPostalCode}
-                                                    onChange={handleChange}
-                                                    className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="1052" />
-                                            </div>
-                                            <div className="flex-1 space-y-2">
-                                                <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Város</label>
-                                                <input
-                                                    type="text" name="billingCity" value={formData.billingCity}
-                                                    onChange={handleChange}
-                                                    className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="Budapest" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Utca, házszám</label>
-                                            <input
-                                                type="text" name="billingAddress" value={formData.billingAddress}
-                                                onChange={handleChange}
-                                                className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="Petőfi Sándor utca 12. 2. em. 4." />
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                         </section>
 
@@ -240,31 +201,33 @@ export default function CheckoutPage() {
                                 Szállítási mód
                             </h2>
                             <div className="space-y-4">
-                                {/* Delivery Option */}
                                 <div
                                     onClick={() => setShippingMethod('delivery')}
-                                    className={`relative border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${shippingMethod ==='delivery' ?"bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" :"bg-muted/5 border-border hover:border-muted" }`}
+                                    className={`relative border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${shippingMethod === 'delivery' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${shippingMethod ==='delivery' ?"border-[var(--color-primary)]" :"border-muted" }`}>
-                                            {shippingMethod ==='delivery' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${shippingMethod === 'delivery' ? "border-[var(--color-primary)]" : "border-muted"}`}>
+                                            {shippingMethod === 'delivery' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
                                         </div>
                                         <div>
                                             <h4 className="text-foreground font-bold text-sm">Pannon XP Futárszolgálat</h4>
                                             <p className="text-muted text-xs">Kiszállítás 1-2 munkanap alatt</p>
                                         </div>
                                     </div>
-                                    <span className="text-foreground font-bold text-sm">1 990 Ft</span>
+                                    <span className="text-foreground font-bold text-sm">
+                                        {shippingCost > 0 ? `${shippingCost.toLocaleString('hu-HU')} Ft` : "Még nem elérhető"}
+                                    </span>
+
+
                                 </div>
 
-                                {/* Pickup Option */}
                                 <div
                                     onClick={() => setShippingMethod('pickup')}
-                                    className={`relative border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${shippingMethod ==='pickup' ?"bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" :"bg-muted/5 border-border hover:border-muted" }`}
+                                    className={`relative border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${shippingMethod === 'pickup' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
                                 >
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${shippingMethod ==='pickup' ?"border-[var(--color-primary)]" :"border-muted" }`}>
-                                            {shippingMethod ==='pickup' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${shippingMethod === 'pickup' ? "border-[var(--color-primary)]" : "border-muted"}`}>
+                                            {shippingMethod === 'pickup' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
                                         </div>
                                         <div>
                                             <h4 className="text-foreground font-bold text-sm">Személyes átvétel</h4>
@@ -276,69 +239,178 @@ export default function CheckoutPage() {
                             </div>
                         </section>
 
+                        {/* Billing Info */}
+                        <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 md:p-8">
+                            <h2 className="text-lg sm:text-xl font-bold text-foreground mb-6 flex items-center gap-3">
+                                <ShieldCheck className="w-5 h-5 text-[var(--color-primary)]" />
+                                Számlázási adatok
+                            </h2>
+
+                            <div className="space-y-6">
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox" id="isCompany" checked={isCompany}
+                                        onChange={(e) => setIsCompany(e.target.checked)}
+                                        className="w-5 h-5 rounded border-border bg-muted/5 text-[var(--color-primary)]" />
+                                    <label htmlFor="isCompany" className="text-foreground text-sm cursor-pointer select-none">
+                                        Céges számlát kérek
+                                    </label>
+                                </div>
+
+                                {isCompany && (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-8 border-l-2 border-[var(--color-primary)]/20 animate-in fade-in slide-in-from-top-2">
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Cégnév</label>
+                                            <input
+                                                type="text" name="companyName" value={formData.companyName}
+                                                onChange={handleChange}
+                                                className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)]" placeholder="Minta Kft." />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Adószám</label>
+                                            <input
+                                                type="text" name="taxNumber" value={formData.taxNumber}
+                                                onChange={handleChange}
+                                                className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)]" placeholder="12345678-2-42" />
+                                        </div>
+                                    </div>
+                                )}
+
+                                <div className="flex items-center gap-3">
+                                    <input
+                                        type="checkbox" id="billingSameAsShipping" checked={billingSameAsShipping}
+                                        onChange={(e) => setBillingSameAsShipping(e.target.checked)}
+                                        className="w-5 h-5 rounded border-border bg-muted/5 text-[var(--color-primary)]" />
+                                    <label htmlFor="billingSameAsShipping" className="text-foreground text-sm cursor-pointer select-none">
+                                        A számlázási cím megegyezik a szállítási címmel
+                                    </label>
+                                </div>
+
+                                {!billingSameAsShipping && (
+                                    <div className="space-y-4 pl-8 border-l-2 border-border animate-in fade-in slide-in-from-top-2">
+                                        <div className="flex flex-col md:flex-row gap-4">
+                                            <div className="w-full md:w-1/3 space-y-2">
+                                                <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Irányítószám</label>
+                                                <input
+                                                    type="text" name="billingPostalCode" value={formData.billingPostalCode}
+                                                    onChange={handleChange}
+                                                    className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)]" placeholder="1052" />
+                                            </div>
+                                            <div className="flex-1 space-y-2">
+                                                <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Város</label>
+                                                <input
+                                                    type="text" name="billingCity" value={formData.billingCity}
+                                                    onChange={handleChange}
+                                                    className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)]" placeholder="Budapest" />
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-bold text-foreground ml-1 mb-1 block">Utca, házszám</label>
+                                            <input
+                                                type="text" name="billingAddress" value={formData.billingAddress}
+                                                onChange={handleChange}
+                                                className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)]" placeholder="Petőfi Sándor utca 12." />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+
                     </div>
 
-                    {/* RIGHT COLUMN: Order Summary */}
+                    {/* RIGHT COLUMN: Order Summary (Stripe Form) */}
                     <div className="lg:col-span-5">
-                        <div className="bg-card border border-border rounded-2xl p-6 md:p-8 sticky top-28 shadow-2xl">
+                        <div className="bg-card border border-border rounded-2xl p-6 md:p-8 sticky top-28 shadow-2xl overflow-hidden">
                             <h2 className="text-xl font-bold text-foreground mb-6">Rendelés összesítése</h2>
 
                             {/* Items List */}
-                            <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="space-y-4 mb-6 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
                                 {items.map((item) => (
                                     <div key={item.id} className="flex gap-4 py-4 border-b border-border last:border-0">
-                                        <div className="w-16 h-16 bg-muted/5 rounded-lg border border-border overflow-hidden shrink-0 relative">
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                                        <div className="w-14 h-14 bg-muted/5 rounded-lg border border-border overflow-hidden shrink-0 relative">
                                             <img
                                                 src={item.image}
                                                 alt={item.name}
-                                                className="w-full h-full object-contain p-1" />
+                                                className="w-full h-full object-cover" />
                                             <span className="absolute -top-1 -right-1 w-5 h-5 bg-muted text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-background">
                                                 {item.quantityInCart}
                                             </span>
                                         </div>
-                                        <div className="flex-1">
-                                            <h4 className="text-foreground text-sm font-medium line-clamp-2">{item.name}</h4>
-                                            <p className="text-muted text-xs font-mono mt-1">{item.sku}</p>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-foreground text-xs font-medium line-clamp-2">{item.name}</h4>
+                                            <p className="text-muted text-[10px] font-mono mt-1">{item.sku}</p>
                                         </div>
-                                        <div className="text-foreground font-bold text-sm">
-                                            {(item.price * item.quantityInCart).toLocaleString('hu-HU')} Ft
+                                        <div className="text-right whitespace-nowrap">
+                                            <div className="text-foreground font-bold text-xs">
+                                                {(item.price * item.quantityInCart).toLocaleString('hu-HU')} Ft
+                                            </div>
+                                            {item.shippingPrice && shippingMethod === 'delivery' && (
+                                                <div className="text-[10px] text-blue-500 font-medium mt-1">
+                                                    + { (item.shippingPrice * item.quantityInCart).toLocaleString('hu-HU') } Ft szállítás
+                                                </div>
+                                            )}
                                         </div>
+
                                     </div>
                                 ))}
                             </div>
 
                             {/* Totals */}
-                            <div className="space-y-3 pt-4 border-t border-border">
+                            <div className="space-y-3 pt-4 border-t border-border mb-8">
                                 <div className="flex items-center justify-between text-muted text-sm">
                                     <span>Részösszeg</span>
                                     <span>{totalPrice.toLocaleString('hu-HU')} Ft</span>
                                 </div>
                                 <div className="flex items-center justify-between text-muted text-sm">
-                                    <span>{shippingMethod ==='delivery' ?"Szállítás (Pannon XP)" :"Személyes átvétel"}</span>
-                                    <span>{shippingCost === 0 ?"Ingyenes" :`${shippingCost.toLocaleString('hu-HU')} Ft`}</span>
+                                    <span>{shippingMethod === 'delivery' ? "Szállítás (Pannon XP)" : "Személyes átvétel"}</span>
+                                    <span>{shippingCost === 0 ? "Ingyenes" : `${shippingCost.toLocaleString('hu-HU')} Ft`}</span>
                                 </div>
-                                <div className="flex items-center justify-between text-foreground text-xl font-bold pt-4 border-t border-border">
+                                <div className="flex items-center justify-between text-foreground text-xl font-black pt-4 border-t border-border">
                                     <span>Végösszeg</span>
                                     <span className="text-[var(--color-primary)]">{grandTotal.toLocaleString('hu-HU')} Ft</span>
                                 </div>
-                                <p className="text-muted text-xs text-center mt-2">Az árak tartalmazzák az ÁFA-t.</p>
                             </div>
 
-                            {/* Submit Button */}
-                            <button className="w-full mt-8 bg-[var(--color-primary)] hover:bg-orange-600 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2">
-                                <CreditCard className="w-5 h-5" />
-                                FIZETÉS INDÍTÁSA
-                            </button>
+                            {/* Stripe Payment Form */}
+                            {clientSecret ? (
+                                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                                    <PaymentForm 
+                                        formData={formData} 
+                                        totalAmount={grandTotal} 
+                                        shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'} 
+                                    />
+                                </Elements>
+                            ) : (
+                                <div className="space-y-4">
+                                    <button
+                                        disabled
+                                        className="w-full bg-muted text-gray-500 font-bold py-4 rounded-xl cursor-not-allowed opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        TÖLTSD KI AZ ADATOKAT A FIZETÉSHEZ
+                                    </button>
+                                    {!isFormValid() && (
+                                        <p className="text-xs text-center text-muted italic">
+                                            Kérjük töltsd ki az összes kötelező szállítási mezőt a fizetés megkezdéséhez.
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             {/* Trust Badges */}
-                            <div className="mt-6 flex flex-col items-center gap-3">
-                                <div className="flex items-center gap-2 text-muted text-xs font-medium">
-                                    <ShieldCheck className="w-4 h-4 text-emerald-500" />
-                                    Biztonságos SSL fizetés
+                            <div className="mt-8 pt-6 border-t border-border flex flex-col items-center gap-4">
+                                <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-1.5 text-muted text-[10px] uppercase tracking-wider font-bold">
+                                        <ShieldCheck className="w-4 h-4 text-emerald-500" />
+                                        SSL Secured
+                                    </div>
+                                    <div className="flex items-center gap-1.5 text-muted text-[10px] uppercase tracking-wider font-bold">
+                                        <Mail className="w-4 h-4 text-emerald-500" />
+                                        E-fatura
+                                    </div>
                                 </div>
-                                <p className="text-muted text-[10px] text-center px-4">
-                                    A fizetés a Stripe titkosított rendszerén keresztül történik. A kártyaadatokat nem tároljuk.
+                                <p className="text-muted text-[10px] text-center leading-relaxed">
+                                    Biztonságos fizetés a Stripe rendszerén keresztül. <br/>
+                                    A kártyaadatokat nem látjuk és nem tároljuk.
                                 </p>
                             </div>
 

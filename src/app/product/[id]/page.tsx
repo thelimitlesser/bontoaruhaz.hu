@@ -14,7 +14,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const dbPart = await prisma.part.findUnique({
     where: { id },
     include: {
-      compatibilities: true
+      compatibilities: true,
+      reservations: {
+          where: { expiresAt: { gt: new Date() } }
+      }
     }
   });
 
@@ -56,7 +59,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     brand: brandName,
     model: modelName,
     sku: dbPart.sku,
-    quantity: dbPart.stock,
+    quantity: dbPart.stock - (dbPart.reservations?.length || 0),
     shippingPrice: (dbPart as any).shippingPrice,
     weight: (dbPart as any).weight,
     length: (dbPart as any).length,

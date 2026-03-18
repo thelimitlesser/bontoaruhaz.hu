@@ -4,8 +4,31 @@ import { X, Trash2, ShoppingBag } from"lucide-react";
 import { useCart } from"@/context/cart-context";
 import Image from"next/image";
 import Link from"next/link";
-import { useEffect } from"react";
-import { motion, AnimatePresence } from"framer-motion";
+import { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+function CountdownTimer({ expiresAt }: { expiresAt: number }) {
+    const [timeLeft, setTimeLeft] = useState(expiresAt - Date.now());
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setTimeLeft(expiresAt - Date.now());
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [expiresAt]);
+
+    if (timeLeft <= 0) return <span className="text-red-500 font-bold">Lejárt</span>;
+
+    const minutes = Math.floor((timeLeft / 1000) / 60);
+    const seconds = Math.floor((timeLeft / 1000) % 60);
+
+    return (
+        <span className={`${minutes < 3 ? 'text-red-500 animate-pulse' : 'text-orange-500'} font-bold tabular-nums`}>
+            {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
+        </span>
+    );
+}
+
 
 export function CartDrawer() {
     const { items, removeItem, totalPrice, isCartOpen, setIsCartOpen } = useCart();
@@ -71,15 +94,21 @@ export function CartDrawer() {
                                 </div>
                             ) : (
                                 items.map((item) => (
-                                    <div key={item.id} className="flex gap-4 group">
+                                    <div key={item.id} className="flex gap-4 group relative bg-muted/5 p-3 rounded-xl border border-border hover:bg-muted/10 transition-colors">
+                                        {/* Timer Badge */}
+                                        {item.reservedUntil && (
+                                            <div className="absolute -top-2.5 -right-2 bg-background shadow-md text-[10px] px-2 py-0.5 rounded-full border border-border flex items-center gap-1.5 z-10">
+                                                ⏱ <CountdownTimer expiresAt={item.reservedUntil} />
+                                            </div>
+                                        )}
                                         {/* Image */}
-                                        <div className="w-20 h-20 bg-muted/5 rounded-lg border border-border overflow-hidden shrink-0 relative">
+                                        <div className="w-20 h-20 bg-white rounded-lg border border-border overflow-hidden shrink-0 relative">
                                             {/* Using standard img for reliability with mock data quirks */}
                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                             <img
                                                 src={item.image}
                                                 alt={item.name}
-                                                className="w-full h-full object-contain p-2" />
+                                                className="w-full h-full object-cover" />
                                         </div>
 
                                         {/* Info */}

@@ -1,18 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { createProduct, updateProduct, getNextReferenceNumber } from "@/app/actions/product";
-import { Save, Upload, X as CloseIcon, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
-import { ShippingCalculator } from "./shipping-calculator";
+import { createProduct, updateProduct, getNextReferenceNumber, checkDuplicateSku } from "@/app/actions/product";
+import { Save, Upload, X as CloseIcon, Image as ImageIcon, Plus, Trash2, Loader2 } from "lucide-react";
+
 import { categories, partsSubcategories as subcategories, brands, getModelsByBrand, partItems } from "@/lib/vehicle-data";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 
 interface ProductFormProps {
     initialData?: any;
     onSuccess?: () => void;
+    className?: string;
 }
 
-export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
+export function ProductForm({ initialData, onSuccess, className }: ProductFormProps) {
     const [selectedBrand, setSelectedBrand] = useState(initialData?.brandId || "");
     const [selectedModel, setSelectedModel] = useState(initialData?.modelId || "");
 
@@ -57,6 +58,9 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
 
     const [autoRef, setAutoRef] = useState(initialData?.productCode || "");
     const [productName, setProductName] = useState(initialData?.name || "");
+    const [sku, setSku] = useState(initialData?.sku || "");
+    const [duplicateWarnings, setDuplicateWarnings] = useState<any[]>([]);
+    const [isCheckingSku, setIsCheckingSku] = useState(false);
     const [manualDescription, setManualDescription] = useState(() => {
         if (!initialData?.description) return "";
         // Try to strip header and footer if editing
@@ -77,6 +81,24 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
             getNextReferenceNumber().then(setAutoRef);
         }
     }, [initialData]);
+
+    // Real-time SKU duplicate check
+    useEffect(() => {
+        const checkSku = async () => {
+            if (sku.trim().length >= 3) {
+                setIsCheckingSku(true);
+                const duplicates = await checkDuplicateSku(sku, initialData?.id);
+                setDuplicateWarnings(duplicates);
+                setIsCheckingSku(false);
+            } else {
+                setDuplicateWarnings([]);
+                setIsCheckingSku(false);
+            }
+        };
+
+        const timer = setTimeout(checkSku, 500); // 500ms debounce
+        return () => clearTimeout(timer);
+    }, [sku, initialData?.id]);
 
     // Automation Logic
     useEffect(() => {
@@ -192,7 +214,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
     };
 
     return (
-        <form action={handleSubmit} className="space-y-8 max-w-4xl pb-12">
+        <form action={handleSubmit} className={`space-y-8 max-w-4xl pb-12 ${className || ""}`}>
 
             <input type="hidden" name="isUniversal" value={isUniversal.toString()} />
             <input type="hidden" name="compatibilitiesData" value={JSON.stringify(compatibilities)} />
@@ -394,10 +416,30 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
 
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="space-y-2">
+                    <div className="space-y-2 relative">
                         <label className="text-sm font-medium text-gray-700">Cikkszám (Gyári szám) *</label>
-                        <input name="sku" type="text" required defaultValue={initialData?.sku || ""} placeholder="pl. 5G1941005" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
+                        <div className="relative">
+                            <input name="sku" type="text" required value={sku} onChange={(e) => setSku(e.target.value)} placeholder="pl. 5G1941005" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
+                            {isCheckingSku && <div className="absolute right-3 top-3.5"><Loader2 className="w-5 h-5 text-gray-400 animate-spin" /></div>}
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">Hivatalos gyári azonosító kód.</p>
+                        
+                        {duplicateWarnings.length > 0 && (
+                            <div className="mt-3 bg-orange-50 border border-orange-200 p-3 rounded-lg animate-in fade-in slide-in-from-top-2 absolute w-full md:w-[250%] z-10 shadow-xl">
+                                <p className="text-xs font-bold text-orange-800 flex items-center gap-1.5 mb-2">
+                                    ⚠️ Figyelem! Létező termék(ek):
+                                </p>
+                                <ul className="space-y-1.5">
+                                    {duplicateWarnings.map(dup => (
+                                        <li key={dup.id} className="text-[10px] text-orange-900 bg-white/60 px-2 py-1.5 rounded flex justify-between items-center border border-orange-100">
+                                            <span className="font-semibold truncate mr-2" title={dup.name}>{dup.name}</span>
+                                            <span className="whitespace-nowrap"><span className="font-mono bg-orange-200 px-1.5 py-0.5 rounded text-orange-900 font-bold">{dup.stock} db</span> készleten</span>
+                                        </li>
+                                    ))}
+                                </ul>
+                                <p className="text-[10px] text-orange-700 mt-2 font-medium">Javaslat: Ha ugyanezt töltöd fel, inkább nyisd meg a meglévőt és növeld a készletét!</p>
+                            </div>
+                        )}
                     </div>
 
                     <div className="space-y-2">
@@ -469,14 +511,36 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                     </div>
                 </div>
 
-                <div className="pt-4">
-                    <ShippingCalculator
-                        initialWeight={initialData?.weight}
-                        initialHeight={initialData?.height}
-                        initialWidth={initialData?.width}
-                        initialLength={initialData?.length}
-                    />
+                <div className="pt-4 space-y-4">
+                    <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100/50">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                                <Plus className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-gray-900">Egyedi Szállítási Ár</h3>
+                                <p className="text-xs text-gray-500">Add meg az alkatrész fix szállítási díját</p>
+                            </div>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Szállítási díj (Ft)</label>
+                            <div className="relative max-w-xs">
+                                <input
+                                    type="number"
+                                    name="shippingPrice"
+                                    required
+                                    defaultValue={initialData?.shippingPrice || ""}
+                                    placeholder="pl. 2500"
+                                    className="w-full bg-white border border-gray-200 rounded-lg px-3 py-2.5 focus:outline-none focus:border-blue-400 text-gray-900 font-bold transition-all"
+                                />
+
+                                <div className="absolute right-3 top-1/2 -translate-y-1/2 font-bold text-gray-400">Ft</div>
+                            </div>
+                            <p className="text-[10px] text-blue-600 italic mt-1">Ez az ár jelenik meg a pénztárnál, ha a vásárló házhozszállítást kér.</p>
+                        </div>
+                    </div>
                 </div>
+
             </div>
 
 
@@ -490,7 +554,7 @@ export function ProductForm({ initialData, onSuccess }: ProductFormProps) {
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
                     {images.map((img, index) => (
                         <div key={index} className="relative group aspect-square rounded-xl overflow-hidden bg-gray-100 border border-gray-200">
-                            <img src={img.preview} alt={`preview-${index}`} className="w-full h-full object-contain p-1" />
+                            <img src={img.preview} alt={`preview-${index}`} className="w-full h-full object-cover rounded-lg" />
                             <button
                                 type="button" onClick={() => removeImage(index)}
                                 className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10" >

@@ -41,8 +41,8 @@ export async function createProduct(formData: FormData) {
     };
 
     // basic validation
-    if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross) {
-        throw new Error("Hiányzó kötelező mezők!");
+    if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice)) {
+        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj)");
     }
 
     // 1. Get current user and ensure they exist in Prisma
@@ -159,11 +159,11 @@ export async function createProduct(formData: FormData) {
             condition: rawFormData.condition || "USED",
             stock: rawFormData.stock || 1,
             partner: { connect: { id: partner.id } },
-            categoryId: rawFormData.categoryId || undefined,
-            subcategoryId: rawFormData.subcategoryId || undefined,
-            partItemId: rawFormData.partItemId || undefined,
-            brandId: rawFormData.brandId || undefined,
-            modelId: rawFormData.modelId || undefined,
+            categoryId: rawFormData.categoryId || null,
+            subcategoryId: rawFormData.subcategoryId || null,
+            partItemId: rawFormData.partItemId || null,
+            brandId: rawFormData.brandId || null,
+            modelId: rawFormData.modelId || null,
             yearFrom: rawFormData.yearFrom,
             yearTo: rawFormData.yearTo,
             tecdocKTypes: formData.get('tecdocKTypes') as string || "",
@@ -218,8 +218,8 @@ export async function updateProduct(id: string, formData: FormData) {
         shippingPrice: formData.get('shippingPrice') ? parseInt(formData.get('shippingPrice') as string) : null,
     };
 
-    if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross) {
-        throw new Error("Hiányzó kötelező mezők!");
+    if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice)) {
+        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj)");
     }
 
     // Handle New Image Uploads
@@ -560,12 +560,18 @@ export async function getSearchProducts(params: {
         }
     }
 
+    // Always filter out 0 stock products for public queries
+    where.stock = { gt: 0 };
+
     const parts = await prisma.part.findMany({
         where,
         take: take || undefined,
         orderBy: { createdAt: 'desc' },
         include: {
-            partner: true
+            partner: true,
+            reservations: {
+                where: { expiresAt: { gt: new Date() } }
+            }
         }
     });
 
@@ -574,6 +580,7 @@ export async function getSearchProducts(params: {
         const modelData = models.find(m => m.id === part.modelId);
         return {
             ...part,
+            availableStock: part.stock - (part.reservations?.length || 0),
             brandName: brands.find(b => b.id === part.brandId)?.name || part.brandId,
             modelName: modelData?.name || part.modelId
         };
@@ -735,6 +742,7 @@ export async function getSearchSuggestions(query: string) {
     try {
         products = await prisma.part.findMany({
             where: {
+                stock: { gt: 0 },
                 OR: [
                     { name: { contains: query, mode: 'insensitive' } },
                     { sku: { contains: query, mode: 'insensitive' } },
@@ -754,6 +762,7 @@ export async function getSearchSuggestions(query: string) {
         // Fallback without engineCode if Prisma client is not in sync
         products = await prisma.part.findMany({
             where: {
+                stock: { gt: 0 },
                 OR: [
                     { name: { contains: query, mode: 'insensitive' } },
                     { sku: { contains: query, mode: 'insensitive' } },
@@ -793,4 +802,35 @@ export async function getSearchSuggestions(query: string) {
             cikkszam: p.sku
         }))
     };
+}
+
+/**
+ * Checks if parts with the given SKU already exist in the database.
+ * Used for admin real-time warning during product upload.
+ */
+export async function checkDuplicateSku(sku: string, excludeId?: string) {
+    if (!sku || sku.trim().length === 0) return [];
+
+    try {
+        const parts = await prisma.part.findMany({
+            where: {
+                sku: {
+                    equals: sku,
+                    mode: 'insensitive'
+                },
+                ...(excludeId ? { id: { not: excludeId } } : {})
+            },
+            select: {
+                id: true,
+                name: true,
+                stock: true
+            },
+            take: 5
+        });
+
+        return parts;
+    } catch (error) {
+        console.error("Error checking duplicate SKU:", error);
+        return [];
+    }
 }

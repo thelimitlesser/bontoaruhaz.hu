@@ -70,7 +70,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                                     <img
                                                         src={part.images.split(',')[0]}
                                                         alt={part.name}
-                                                        className="w-full h-full object-contain p-1 bg-white" />
+                                                        className="w-full h-full object-cover" />
                                                 ) : (
                                                     <Box className="w-6 h-6 text-gray-400" />
                                                 )}
@@ -164,7 +164,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
 
             {/* Edit Modal */}
             {editingProduct && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-5xl max-h-[90vh] overflow-hidden flex flex-col">
                         <div className="p-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
                             <div>
@@ -181,6 +181,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                             <ProductForm
                                 initialData={editingProduct}
                                 onSuccess={() => setEditingProduct(null)}
+                                className="mx-auto"
                             />
                         </div>
                     </div>
@@ -189,7 +190,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
 
             {/* Delete Confirmation Modal */}
             {deletingProductId && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                <div className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
                         <div className="p-8 text-center">
                             <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6">

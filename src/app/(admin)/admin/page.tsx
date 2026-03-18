@@ -12,13 +12,19 @@ async function getStats(month?: number, year?: number) {
     const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59);
 
     // 1. Basic Counts
-    const products = await prisma.part.count();
-    const users = await prisma.user.count();
+    let products = 0;
+    let users = 0;
+    try {
+        products = await prisma.part.count();
+        users = await prisma.user.count();
+    } catch (e) {
+        console.error("Error fetching basic counts:", e);
+    }
 
     // 2. Revenue Calculation (ONLY PAID orders in the selected month)
-    let paidOrders: any[] = [];
+    let paidOrders: { totalAmount: number }[] = [];
     try {
-        paidOrders = await (prisma.order as any).findMany({
+        paidOrders = await prisma.order.findMany({
             where: {
                 paymentStatus: 'PAID',
                 createdAt: {
@@ -29,40 +35,60 @@ async function getStats(month?: number, year?: number) {
             select: { totalAmount: true }
         });
     } catch (e) {
-        // Fallback if paymentStatus column doesn't exist yet
-        paidOrders = await prisma.order.findMany({
-            where: {
-                status: 'PAID',
-                createdAt: {
-                    gte: startDate,
-                    lte: endDate
-                }
-            },
-            select: { totalAmount: true }
-        });
+        console.error("Error fetching paid orders:", e);
+        // Fallback if paymentStatus column doesn't exist yet (though it should)
+        try {
+            paidOrders = await (prisma.order as any).findMany({
+                where: {
+                    status: 'PAID',
+                    createdAt: {
+                        gte: startDate,
+                        lte: endDate
+                    }
+                },
+                select: { totalAmount: true }
+            });
+        } catch (e2) {
+            console.error("Fallback revenue calculation failed:", e2);
+        }
     }
     const monthlyRevenue = paidOrders.reduce((acc: number, order: any) => acc + order.totalAmount, 0);
 
     // 3. Active Orders (All time, not completed or cancelled)
-    const activeOrdersCount = await prisma.order.count({
-        where: {
-            status: {
-                notIn: ['DELIVERED', 'CANCELLED', 'RETURNED', 'REFUNDED']
+    let activeOrdersCount = 0;
+    try {
+        activeOrdersCount = await prisma.order.count({
+            where: {
+                status: {
+                    notIn: ['DELIVERED', 'CANCELLED', 'RETURNED', 'REFUNDED']
+                }
             }
-        }
-    });
+        });
+    } catch (e) {
+        console.error("Error fetching active orders:", e);
+    }
 
     // 4. Trending Searches
-    const trendingSearches = await prisma.searchLog.findMany({
-        orderBy: { count: 'desc' },
-        take: 5
-    });
+    let trendingSearches: any[] = [];
+    try {
+        trendingSearches = await prisma.searchLog.findMany({
+            orderBy: { count: 'desc' },
+            take: 5
+        });
+    } catch (e) {
+        console.error("Error fetching trending searches:", e);
+    }
 
     // 5. Top Selling Parts (All time)
-    const orderItems = await prisma.orderItem.findMany({
-        include: { part: true },
-        take: 100
-    });
+    let orderItems: any[] = [];
+    try {
+        orderItems = await prisma.orderItem.findMany({
+            include: { part: true },
+            take: 100
+        });
+    } catch (e) {
+        console.error("Error fetching top sellers:", e);
+    }
 
     const salesByPart: Record<string, { name: string; quantity: number; total: number }> = {};
     orderItems.forEach(item => {
@@ -146,19 +172,23 @@ export default async function AdminDashboard({
                 <StatCard
                     title={`${monthNames[stats.targetMonth - 1]}i Bevétel`}
                     value={`${stats.monthlyRevenue.toLocaleString()} Ft`}
-                    icon={<DollarSign className="w-6 h-6 text-green-500" />}
+                    icon={<DollarSign className="w-6 h-6" />}
+                    color="green"
                     subtitle="Kizárólag a kifizetett rendelések" />
                 <StatCard
                     title="Aktív Rendelések" value={stats.activeOrdersCount.toString()}
-                    icon={<ShoppingCart className="w-6 h-6 text-blue-500" />}
+                    icon={<ShoppingCart className="w-6 h-6" />}
+                    color="blue"
                     subtitle="Folyamatban lévő ügyek" />
                 <StatCard
                     title="Raktárkészlet" value={`${stats.products} db`}
-                    icon={<Package className="w-6 h-6 text-orange-500" />}
+                    icon={<Package className="w-6 h-6" />}
+                    color="orange"
                 />
                 <StatCard
                     title="Felhasználók" value={stats.users.toString()}
-                    icon={<Users className="w-6 h-6 text-purple-500" />}
+                    icon={<Users className="w-6 h-6" />}
+                    color="purple"
                 />
             </div>
 
@@ -223,16 +253,38 @@ export default async function AdminDashboard({
     );
 }
 
-function StatCard({ title, value, icon, subtitle }: { title: string, value: string, icon: React.ReactNode, subtitle?: string }) {
+function StatCard({ title, value, icon, subtitle, color = "blue" }: { title: string, value: string, icon: React.ReactNode, subtitle?: string, color?: 'green' | 'blue' | 'orange' | 'purple' }) {
+    const colorClasses = {
+        green: "bg-green-50 text-green-600 border-green-100",
+        blue: "bg-blue-50 text-blue-600 border-blue-100",
+        orange: "bg-orange-50 text-orange-600 border-orange-100",
+        purple: "bg-purple-50 text-purple-600 border-purple-100",
+    };
+
     return (
-        <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 flex items-center justify-between">
-            <div>
-                <p className="text-sm font-medium text-gray-500">{title}</p>
-                <p className="text-2xl font-bold mt-1 text-gray-900">{value}</p>
-                {subtitle && <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">{subtitle}</p>}
+        <div className="bg-white border border-gray-200 shadow-sm rounded-2xl p-6 relative overflow-hidden group hover:shadow-md transition-all duration-300">
+            {/* Background Decorative Sparkline */}
+            <div className="absolute bottom-0 right-0 w-32 h-16 opacity-10 group-hover:opacity-20 transition-opacity">
+                <svg viewBox="0 0 100 40" className="w-full h-full">
+                    <path
+                        d="M0 35 Q 20 10, 40 25 T 80 5 T 100 30"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        className={color === 'green' ? 'text-green-500' : color === 'blue' ? 'text-blue-500' : color === 'orange' ? 'text-orange-500' : 'text-purple-500'}
+                    />
+                </svg>
             </div>
-            <div className="p-3 bg-gray-100 rounded-lg border border-gray-200">
-                {icon}
+
+            <div className="flex items-start justify-between relative z-10">
+                <div>
+                    <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">{title}</p>
+                    <p className="text-2xl font-black mt-2 text-gray-900 tracking-tight">{value}</p>
+                    {subtitle && <p className="text-[10px] text-gray-400 mt-1 font-medium italic">{subtitle}</p>}
+                </div>
+                <div className={`p-3 rounded-xl border ${colorClasses[color]} shadow-sm group-hover:scale-110 transition-transform`}>
+                    {icon}
+                </div>
             </div>
         </div>
     )

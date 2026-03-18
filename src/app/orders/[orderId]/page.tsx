@@ -78,7 +78,7 @@ export default async function OrderDetailPage({ params }: { params: { orderId: s
                                     <div key={item.id} className="p-6 flex items-center gap-6">
                                         <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
                                             {item.part.images ? (
-                                                <img src={item.part.images.split(',')[0]} alt={item.part.name} className="w-full h-full object-contain p-1 bg-white" />
+                                                <img src={item.part.images.split(',')[0]} alt={item.part.name} className="w-full h-full object-cover rounded" />
                                             ) : (
                                                 <Package className="w-8 h-8 text-gray-300" />
                                             )}

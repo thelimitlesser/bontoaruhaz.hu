@@ -14,6 +14,7 @@ export interface Product {
     length?: number | null;
     width?: number | null;
     height?: number | null;
+    subcategorySlug?: string;
 }
 
 export const mockProducts: Product[] = [
@@ -27,7 +28,12 @@ export const mockProducts: Product[] = [
         brand: 'Volkswagen',
         model: 'Golf VII',
         sku: 'VW-5G1941005',
-        quantity: 4
+        quantity: 4,
+        subcategorySlug: 'fenyszoro',
+        weight: 3,
+        length: 60,
+        width: 30,
+        height: 25
     },
     {
         id: '2',
@@ -39,7 +45,9 @@ export const mockProducts: Product[] = [
         brand: 'BMW',
         model: '3 Series (E46)',
         sku: 'BMW-12317789981',
-        quantity: 1
+        quantity: 1,
+        subcategorySlug: 'generator',
+        weight: 6
     },
     {
         id: '3',
@@ -51,7 +59,12 @@ export const mockProducts: Product[] = [
         brand: 'Audi',
         model: 'A4 (B8)',
         sku: 'AUD-8K0807065',
-        quantity: 2
+        quantity: 2,
+        subcategorySlug: 'lokharito',
+        weight: 12,
+        length: 180,
+        width: 50,
+        height: 60
     },
     {
         id: '4',
@@ -63,7 +76,9 @@ export const mockProducts: Product[] = [
         brand: 'Opel',
         model: 'Astra K',
         sku: 'OPE-55574334',
-        quantity: 5
+        quantity: 5,
+        subcategorySlug: 'turbo',
+        weight: 4
     },
     {
         id: '5',

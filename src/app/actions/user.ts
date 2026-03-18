@@ -114,6 +114,9 @@ export async function ensureUserExists() {
         const { data: { user }, error: authError } = await supabase.auth.getUser();
 
         if (authError) {
+            if (authError.message.includes("Auth session missing!")) {
+                return null;
+            }
             throw new Error(`Supabase Auth Error: ${authError.message}`);
         }
         if (!user) {

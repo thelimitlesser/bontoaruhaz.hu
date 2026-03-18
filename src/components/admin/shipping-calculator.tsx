@@ -1,20 +1,23 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Truck, Info, Calculator } from 'lucide-react';
+import { Truck, Info, MapPin } from 'lucide-react';
+import { getShippingPrice } from '@/lib/shipping/pxp-rates';
 
 interface ShippingCalculatorProps {
     initialWeight?: number | null;
     initialHeight?: number | null;
     initialWidth?: number | null;
     initialLength?: number | null;
+    subcategorySlug?: string;
 }
 
 export function ShippingCalculator({
     initialWeight,
     initialHeight,
     initialWidth,
-    initialLength
+    initialLength,
+    subcategorySlug
 }: ShippingCalculatorProps) {
     const [weight, setWeight] = useState<string>(initialWeight?.toString() || '');
     const [height, setHeight] = useState<string>(initialHeight?.toString() || '');
@@ -23,44 +26,22 @@ export function ShippingCalculator({
     const [volumetricWeight, setVolumetricWeight] = useState<number>(0);
     const [shippingFee, setShippingFee] = useState<number | null>(null);
 
-    // Pannon XP rates (estimated based on typical market rates and User description)
-    // 0-3 kg: 2700 Ft
-    // 3-5 kg: 4200 Ft
-    // 5-10 kg: 5000 Ft
-    // 10-15 kg: 6500 Ft
-    // 15-20 kg: 7200 Ft
-    // 20-25 kg: 8500 Ft
-    // 25-30 kg: 9800 Ft
-    // 30-40 kg: 12500 Ft (Raklapos határ felett)
-    const calculateFee = (actualWeight: number) => {
-        if (actualWeight <= 3) return 2700;
-        if (actualWeight <= 5) return 4200;
-        if (actualWeight <= 10) return 5000;
-        if (actualWeight <= 15) return 6500;
-        if (actualWeight <= 20) return 7200;
-        if (actualWeight <= 25) return 8500;
-        if (actualWeight <= 31) return 9800; // Standard package limit
-        if (actualWeight <= 40) return 12500;
-        return 15000 + (actualWeight - 40) * 200; // Estimated pallet/oversize
-    };
-
     useEffect(() => {
         const w = parseFloat(weight) || 0;
         const h = parseFloat(height) || 0;
         const wi = parseFloat(width) || 0;
         const l = parseFloat(length) || 0;
 
-        // Volumetric weight formula: (L * W * H) / 6000
+        // Volumetric weight logic is inside getShippingPrice, but we show it for UI
         const volWeight = (l * wi * h) / 6000;
         setVolumetricWeight(volWeight);
 
-        const chargeWeight = Math.max(w, volWeight);
-        if (chargeWeight > 0) {
-            setShippingFee(calculateFee(chargeWeight));
+        if (w > 0 || subcategorySlug) {
+            setShippingFee(getShippingPrice(w, l, wi, h, subcategorySlug));
         } else {
             setShippingFee(null);
         }
-    }, [weight, height, width, length]);
+    }, [weight, height, width, length, subcategorySlug]);
 
     return (
         <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100/50">
@@ -130,15 +111,22 @@ export function ShippingCalculator({
                 </div>
             </div>
 
-            <div className="mt-4 pt-4 border-t border-blue-100 flex flex-wrap items-center gap-x-6 gap-y-2">
+            <div className="mt-4 pt-4 border-t border-blue-100 flex flex-wrap items-center gap-x-6 gap-y-3">
                 <div className="flex items-center gap-2 text-xs">
                     <div className="w-2 h-2 rounded-full bg-blue-400"></div>
                     <span className="text-gray-500">Térfogatsúly:</span>
                     <span className="font-bold text-gray-900">{volumetricWeight.toFixed(2)} kg</span>
                 </div>
+                
+                <div className="flex items-center gap-2 text-xs bg-white px-2 py-1 rounded border border-blue-100">
+                    <MapPin className="w-3.5 h-3.5 text-blue-500" />
+                    <span className="text-gray-500 italic">PXP Díj övezet:</span>
+                    <span className="font-bold text-blue-700">Országos egységár (0-500kg)</span>
+                </div>
+
                 <div className="flex items-center gap-2 text-xs">
                     <Info className="w-3.5 h-3.5 text-blue-400" />
-                    <span className="text-gray-500 italic">A szállítási díj a nagyobb súly alapján kerül elszámolásra.</span>
+                    <span className="text-gray-500 italic">A díj a súly, méret vagy speciális kategória (pl. motor) alapján változik.</span>
                 </div>
             </div>
 
