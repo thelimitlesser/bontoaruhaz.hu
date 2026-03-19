@@ -57,8 +57,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
             </div>
 
             <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                <PaymentStatusUpdater orderId={order.id} currentPaymentStatus={order.paymentStatus || 'PENDING'} orderStatus={order.status} paymentMethod={order.paymentMethod} />
-                <ApproveOrderButton orderId={order.id} status={order.status} />
+                <PaymentStatusUpdater orderId={order.id} currentPaymentStatus={order.paymentStatus || 'PENDING'} orderStatus={order.status || 'PENDING'} paymentMethod={order.paymentMethod || 'CARD'} />
+                <ApproveOrderButton orderId={order.id} status={order.status || 'PENDING'} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
