@@ -92,6 +92,7 @@ export async function createOrder(data: {
 }
 
 export async function approveOrder(orderId: string) {
+    console.log("APPROVING ORDER:", orderId);
     const order = await prisma.order.findUnique({
         where: { id: orderId },
         include: { items: { include: { part: true } } }
@@ -102,20 +103,31 @@ export async function approveOrder(orderId: string) {
     try {
         // 1. Capture Stripe Payment if it exists
         if (order.stripePaymentIntentId) {
+            console.log("Capturing Stripe payment:", order.stripePaymentIntentId);
             if (!stripe) throw new Error("Stripe beállítások hiányoznak. Nem sikerült a fizetés véglegesítése.");
             await stripe.paymentIntents.capture(order.stripePaymentIntentId);
         }
 
         // 2. Create Pannon XP Shipment
+        console.log("Creating PXP shipment for order:", order.id);
         const pxpResult = await createPxpShipment(order);
+        console.log("PXP Result:", pxpResult);
+        
+        if (!pxpResult.success) {
+            console.log("PXP FAILED - throwing error");
+            throw new Error(`PannonXP hiba: ${pxpResult.error}`);
+        }
         
         // 3. Create Számlázz.hu Invoice
+        console.log("Creating invoice...");
         const billingData = JSON.parse(order.billingAddress);
         const customerEmail = billingData.email || 'vevo@email.com';
         
         const invoiceResult = await createInvoiceForOrder(order, { ...billingData, email: customerEmail });
+        console.log("Invoice Result:", invoiceResult);
 
         // 4. Update Order Status
+        console.log("Updating database status to PROCESSING...");
         await (prisma.order.update as any)({
             where: { id: orderId },
             data: {
@@ -127,13 +139,15 @@ export async function approveOrder(orderId: string) {
         });
 
         // 5. Send "Order Confirmed" email
+        console.log("Sending confirmation email...");
         await sendOrderConfirmedEmail(order, customerEmail, invoiceResult?.pdfUrl);
 
+        console.log("Order approved successfully!");
         revalidatePath(`/admin/orders/${orderId}`);
         revalidatePath('/admin/orders');
         return { success: true };
     } catch (error) {
-        console.error("Error approving order:", error);
+        console.error("CRITICAL ERROR in approveOrder:", error);
         throw error;
     }
 }
