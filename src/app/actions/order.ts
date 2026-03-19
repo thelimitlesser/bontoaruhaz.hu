@@ -132,7 +132,7 @@ export async function approveOrder(orderId: string) {
             where: { id: orderId },
             data: {
                 status: 'PROCESSING',
-                paymentStatus: 'PAID',
+                paymentStatus: order.paymentMethod === 'CARD' ? 'PAID' : order.paymentStatus,
                 trackingNumber: pxpResult.trackingNumber,
                 invoiceId: invoiceResult?.invoiceId
             }

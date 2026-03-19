@@ -85,12 +85,13 @@ export async function createPxpShipment(order: any) {
             return `+36 ${digits}`; // Fallback
         };
 
-        const isPaid = order.paymentStatus === 'PAID' || !!order.stripePaymentIntentId;
+        const isCOD = order.paymentMethod === 'COD';
+        const utanvetAmount = isCOD ? Number(Math.round(order.totalAmount)) : 0;
         
         // Prepare the shipment data - Using object with string keys for "numeric" indexes
         // as PHP's json_encode often produces this for associative arrays, 
         // and PXP's documentation shows this format in responses.
-        const shipmentRequest = {
+        const shipmentRequest: any = {
             "0": {
                 tipus: 0, // 0 = Csomagfeladás
                 cimzett: {
@@ -115,7 +116,7 @@ export async function createPxpShipment(order: any) {
                     };
                     return acc;
                 }, {}),
-                utanvet: isPaid ? 0 : Number(Math.round(order.totalAmount))
+                ...(utanvetAmount > 0 ? { utanvet: utanvetAmount, utanvet_deviza: "HUF" } : {})
             }
         };
 
