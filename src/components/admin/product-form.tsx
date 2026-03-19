@@ -372,7 +372,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Megnevezés *</label>
-                        <input name="name" type="text" required value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="pl. Volkswagen Golf VII Generátor" className="w-full bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold" />
+                        <input name="name" type="text" required value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="pl. Volkswagen Golf VII Generátor" spellCheck={true} className="w-full bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold" />
                         <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">Automatikusan generált cím</p>
                     </div>
 
