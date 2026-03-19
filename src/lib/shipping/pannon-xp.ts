@@ -100,19 +100,19 @@ export async function createPxpShipment(order: any) {
                         emailcim: shippingAddr.email.slice(0, 50),
                         ceg_nev: (shippingAddr.companyName || shippingAddr.name).slice(0, 50),
                         cim_telepules: shippingAddr.city.slice(0, 40),
-                        cim_iranyito: shippingAddr.postalCode.toString().replace(/\D/g, '').slice(0, 4),
+                        cim_iranyito: shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4),
                         cim_kozterulet: shippingAddr.address.slice(0, 60),
                         cim_megjegyzes: `Order #${order.id.slice(-6)}`.slice(0, 100)
                     },
                     szolgaltatas: "24H",
                     sms: true,
-                    csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
+                    csomagok: order.orderItems.reduce((acc: any, item: any, idx: number) => {
                         acc[idx.toString()] = {
                             db: Math.min(item.quantity, 99),
                             suly: item.part.weight || 2,
-                            hosszusag: item.part.length || 30,
-                            szelesseg: item.part.width || 20,
-                            magassag: item.part.height || 10,
+                            hosszusag: Math.round(item.part.length || 30),
+                            szelesseg: Math.round(item.part.width || 20),
+                            magassag: Math.round(item.part.height || 10),
                             tipus: (item.part.weight > 40 || item.part.length > 200) ? "raklap" : "doboz"
                         };
                         return acc;
