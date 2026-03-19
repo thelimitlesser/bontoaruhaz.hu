@@ -116,6 +116,10 @@ export async function createPxpShipment(order: any) {
         body.append('jelszo', hashPassword(password));
         body.append('keres', encryptedRequest);
 
+        if (isTest) {
+            console.log("PXP REQUEST DATA (unescaped):", JSON.stringify(shipmentRequest, null, 2));
+        }
+
         const response = await fetch(`${baseUrl}/mentes/`, {
             method: 'POST',
             body: body,
@@ -125,6 +129,10 @@ export async function createPxpShipment(order: any) {
         });
 
         const result = await response.json();
+        
+        if (isTest) {
+            console.log("PXP API FULL RESPONSE:", JSON.stringify(result, null, 2));
+        }
 
         if (result.kapcsolat?.statusz === 'OK' && result.mentes?.["0"]?.kuldemenyszam) {
             return {
