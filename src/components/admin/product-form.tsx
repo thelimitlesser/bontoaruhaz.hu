@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { createProduct, updateProduct, getNextReferenceNumber, checkDuplicateSku } from "@/app/actions/product";
 import { Save, Upload, X as CloseIcon, Image as ImageIcon, Plus, Trash2, Loader2, Sparkles } from "lucide-react";
 
@@ -123,7 +123,23 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
         return () => clearTimeout(timer);
     }, [sku, initialData?.id]);
 
-    // Automation Logic
+    // Automation Logic: Generate the dynamic header string
+    const generatedHeader = useMemo(() => {
+        const brandName = brands.find(b => b.id === selectedBrand)?.name;
+        const modelName = getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name;
+        const partName = selectedPartItemObj?.name;
+        const years = yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : "";
+
+        const parts = [];
+        if (brandName) parts.push(brandName);
+        if (modelName) parts.push(modelName);
+        if (partName) parts.push(partName);
+        if (years) parts.push(years);
+
+        if (parts.length === 0) return "";
+        return `Eladó gyári ${parts.join(' ')}.`;
+    }, [selectedBrand, selectedModel, selectedPartItemObj, yearFrom, yearTo]);
+
     useEffect(() => {
         const brandName = brands.find(b => b.id === selectedBrand)?.name || "";
         const modelName = getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name || "";
@@ -564,12 +580,41 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                     
                     <div className="w-full bg-white border-2 border-gray-300 rounded-xl focus-within:border-[var(--color-primary)] focus-within:ring-4 focus-within:ring-[var(--color-primary)]/10 overflow-hidden shadow-sm transition-all flex flex-col">
                         
-                        {/* Auto Header Component */}
-                        <div className={`p-4 border-b transition-colors ${selectedBrand && selectedModel && selectedPartItemObj ? 'bg-orange-50/50 border-orange-100 text-gray-800' : 'bg-gray-50 border-gray-100 text-gray-400 italic'}`}>
-                            {selectedBrand && selectedModel && selectedPartItemObj 
-                                ? <span className="font-medium">{`Eladó gyári ${brands.find(b => b.id === selectedBrand)?.name} ${getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name} ${selectedPartItemObj?.name} ${yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : ""}.`}</span>
-                                : "[Automatikus fejléc (Márka, Modell, Alkatrész kiválasztása után jelenik meg)]"
-                            }
+                        {/* Bulletproof Atom Bomba Header Component */}
+                        <div className={`p-4 border-b flex items-center justify-between transition-all duration-300 ${generatedHeader ? 'bg-orange-50 border-orange-100' : 'bg-gray-50 border-gray-100'}`}>
+                            <div className="flex flex-wrap items-center gap-1.5 text-lg">
+                                <span className={`font-bold transition-colors ${generatedHeader ? 'text-gray-900' : 'text-gray-300'}`}>Eladó gyári</span>
+                                
+                                {selectedBrand ? (
+                                    <span className="font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded leading-none">{brands.find(b => b.id === selectedBrand)?.name}</span>
+                                ) : (
+                                    <span className="text-gray-300 border-b border-dashed border-gray-200 px-1 italic">[Márka]</span>
+                                )}
+
+                                {selectedModel ? (
+                                    <span className="font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded leading-none">{getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name}</span>
+                                ) : (
+                                    <span className="text-gray-300 border-b border-dashed border-gray-200 px-1 italic">[Modell]</span>
+                                )}
+
+                                {selectedPartItemObj ? (
+                                    <span className="font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded leading-none">{selectedPartItemObj.name}</span>
+                                ) : (
+                                    <span className="text-gray-300 border-b border-dashed border-gray-200 px-1 italic">[Alkatrész]</span>
+                                )}
+
+                                {(yearFrom || yearTo) && (
+                                    <span className="font-bold text-gray-700 bg-gray-100 px-1.5 py-0.5 rounded leading-none text-sm">{`(${yearFrom || '?'}-${yearTo || '?'})`}</span>
+                                )}
+                                
+                                <span className={`font-bold transition-colors ${generatedHeader ? 'text-gray-900' : 'text-gray-300'}`}>.</span>
+                            </div>
+
+                            {generatedHeader && (
+                                <div className="flex items-center gap-1 text-[10px] bg-orange-600 text-white px-2 py-1 rounded-full font-black uppercase tracking-tighter animate-pulse shadow-sm">
+                                    <Sparkles className="w-3 h-3" /> LIVE
+                                </div>
+                            )}
                         </div>
 
                         {/* Editable Manual Description */}
