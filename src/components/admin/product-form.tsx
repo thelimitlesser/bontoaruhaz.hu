@@ -70,6 +70,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
     const [images, setImages] = useState<{ file?: File; preview: string; isExisting?: boolean }[]>(
         initialData?.images ? initialData.images.split(',').filter(Boolean).map((url: string) => ({ preview: url, isExisting: true })) : []
     );
+    const [isCompressing, setIsCompressing] = useState(false);
 
     const [autoRef, setAutoRef] = useState(initialData?.productCode || "");
     const [productName, setProductName] = useState(initialData?.name || "");
@@ -161,23 +162,88 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
         .sort((a, b) => a.name.localeCompare(b.name, 'hu'))
         .map(p => ({ value: p.id, label: p.name }));
 
-    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const compressImage = async (file: File): Promise<File> => {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    let width = img.width;
+                    let height = img.height;
+
+                    const MAX_WIDTH = 1200;
+                    const MAX_HEIGHT = 1200;
+
+                    if (width > height) {
+                        if (width > MAX_WIDTH) {
+                            height = Math.round((height * MAX_WIDTH) / width);
+                            width = MAX_WIDTH;
+                        }
+                    } else {
+                        if (height > MAX_HEIGHT) {
+                            width = Math.round((width * MAX_HEIGHT) / height);
+                            height = MAX_HEIGHT;
+                        }
+                    }
+
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, width, height);
+
+                    canvas.toBlob((blob) => {
+                        if (blob) {
+                            // Cseréljük le a kiterjesztést .webp-re
+                            const newName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                            const compressedFile = new File([blob], newName, {
+                                type: 'image/webp',
+                                lastModified: Date.now(),
+                            });
+                            resolve(compressedFile);
+                        } else {
+                            resolve(file); // fallback, ha a blob nem sikerült
+                        }
+                    }, 'image/webp', 0.85); // 85% minőségű WebP
+                };
+                img.onerror = () => resolve(file); // fallback
+            };
+            reader.onerror = () => resolve(file); // fallback
+        });
+    };
+
+    const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            const newFiles = Array.from(e.target.files);
-            const totalImages = images.length + newFiles.length;
+            const rawFiles = Array.from(e.target.files);
+            const totalImages = images.length + rawFiles.length;
 
             if (totalImages > 5) {
                 alert("Maximum 5 képet tölthet fel!");
+                e.target.value = ''; // Reset the input
                 return;
             }
 
-            const newImageData = newFiles.map(file => ({
-                file,
-                preview: URL.createObjectURL(file),
-                isExisting: false
-            }));
+            setIsCompressing(true);
+            try {
+                // Tömörítjük az összes képet párhuzamosan
+                const compressedFiles = await Promise.all(rawFiles.map(file => compressImage(file)));
 
-            setImages([...images, ...newImageData]);
+                const newImageData = compressedFiles.map(file => ({
+                    file,
+                    preview: URL.createObjectURL(file), // Ideiglenes előnézet a tömörített fájlból
+                    isExisting: false
+                }));
+
+                setImages(prev => [...prev, ...newImageData]);
+            } catch (err) {
+                console.error("Hiba a képek tömörítése közben:", err);
+                alert("Hiba történt a képek feldolgozása közben.");
+            } finally {
+                setIsCompressing(false);
+                e.target.value = ''; // Reset the input so the exact same files can be re-selected if deleted
+            }
         }
     };
 
