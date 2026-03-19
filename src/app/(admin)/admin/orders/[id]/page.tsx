@@ -30,9 +30,14 @@ export default async function OrderDetailPage({ params }: { params: { id: string
     const order = orderRaw as any; // Cast to any temporarily to allow TS to compile until prisma generate is run
 
     // Parse JSON addresses safely
-    const shipping = typeof order.shippingAddress ==='string' ? JSON.parse(order.shippingAddress) : order.shippingAddress;
-    const isPickup = order.shippingMethod ==='PICKUP';
-    const isCOD = order.paymentMethod ==='COD';
+    let shipping: any = null;
+    try {
+        shipping = typeof order.shippingAddress === 'string' ? JSON.parse(order.shippingAddress) : order.shippingAddress;
+    } catch (e) {
+        console.error("Error parsing shipping address:", e);
+    }
+    const isPickup = order.shippingMethod === 'PICKUP';
+    const isCOD = order.paymentMethod === 'COD';
 
     return (
         <div className="space-y-6 text-gray-900 dark:text-gray-100">
@@ -42,8 +47,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         <ArrowLeft className="w-6 h-6" />
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Rendelés <span className="text-[var(--color-primary)]">#{order.id.slice(0, 8)}</span></h1>
-                        <p className="text-gray-500 dark:text-gray-400">{new Date(order.createdAt).toLocaleString('hu-HU')}</p>
+                        <h1 className="text-3xl font-bold tracking-tight">Rendelés <span className="text-[var(--color-primary)]">#{order.id?.slice(0, 8)}</span></h1>
+                        <p className="text-gray-500 dark:text-gray-400">{order.createdAt ? new Date(order.createdAt).toLocaleString('hu-HU') : 'Nincs dátum'}</p>
                     </div>
                 </div>
                 <div className="md:ml-auto">
@@ -68,22 +73,27 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             {order.items.map((item: any) => (
                                 <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-xs text-gray-400 overflow-hidden border border-gray-200 dark:border-gray-700">
-                                            {item.part.images ? (
-                                                /* eslint-disable-next-line @next/next/no-img-element */
-                                                <img src={JSON.parse(item.part.images)[0]} alt={item.part.name} className="w-full h-full object-cover" />
-                                            ) :"Nincs kép"}
+                                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-xs text-gray-400 overflow-hidden border border-gray-200 dark:border-gray-700 font-bold">
+                                            {(() => {
+                                                if (!item.part?.images) return "Nincs kép";
+                                                try {
+                                                    const imgs = JSON.parse(item.part.images);
+                                                    return <img src={imgs[0]} alt={item.part.name} className="w-full h-full object-cover" />;
+                                                } catch (e) {
+                                                    return "Nincs kép";
+                                                }
+                                            })()}
                                         </div>
                                         <div className="space-y-1">
-                                            <p className="font-bold text-gray-900 dark:text-white leading-tight">{item.part.name}</p>
+                                            <p className="font-bold text-gray-900 dark:text-white leading-tight">{item.part?.name || 'Ismeretlen termék'}</p>
                                             <p className="text-sm font-medium text-[var(--color-primary)]">
-                                                {item.part.VehicleBrand?.name} {item.part.VehicleModel?.name}
+                                                {item.part?.VehicleBrand?.name} {item.part?.VehicleModel?.name}
                                             </p>
                                             <div className="flex flex-wrap gap-2 mt-1">
                                                 <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-gray-100 dark:bg-white/10 rounded font-mono text-gray-500 dark:text-gray-400">
-                                                    SKU: {item.part.sku}
+                                                    SKU: {item.part?.sku || 'N/A'}
                                                 </span>
-                                                {item.part.PartCategory && (
+                                                {item.part?.PartCategory && (
                                                     <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded font-bold">
                                                         {item.part.PartCategory.name}
                                                     </span>
@@ -138,8 +148,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     <div className="flex items-start gap-2">
                                         <MapPin className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" />
                                         <div>
-                                            <p>{shipping.zip || shipping.postalCode} {shipping.city}</p>
-                                            <p>{shipping.street || shipping.address}</p>
+                                            <p>{shipping?.zip || shipping?.postalCode} {shipping?.city}</p>
+                                            <p>{shipping?.street || shipping?.address}</p>
                                         </div>
                                     </div>
                                 </div>
