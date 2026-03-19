@@ -98,6 +98,13 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                                         {item.part.PartCategory.name}
                                                     </span>
                                                 )}
+                                                {(item.part?.weight || item.part?.length || item.part?.width || item.part?.height) && (
+                                                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-zinc-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded font-bold flex items-center gap-1">
+                                                        <Truck className="w-3 h-3" />
+                                                        {item.part?.weight ? `${item.part.weight}kg` : ''} 
+                                                        {item.part?.length && item.part?.width && item.part?.height ? `${item.part.length}x${item.part.width}x${item.part.height}cm` : ''}
+                                                    </span>
+                                                )}
                                             </div>
                                         </div>
                                     </div>
@@ -156,6 +163,33 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             ) : (
                                 <p className="text-gray-500 italic py-2">Vevő bejön érte a telephelyre.</p>
                             )}
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm space-y-4">
+                        <h2 className="font-bold border-b border-gray-200 dark:border-white/10 pb-2 flex items-center gap-2 text-gray-900 dark:text-white">
+                            <CreditCard className="w-4 h-4 text-[var(--color-primary)]" />
+                            Számlázási Adatok
+                        </h2>
+                        <div className="text-sm space-y-1">
+                            {(() => {
+                                try {
+                                    const billing = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+                                    if (!billing) return <p className="text-gray-500 italic">Nincs számlázási adat.</p>;
+                                    return (
+                                        <div className="space-y-1 text-gray-600 dark:text-gray-300 font-medium">
+                                            <p className="text-gray-900 dark:text-white font-bold">{billing.name || (billing.companyName) || 'Nincs név'}</p>
+                                            <p>{billing.postalCode} {billing.city}</p>
+                                            <p>{billing.address}</p>
+                                            {billing.taxNumber && (
+                                                <p className="mt-2 pt-2 border-t border-gray-100 dark:border-white/5 text-xs">Adószám: <span className="font-bold text-gray-900 dark:text-white">{billing.taxNumber}</span></p>
+                                            )}
+                                        </div>
+                                    );
+                                } catch (e) {
+                                    return <p className="text-red-500 text-xs italic">Hiba az adatok beolvasásakor.</p>;
+                                }
+                            })()}
                         </div>
                     </div>
 
