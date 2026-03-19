@@ -20,7 +20,7 @@ export async function cleanupExpiredReservations() {
 /**
  * Attempts to reserve a part.
  */
-export async function reservePart(partId: string, sessionId: string) {
+export async function reservePart(partId: string, sessionId: string, requestedQuantity: number = 1) {
     // 1. Clean up expired ones first to free up stock
     await cleanupExpiredReservations();
 
@@ -38,19 +38,18 @@ export async function reservePart(partId: string, sessionId: string) {
         return { success: false, error: "Alkatrész nem található." };
     }
 
-    if (part.stock <= 0) {
-        return { success: false, error: "Ez az alkatrész jelenleg nincs készleten." };
-    }
-
     // 3. Check available stock
-    const activeReservationsCount = part.reservations.length;
-    const availableStock = part.stock - activeReservationsCount;
+    // Sum the quantities of all active reservations EXCEPT the one for this session (if it exists)
+    const reservationsByOthers = part.reservations.filter(r => r.sessionId !== sessionId);
+    const sumOthers = reservationsByOthers.reduce((acc, r) => acc + r.quantity, 0);
+    const availableForThisUser = part.stock - sumOthers;
 
-    // Check if the user already has it reserved
-    const existingUserReservation = part.reservations.find(r => r.sessionId === sessionId);
-
-    if (availableStock <= 0 && !existingUserReservation) {
-         return { success: false, error: "Ezt a terméket valaki már a kosarába tette (Ideiglenesen foglalt)." };
+    if (availableForThisUser < requestedQuantity) {
+        if (availableForThisUser <= 0) {
+            return { success: false, error: "Ezt a terméket más(ok) már a kosarukba tették (Ideiglenesen foglalt)." };
+        } else {
+            return { success: false, error: `Sajnos csak ${availableForThisUser} db érhető el ebből a termékből.` };
+        }
     }
 
     // 4. Create or update reservation
@@ -64,11 +63,19 @@ export async function reservePart(partId: string, sessionId: string) {
         if (existing) {
             await prisma.reservation.update({
                 where: { id: existing.id },
-                data: { expiresAt }
+                data: { 
+                    expiresAt,
+                    quantity: requestedQuantity 
+                }
             });
         } else {
             await prisma.reservation.create({
-                data: { partId, sessionId, expiresAt }
+                data: { 
+                    partId, 
+                    sessionId, 
+                    expiresAt,
+                    quantity: requestedQuantity
+                }
             });
         }
 

@@ -14,6 +14,7 @@ interface CartContextType {
     sessionId: string | null;
     addItem: (product: Product) => Promise<boolean>;
     removeItem: (productId: string) => Promise<void>;
+    updateQuantity: (productId: string, newQuantity: number) => Promise<boolean>;
     clearCart: () => void;
     totalPrice: number;
     totalItems: number;
@@ -102,8 +103,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const addItem = async (product: Product): Promise<boolean> => {
         if (!sessionId) return false;
 
-        // Try server-side reservation first
-        const res = await reservePart(product.id, sessionId);
+        const existing = items.find(i => i.id === product.id);
+        const newQuantity = (existing?.quantityInCart || 0) + 1;
+
+        // Check against product stock
+        if (newQuantity > product.quantity) {
+            alert(`Sajnos ebből a termékből csak ${product.quantity} db érhető el.`);
+            return false;
+        }
+
+        // Try server-side reservation
+        const res = await reservePart(product.id, sessionId, newQuantity);
         
         if (!res.success || !res.expiresAt) {
             alert(res.error || "Hiba történt a foglalás során.");
@@ -113,11 +123,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const expiresAt = new Date(res.expiresAt).getTime();
 
         setItems((prev) => {
-            const existing = prev.find((item) => item.id === product.id);
-            if (existing) {
+            const exists = prev.find((item) => item.id === product.id);
+            if (exists) {
                 return prev.map((item) =>
                     item.id === product.id
-                        ? { ...item, quantityInCart: item.quantityInCart + 1, reservedUntil: expiresAt }
+                        ? { ...item, quantityInCart: newQuantity, reservedUntil: expiresAt }
                         : item
                 );
             }
@@ -125,6 +135,40 @@ export function CartProvider({ children }: { children: ReactNode }) {
         });
         
         setIsCartOpen(true);
+        return true;
+    };
+
+    const updateQuantity = async (productId: string, newQuantity: number): Promise<boolean> => {
+        if (!sessionId) return false;
+
+        const item = items.find(i => i.id === productId);
+        if (!item) return false;
+
+        if (newQuantity <= 0) {
+            await removeItem(productId);
+            return true;
+        }
+
+        if (newQuantity > item.quantity) {
+            alert(`Sajnos ebből a termékből csak ${item.quantity} db érhető el.`);
+            return false;
+        }
+
+        // Try server-side update
+        const res = await reservePart(productId, sessionId, newQuantity);
+        if (!res.success || !res.expiresAt) {
+            alert(res.error || "Hiba történt a foglalás módosítása során.");
+            return false;
+        }
+
+        const expiresAt = new Date(res.expiresAt).getTime();
+
+        setItems(prev => prev.map(i => 
+            i.id === productId 
+                ? { ...i, quantityInCart: newQuantity, reservedUntil: expiresAt }
+                : i
+        ));
+
         return true;
     };
 
@@ -137,8 +181,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
 
     const clearCart = () => {
-        // We could theoretically loop through and release all, but checkout also clears cart
-        // so we'll leave actual release to the backend logic in checkout/cleanup
         setItems([]);
     };
 
@@ -159,6 +201,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 sessionId,
                 addItem,
                 removeItem,
+                updateQuantity,
                 clearCart,
                 totalPrice,
                 totalItems,

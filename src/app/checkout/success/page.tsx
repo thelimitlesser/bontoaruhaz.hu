@@ -17,10 +17,10 @@ export default function CheckoutSuccessPage() {
                 <span className="block mt-2 font-bold text-gray-300">Ellenőrizd az e-mail fiókodat a visszaigazolásért!</span>
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex flex-col items-center gap-4 w-full max-w-xs mx-auto">
                 <Link 
                     href="/garage" 
-                    className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white font-bold py-4 px-8 rounded-2xl transition-all border border-white/10"
+                    className="w-full flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white font-bold py-4 px-8 rounded-2xl transition-all border border-white/10"
                 >
                     <ShoppingBag className="w-5 h-5" />
                     MEGRENDELÉSEIM
@@ -28,7 +28,7 @@ export default function CheckoutSuccessPage() {
                 
                 <Link 
                     href="/" 
-                    className="flex items-center gap-2 bg-[var(--color-primary)] hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg"
+                    className="w-full flex items-center justify-center gap-2 bg-[var(--color-primary)] hover:bg-orange-600 text-white font-bold py-4 px-8 rounded-2xl transition-all shadow-lg"
                 >
                     VISSZA A FŐOLDALRA
                     <ArrowRight className="w-5 h-5" />

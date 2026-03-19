@@ -213,6 +213,7 @@ model Reservation {
   id        String   @id @default(uuid())
   partId    String
   sessionId String
+  quantity  Int      @default(1)
   expiresAt DateTime
   createdAt DateTime @default(now())
   part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)

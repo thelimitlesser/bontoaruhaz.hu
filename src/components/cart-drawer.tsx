@@ -1,9 +1,9 @@
 "use client";
 
-import { X, Trash2, ShoppingBag } from"lucide-react";
-import { useCart } from"@/context/cart-context";
-import Image from"next/image";
-import Link from"next/link";
+import { X, Trash2, ShoppingBag, Minus, Plus } from "lucide-react";
+import { useCart } from "@/context/cart-context";
+import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -31,7 +31,7 @@ function CountdownTimer({ expiresAt }: { expiresAt: number }) {
 
 
 export function CartDrawer() {
-    const { items, removeItem, totalPrice, isCartOpen, setIsCartOpen } = useCart();
+    const { items, removeItem, updateQuantity, totalPrice, isCartOpen, setIsCartOpen } = useCart();
 
     // Prevent scrolling when cart is open
     useEffect(() => {
@@ -119,15 +119,43 @@ export function CartDrawer() {
                                                 </h3>
                                                 <p className="text-[10px] sm:text-xs text-gray-500 mt-1 font-mono">{item.sku}</p>
                                             </div>
-                                            <div className="flex items-center justify-between mt-1">
-                                                <div className="text-[var(--color-primary)] font-bold text-xs sm:text-sm flex items-center gap-2">
-                                                    <span className="text-muted text-[10px] sm:text-xs font-normal bg-muted/5 px-1.5 py-0.5 rounded border border-border">{item.quantityInCart} db</span>
-                                                    <span>{item.price.toLocaleString("hu-HU")} Ft</span>
+                                            <div className="flex items-center justify-between mt-2">
+                                                <div className="flex flex-col gap-1.5">
+                                                    <div className="flex items-center gap-1">
+                                                        <div className="flex items-center bg-muted/20 border border-border rounded-lg overflow-hidden h-8 sm:h-9">
+                                                            <button
+                                                                onClick={() => updateQuantity(item.id, item.quantityInCart - 1)}
+                                                                className="px-2 sm:px-3 hover:bg-[var(--color-primary)]/10 text-muted hover:text-[var(--color-primary)] transition-colors h-full flex items-center justify-center border-r border-border"
+                                                            >
+                                                                <Minus className="w-3 h-3 h-4" />
+                                                            </button>
+                                                            <div className="px-3 sm:px-4 text-xs sm:text-sm font-bold text-foreground min-w-[32px] sm:min-w-[40px] text-center bg-background/40">
+                                                                {item.quantityInCart}
+                                                            </div>
+                                                            <button
+                                                                onClick={() => updateQuantity(item.id, item.quantityInCart + 1)}
+                                                                disabled={item.quantityInCart >= item.quantity}
+                                                                className={`px-2 sm:px-3 h-full flex items-center justify-center transition-colors ${
+                                                                    item.quantityInCart >= item.quantity 
+                                                                    ? "text-muted/30 cursor-not-allowed bg-muted/5" 
+                                                                    : "hover:bg-[var(--color-primary)]/10 text-muted hover:text-[var(--color-primary)]"
+                                                                }`}
+                                                            >
+                                                                <Plus className="w-3 h-3 h-4" />
+                                                            </button>
+                                                        </div>
+                                                        {item.quantityInCart >= item.quantity && (
+                                                            <span className="text-[9px] text-orange-500 font-bold uppercase tracking-tighter">MAX</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-[var(--color-primary)] font-bold text-xs sm:text-sm">
+                                                        {item.price.toLocaleString("hu-HU")} Ft
+                                                    </div>
                                                 </div>
                                                 <button
                                                     onClick={() => removeItem(item.id)}
-                                                    className="text-gray-500 hover:text-red-500 transition-colors p-1" title="Törlés" >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    className="text-gray-400 hover:text-red-500 transition-colors p-2 hover:bg-red-500/10 rounded-lg" title="Törlés" >
+                                                    <Trash2 className="w-4 h-4 sm:w-5 sm:h-5" />
                                                 </button>
                                             </div>
                                         </div>

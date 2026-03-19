@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, CreditCard, Truck, ShieldCheck, Mail, MapPin, User } from "lucide-react";
+import { ArrowLeft, CreditCard, Truck, ShieldCheck, Mail, MapPin, User, Minus, Plus } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -15,7 +15,7 @@ import { calculateShippingPriceForItems } from "@/lib/shipping/pannon-xp";
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
 export default function CheckoutPage() {
-    const { items, totalPrice, totalItems } = useCart();
+    const { items, totalPrice, totalItems, updateQuantity } = useCart();
     const router = useRouter();
 
     // Basic form state
@@ -374,13 +374,39 @@ export default function CheckoutPage() {
                                                 src={item.image}
                                                 alt={item.name}
                                                 className="w-full h-full object-cover" />
-                                            <span className="absolute -top-1 -right-1 w-5 h-5 bg-muted text-white text-[10px] font-bold rounded-full flex items-center justify-center border border-background">
-                                                {item.quantityInCart}
-                                            </span>
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <h4 className="text-foreground text-xs font-medium line-clamp-2">{item.name}</h4>
-                                            <p className="text-muted text-[10px] font-mono mt-1">{item.sku}</p>
+                                            <h4 className="text-foreground text-xs font-bold line-clamp-1">{item.name}</h4>
+                                            <p className="text-muted text-[10px] font-mono mt-0.5">{item.sku}</p>
+                                            
+                                            {/* Quantity Selector in Checkout */}
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <div className="flex items-center bg-muted/10 border border-border rounded-md overflow-hidden h-7">
+                                                    <button
+                                                        onClick={() => updateQuantity(item.id, item.quantityInCart - 1)}
+                                                        className="px-1.5 hover:bg-[var(--color-primary)]/10 text-muted transition-colors h-full flex items-center justify-center border-r border-border"
+                                                    >
+                                                        <Minus className="w-2.5 h-2.5" />
+                                                    </button>
+                                                    <div className="px-2 text-[10px] font-bold text-foreground min-w-[24px] text-center">
+                                                        {item.quantityInCart}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => updateQuantity(item.id, item.quantityInCart + 1)}
+                                                        disabled={item.quantityInCart >= item.quantity}
+                                                        className={`px-1.5 h-full flex items-center justify-center transition-colors ${
+                                                            item.quantityInCart >= item.quantity 
+                                                            ? "text-muted/30 cursor-not-allowed" 
+                                                            : "hover:bg-[var(--color-primary)]/10 text-muted"
+                                                        }`}
+                                                    >
+                                                        <Plus className="w-2.5 h-2.5" />
+                                                    </button>
+                                                </div>
+                                                {item.quantityInCart >= item.quantity && (
+                                                    <span className="text-[8px] text-orange-500 font-bold uppercase tracking-tighter">MAX</span>
+                                                )}
+                                            </div>
                                         </div>
                                         <div className="text-right whitespace-nowrap">
                                             <div className="text-foreground font-bold text-xs">
@@ -388,7 +414,7 @@ export default function CheckoutPage() {
                                             </div>
                                             {item.shippingPrice && shippingMethod === 'delivery' && (
                                                 <div className="text-[10px] text-blue-500 font-medium mt-1">
-                                                    + { (item.shippingPrice * item.quantityInCart).toLocaleString('hu-HU') } Ft szállítás
+                                                    + { (item.shippingPrice * item.quantityInCart).toLocaleString('hu-HU') } Ft
                                                 </div>
                                             )}
                                         </div>
