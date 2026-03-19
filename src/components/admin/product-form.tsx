@@ -63,14 +63,21 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
     const [isCheckingSku, setIsCheckingSku] = useState(false);
     const [manualDescription, setManualDescription] = useState(() => {
         if (!initialData?.description) return "";
-        // Try to strip header and footer if editing
-        const desc = initialData.description;
-        const footerStart = desc.indexOf("\n\nA hivatkozási számra hivatkozzon");
-        const headerEnd = desc.indexOf(".\n\n");
-        if (footerStart !== -1 && headerEnd !== -1) {
-            return desc.substring(headerEnd + 3, footerStart).trim();
+        let content = initialData.description;
+        
+        // 1. Strip the auto-footer
+        const footerStart = content.indexOf("\n\nA hivatkozási számra hivatkozzon");
+        if (footerStart !== -1) {
+            content = content.substring(0, footerStart);
         }
-        return desc;
+
+        // 2. Strip the auto-header ("Eladó gyári ... .")
+        const blocks = content.split('\n\n');
+        if (blocks.length > 0 && blocks[0].trim().startsWith('Eladó gyári')) {
+            blocks.shift(); // Remove the auto-generated header
+        }
+
+        return blocks.join('\n\n').trim();
     });
 
     const [yearFrom, setYearFrom] = useState(initialData?.yearFrom?.toString() || "");
