@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createProduct, updateProduct, getNextReferenceNumber, checkDuplicateSku } from "@/app/actions/product";
-import { Save, Upload, X as CloseIcon, Image as ImageIcon, Plus, Trash2, Loader2 } from "lucide-react";
+import { Save, Upload, X as CloseIcon, Image as ImageIcon, Plus, Trash2, Loader2, Sparkles } from "lucide-react";
 
 import { categories, partsSubcategories as subcategories, brands, getModelsByBrand, partItems } from "@/lib/vehicle-data";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -14,7 +14,22 @@ interface ProductFormProps {
 }
 
 export function ProductForm({ initialData, onSuccess, className }: ProductFormProps) {
+    const descriptionRef = useRef<HTMLTextAreaElement>(null);
+    const nameRef = useRef<HTMLInputElement>(null);
+
     const [selectedBrand, setSelectedBrand] = useState(initialData?.brandId || "");
+
+    useEffect(() => {
+        // Force browser-native spellcheck by setting the attribute directly on the DOM node
+        if (descriptionRef.current) {
+            descriptionRef.current.setAttribute('spellcheck', 'true');
+            descriptionRef.current.setAttribute('lang', 'hu');
+        }
+        if (nameRef.current) {
+            nameRef.current.setAttribute('spellcheck', 'true');
+            nameRef.current.setAttribute('lang', 'hu');
+        }
+    }, []);
     const [selectedModel, setSelectedModel] = useState(initialData?.modelId || "");
 
     // Universal Switch
@@ -372,7 +387,14 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
                         <label className="text-sm font-medium text-gray-700">Megnevezés *</label>
-                        <input name="name" type="text" required value={productName} onChange={(e) => setProductName(e.target.value)} placeholder="pl. Volkswagen Golf VII Generátor" spellCheck={true} className="w-full bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold" />
+                        <input 
+                            ref={nameRef}
+                            name="name" type="text" required value={productName} 
+                            onChange={(e) => setProductName(e.target.value)} 
+                            placeholder="pl. Volkswagen Golf VII Generátor" 
+                            spellCheck={true}
+                            className="w-full bg-orange-50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold" 
+                        />
                         <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wider">Automatikusan generált cím</p>
                     </div>
 
@@ -469,8 +491,9 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                         <span className="text-[10px] text-[var(--color-primary)] font-bold uppercase tracking-wider">Helyesírás-ellenőrző aktív</span>
                     </div>
                     <textarea
+                        ref={descriptionRef}
                         id="manualDescription"
-                        name="manualDescription" rows={4}
+                        name="manualDescription" rows={6}
                         value={manualDescription}
                         onChange={(e) => setManualDescription(e.target.value)}
                         placeholder="Írd ide az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
@@ -478,7 +501,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                         autoCorrect="on"
                         autoComplete="on"
                         autoCapitalize="sentences"
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:border-[var(--color-primary)] text-gray-900 transition-colors resize-none" ></textarea>
+                        className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-4 focus:border-orange-500 text-gray-900 transition-all resize-none shadow-sm text-lg leading-relaxed outline-none" ></textarea>
 
                     <div className="mt-4 p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg">
                         <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Véglegesített Leírás betekintő:</h4>
