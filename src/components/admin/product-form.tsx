@@ -222,7 +222,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
     };
 
     return (
-        <form action={handleSubmit} className={`space-y-8 max-w-4xl pb-12 ${className || ""}`}>
+        <form action={handleSubmit} spellCheck={true} className={`spellcheck-force space-y-8 max-w-4xl pb-12 ${className || ""}`}>
 
             <input type="hidden" name="isUniversal" value={isUniversal.toString()} />
             <input type="hidden" name="compatibilitiesData" value={JSON.stringify(compatibilities)} />
@@ -476,8 +476,9 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                         placeholder="Írd ide az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
                         spellCheck={true}
                         autoCorrect="on"
+                        autoComplete="on"
                         autoCapitalize="sentences"
-                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors resize-none" ></textarea>
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:border-[var(--color-primary)] text-gray-900 transition-colors resize-none" ></textarea>
 
                     <div className="mt-4 p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg">
                         <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Véglegesített Leírás betekintő:</h4>
