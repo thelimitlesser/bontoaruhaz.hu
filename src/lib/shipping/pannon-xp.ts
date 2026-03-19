@@ -112,7 +112,7 @@ export async function createPxpShipment(order: any) {
 
         const body = new URLSearchParams();
         body.append('ugyfelkod', ugyfelkod);
-        body.append('technikai_felhasznalo', techUser);
+        body.append('technikai_felhasznalo', techUser.includes('_') ? techUser : `${ugyfelkod}_${techUser}`);
         body.append('jelszo', hashPassword(password));
         body.append('keres', encryptedRequest);
 

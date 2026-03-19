@@ -137,7 +137,7 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                         </td>
                                         <td className="px-6 py-4 text-right">
                                             <div className="font-bold text-gray-900 text-lg whitespace-nowrap">
-                                                {part.priceGross.toLocaleString()}&nbsp;Ft
+                                                {part.priceGross.toLocaleString('hu-HU')}&nbsp;Ft
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">

@@ -92,7 +92,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                         </div>
                                     </div>
                                     <div className="sm:text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 border-gray-100 dark:border-white/5 pt-2 sm:pt-0">
-                                        <p className="font-black text-lg text-gray-900 dark:text-white">{item.priceAtTime.toLocaleString()} Ft</p>
+                                        <p className="font-black text-lg text-gray-900 dark:text-white">{item.priceAtTime.toLocaleString('hu-HU')} Ft</p>
                                         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{item.quantity} db</p>
                                     </div>
                                 </div>
@@ -100,7 +100,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         </div>
                         <div className="p-6 bg-gray-50 dark:bg-white/5 border-t border-gray-200 dark:border-white/10 flex justify-between items-center">
                             <span className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest text-xs">Végösszeg</span>
-                            <span className="text-3xl font-black text-gray-900 dark:text-white">{order.totalAmount.toLocaleString()} Ft</span>
+                            <span className="text-3xl font-black text-gray-900 dark:text-white">{order.totalAmount.toLocaleString('hu-HU')} Ft</span>
                         </div>
                     </div>
                 </div>

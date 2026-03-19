@@ -66,7 +66,7 @@ export default async function OrdersPage() {
                                         </td>
                                         <td className="px-6 py-5 text-right">
                                             <span className="text-base font-black text-gray-900 dark:text-white">
-                                                {order.totalAmount.toLocaleString()} Ft
+                                                {order.totalAmount.toLocaleString('hu-HU')} Ft
                                             </span>
                                         </td>
                                         <td className="px-6 py-5">
