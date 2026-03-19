@@ -469,8 +469,9 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                         <span className="text-[10px] text-[var(--color-primary)] font-bold uppercase tracking-wider">Helyesírás-ellenőrző aktív</span>
                     </div>
                     <textarea
+                        key={initialData?.id || 'new'}
                         name="manualDescription" rows={4}
-                        value={manualDescription}
+                        defaultValue={manualDescription}
                         onChange={(e) => setManualDescription(e.target.value)}
                         placeholder="Írd ide az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
                         spellCheck={true}
