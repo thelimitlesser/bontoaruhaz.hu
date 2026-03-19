@@ -116,7 +116,7 @@ export async function createPxpShipment(order: any) {
                     };
                     return acc;
                 }, {}),
-                ...(utanvetAmount > 0 ? { utanvet: utanvetAmount, utanvet_deviza: "HUF" } : {})
+                ...(utanvetAmount > 0 ? { utanvet: utanvetAmount } : {})
             }
         };
 
