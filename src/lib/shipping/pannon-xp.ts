@@ -106,7 +106,7 @@ export async function createPxpShipment(order: any) {
                     },
                     szolgaltatas: "24H",
                     sms: true,
-                    csomagok: order.orderItems.reduce((acc: any, item: any, idx: number) => {
+                    csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
                         acc[idx.toString()] = {
                             db: Math.min(item.quantity, 99),
                             suly: item.part.weight || 2,
