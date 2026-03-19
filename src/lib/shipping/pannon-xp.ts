@@ -14,11 +14,8 @@ function hashPassword(password: string): string {
 }
 
 function encryptData(data: any, key: string): string {
-    const json = JSON.stringify(data);
-    const cipher = crypto.createCipheriv('aes-128-ecb', Buffer.from(key), null);
-    // @ts-ignore - ECB doesn't use IV
-    cipher.setAutoPadding(true);
-    let encrypted = cipher.update(json, 'utf8', 'base64');
+    const cipher = crypto.createCipheriv('aes-128-ecb', Buffer.from(key.padEnd(16, '\0').slice(0, 16)), null);
+    let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'base64');
     encrypted += cipher.final('base64');
     return encrypted;
 }
@@ -80,32 +77,49 @@ export async function createPxpShipment(order: any) {
     try {
         const shippingAddr = JSON.parse(order.shippingAddress);
         
-        // Prepare the shipment data - Wrapped in "mentes" as per v3 docs
+        // Helper to format phone number: must start with +36 and contain only numbers and spaces
+        const formatPxpPhone = (phone: string) => {
+            const digits = phone.replace(/\D/g, '');
+            if (digits.startsWith('36')) return `+${digits.slice(0, 2)} ${digits.slice(2)}`;
+            if (digits.startsWith('06')) return `+36 ${digits.slice(2)}`;
+            return `+36 ${digits}`; // Fallback
+        };
+
+        const isPaid = order.paymentStatus === 'PAID' || !!order.stripePaymentIntentId;
+        
+        // Prepare the shipment data - Using object with string keys for "numeric" indexes
+        // as PHP's json_encode often produces this for associative arrays, 
+        // and PXP's documentation shows this format in responses.
         const shipmentRequest = {
-            mentes: [{
-                tipus: 0, // 0 = Csomagfeladás
-                cimzett: {
-                    nev: shippingAddr.name,
-                    telefon: shippingAddr.phone,
-                    emailcim: shippingAddr.email,
-                    ceg_nev: shippingAddr.name, // If individual, use name
-                    cim_telepules: shippingAddr.city,
-                    cim_iranyito: shippingAddr.postalCode,
-                    cim_kozterulet: shippingAddr.address,
-                    cim_megjegyzes: order.id
-                },
-                szolgaltatas: "24H",
-                sms: true,
-                csomagok: order.items.map((item: any) => ({
-                    db: item.quantity,
-                    suly: item.part.weight || 2,
-                    hosszusag: item.part.length || 30,
-                    szelesseg: item.part.width || 20,
-                    magassag: item.part.height || 10,
-                    tipus: (item.part.weight > 40 || item.part.length > 200) ? "raklap" : "doboz"
-                })),
-                utanvet: order.paymentMethod === 'COD' ? order.totalAmount : 0
-            }]
+            mentes: {
+                "0": {
+                    tipus: 0, // 0 = Csomagfeladás
+                    cimzett: {
+                        nev: shippingAddr.name.slice(0, 30),
+                        telefon: formatPxpPhone(shippingAddr.phone).slice(0, 20),
+                        emailcim: shippingAddr.email.slice(0, 50),
+                        ceg_nev: (shippingAddr.companyName || shippingAddr.name).slice(0, 50),
+                        cim_telepules: shippingAddr.city.slice(0, 40),
+                        cim_iranyito: shippingAddr.postalCode.toString().replace(/\D/g, '').slice(0, 4),
+                        cim_kozterulet: shippingAddr.address.slice(0, 60),
+                        cim_megjegyzes: `Order #${order.id.slice(-6)}`.slice(0, 100)
+                    },
+                    szolgaltatas: "24H",
+                    sms: true,
+                    csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
+                        acc[idx.toString()] = {
+                            db: Math.min(item.quantity, 99),
+                            suly: item.part.weight || 2,
+                            hosszusag: item.part.length || 30,
+                            szelesseg: item.part.width || 20,
+                            magassag: item.part.height || 10,
+                            tipus: (item.part.weight > 40 || item.part.length > 200) ? "raklap" : "doboz"
+                        };
+                        return acc;
+                    }, {}),
+                    utanvet: isPaid ? 0 : Math.round(order.totalAmount)
+                }
+            }
         };
 
         const encryptedRequest = encryptData(shipmentRequest, cserekulcs);
