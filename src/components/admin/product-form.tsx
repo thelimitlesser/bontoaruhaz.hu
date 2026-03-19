@@ -471,10 +471,10 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                     <textarea
                         key={initialData?.id || 'new'}
                         name="manualDescription" rows={4}
-                        defaultValue={manualDescription}
+                        value={manualDescription}
                         onChange={(e) => setManualDescription(e.target.value)}
                         placeholder="Írd ide az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
-                        spellCheck={true}
+                        spellCheck="true"
                         lang="hu"
                         autoCorrect="on"
                         autoCapitalize="sentences"
