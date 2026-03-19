@@ -466,7 +466,9 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                         value={manualDescription}
                         onChange={(e) => setManualDescription(e.target.value)}
                         placeholder="Írd ide az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
-                        spellCheck={true}
+                        spellCheck="true"
+                        autoCorrect="on"
+                        autoCapitalize="on"
                         className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors resize-none" ></textarea>
 
                     <div className="mt-4 p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg">
