@@ -15,9 +15,9 @@ function hashPassword(password: string): string {
 
 function encryptData(data: any, key: string): string {
     const cipher = crypto.createCipheriv('aes-128-ecb', Buffer.from(key.padEnd(16, '\0').slice(0, 16)), null);
-    let encrypted = cipher.update(JSON.stringify(data), 'utf8', 'base64');
-    encrypted += cipher.final('base64');
-    return encrypted;
+    const buf1 = cipher.update(JSON.stringify(data), 'utf8');
+    const buf2 = cipher.final();
+    return Buffer.concat([buf1, buf2]).toString('base64');
 }
 
 export function calculateShippingPriceForItems(items: any[]) {
@@ -104,9 +104,6 @@ export async function createPxpShipment(order: any) {
                     cim_megjegyzes: `Order #${order.id.slice(-6)}`.slice(0, 100)
                 },
                 szolgaltatas: "24H",
-                biztositas: false,
-                aruertek: 0,
-                sms: true,
                 csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
                     acc[idx.toString()] = {
                         db: Number(Math.min(item.quantity, 99)),
@@ -118,8 +115,7 @@ export async function createPxpShipment(order: any) {
                     };
                     return acc;
                 }, {}),
-                utanvet: isPaid ? 0 : Number(Math.round(order.totalAmount)),
-                okmany: false
+                utanvet: isPaid ? 0 : Number(Math.round(order.totalAmount))
             }
         };
 
@@ -127,7 +123,7 @@ export async function createPxpShipment(order: any) {
 
         const body = new URLSearchParams();
         body.append('ugyfelkod', ugyfelkod);
-        body.append('technikai_felhasznalo', techUser.includes('_') ? techUser : `${ugyfelkod}_${techUser}`);
+        body.append('technikai_felhasznalo', techUser);
         body.append('jelszo', hashPassword(password));
         body.append('keres', encryptedRequest);
 
