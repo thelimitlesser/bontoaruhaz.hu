@@ -1,0 +1,2102 @@
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+PXP Futar API v3
+interfészleírás és fejlesztői dokumentáció
+Készült: 2024 szeptember 4. (v2)Módosítva: 2024 december 19. (v2.1) új: 3.6 Átvételi pontok lekérdezése;módosítás: 3.1 Küldemény adatainak rögzítése;Módosítva: 2025 április 4. (v3) új: 3.7. Küldeményadatok lekérdezése, 3.8. Küldeménystátusz lekérdezés és 3.9. Küldeménytörténet lekérdezésAz API által várt, a kérésben [keres] szereplő hibásan megadott kulcsok beállítása a dokumentációban szereplő kulcsokra.
+1. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Tartalom:
+1.Bevezető
+1.1.Összefoglaló
+1.2.Dokumentumok
+1.3.API bevezetés
+2.Kommunikáció
+2.1.A POST tömbben elvárt kulcsok
+2.2.Autentikáció
+2.3.Kérés osztály
+3.Szolgáltatások
+3.1.Küldemény adatainak rögzítése
+3.2.Küldemény adatainak módosítása
+3.3.Küldemény törlése
+3.4.Csomagcímke/címkék nyomtatása
+3.5.Napi zárás (Gyűjtőlista nyomtatás)
+3.6.Átvételi pontok lekérdezése
+3.7.Küldeményadatok lekérdezése
+3.8.Küldeménystátusz lekérdezés
+3.9.Küldeménytörténet lekérdezés
+4.Hibakezelés
+4.1.Autentikációs hibák kezelése
+4.2.Szolgáltatások
+2. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+1. Bevezető
+1.1. Összefoglaló
+A  dokumentumban  ismertetett  API  célja,  hogy  a  Pannon  XP  csomagfeladási  
+rendszer integrálható  legyen  külső  alkalmazásokba.  A  dokumentum  részletesen  
+bemutatja a funkciók használatát és a szükséges fejlesztési lépéseket.
+1.2. Dokumentumok
+Online dokumentáció és példák:  https://mypxp.pannonxp.hu/api/v3/dokumentacio/
+Tesztelési lehetőség:  https://mypxp-test.pannonxp.hu/api/v3/
+1.3. API bevezetés
+Amennyiben élni szeretnének az integráció lehetőségével, a következő lépéseket kell  
+elvégezniük:
+1. A jelen dokumentum útmutatása alapján elvégezni a szükséges fejlesztéseket a  
+saját rendszerükben.
+2. A tesztfelületen ellenőrizni az API működését. A teszteléshez szükséges adatokat  
+az it@pannonxp.hu  címen kérhetik.
+3.  A  sikeres  tesztelést  jelezni  informatikus  kollégánknak  az  it@pannonxp.hu  
+elérhetőségen.  Ő  egy  végső  tesztet  követően  visszajelzést  ad  és  megküldi  a  
+végleges belépési adatokat az éles kapcsolat létrehozásához.
+További információért forduljon bizalommal Tóth Balázs kollégánkhoz:
+ 📞+36 20 251 7373
+ 📧it@pannonxp.hu
+2. Kommunikáció
+Az API HTTP protokollon keresztül kommunikál UTF-8 kódolással .
+Egy tranzakció során a kliens egy HTTP request küldésével indít kérést, amelyre a  
+válasz HTTP response formájában érkezik.
+A POST-ban küldött adatokat megfelelően formázott tömbben várjuk , a válaszok 
+JSON formátumban  érkeznek.
+URL-ek felépítése
+A következő végpontok állnak rendelkezésre az API kommunikációhoz:
+Éles környezet
+• Kapcsolat ellenőrzése:
+https://mypxp.pannonxp.hu/api/v  3  /kapcsolat/  
+• Küldemény adatainak rögzítése:
+https://mypxp.pannonxp.hu/api/v  3  /mentes/  
+• Küldemény adatainak módosítása:
+https://mypxp.pannonxp.hu/api/v  3  /modositas/  
+3. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+• Küldemény törlése:
+https://mypxp.pannonxp.hu/api/v  3  /torles/  
+• Csomagcímke nyomtatása:
+https://mypxp.pannonxp.hu/api/v  3  /nyomtatas/  
+• Napi zárás (Gyűjtőlista nyomtatás):
+https://mypxp.pannonxp.hu/api/v  3  /napizaras/  
+• Átvételi pontok lekérdezése:
+https://mypxp.pannonxp.hu/api/v  3  /atvetelipontok/  
+• Küldeményadatok lekérdezése:
+https://mypxp.pannonxp.hu/api/v  3  /kuldemenyadatok/  
+• Küldeménystátusz lekérdezés:
+https://mypxp.pannonxp.hu/api/v  3  /kuldemenystatusz/  
+• Küldeménytörténet lekérdezés:
+https://mypxp.pannonxp.hu/api/v  3  /kuldemenytortenet/  
+Tesztkörnyezet
+• Kapcsolat ellenőrzése:
+https://mypxp-test.pannonxp.hu/api/v  3  /kapcsolat/  
+• Küldeményadatok rögzítése:
+https://mypxp-test.pannonxp.hu/api/v  3  /mentes/  
+• Küldeményadatok módosítása:
+https://mypxp-test.pannonxp.hu/api/v  3  /modositas/  
+• Küldemény törlése:
+https://mypxp-test.pannonxp.hu/api/v  3  /torles/  
+• Csomagcímke nyomtatása:
+https://mypxp-test.pannonxp.hu/api/v  3  /nyomtatas/  
+• Napi zárás (Gyűjtőlista nyomtatás):
+https://mypxp-test.pannonxp.hu/api/v  3  /napizaras/  
+• Átvételi pontok lekérdezése:
+https://mypxp-test.pannonxp.hu/api/v  3  /atvetelipontok/  
+• Küldeményadatok lekérdezése:
+https://mypxp-test.pannonxp.hu/api/v  3  /kuldemenyadatok/  
+• Küldeménystátusz lekérdezés:
+https://mypxp-test.pannonxp.hu/api/v  3  /kuldemenystatusz/  
+• Küldeménytörténet lekérdezés:
+https://mypxp-test.pannonxp.hu/api/v  3  /kuldemenytortenet/  
+2.1. A POST tömb kulcsai
+A  POST  kérésben  küldendő  adatok  egy  asszociatív  tömbben  (Array)  kerülnek  
+továbbításra, az alábbi struktúrában:
+4. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Array
+(
+    [ugyfelkod] => <string> // Az ügyfél azonosító kódja
+    [technikai_felhasznalo] => <string> // Technikai felhasználónév
+    [jelszo] => <string> // A technikai felhasználóhoz tartozó jelszó
+    [keres] => <string> // Titkosított JSON adat (AES-128-ECB titkosítással)
+)
+2.2. Autentikáció
+Minden API-hívásnak tartalmaznia kell az autentikációs adatokat. Az azonosítás a  
+Pannon XP által kiadott ügyféladatokkal történik.
+Kulcs TípusMegnevezés Leírás
+ugyfelkod varcharCég azonosító A Pannon XP ügyfélfelület 
+használatához kapott, céges 
+ügyfélkód. Az ügyfélfelületre történt 
+regisztráció során e-mailben kapott 
+kód, illetve az ügyfélfelületen, a 
+menüben látható, 4 nagybetű 
+és/vagy szám [XXXX] zárójelben.
+technikai_felhasznalo varcharFelhasználó azonosító Az API használatához kapott 
+technikai felhasználónév. A 
+technikai felhasználónevet a 
+Pannon XP biztosítja!
+jelszo varcharJelszó A technikai felhasználónévhez 
+tartozó jelszó nagybetűs SHA-512 
+hash értéke. A hash algoritmus: 
+sha512 (Secure Hash Algorithm 3, 
+RFC6234). A jelszót a Pannon XP 
+adja meg!
+Példa API-hívásra: Kapcsolat ellenőrzés
+Az alábbi példa a kapcsolat ellenőrzésére szolgáló API-hívást mutatja be.
+<?php
+// Kapcsolat ellenőrzés
+declare(strict_types=1);
+// Configuráció
+const API_URL = 'https://mypxp-test.pannonxp.hu/api/v3/kapcsolat/' ;
+const CSEREKULCS = 'f3s93B6i3mF5P33J' ;
+const UGYFELKOD = 'MINT';
+const TECHNIKAI_FELHASZNALO = 'kG4cb5h6G3eD8i5j' ;
+const JELSZO = 'ks4Th2u7hAz5ca1y' ;
+// SHA-512 jelszó titkosítás
+function hashPassword(string $password): string
+{
+    return strtoupper(hash('sha512', $password));
+}
+5. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+// JSON adat titkosítása cserekulccsal
+function encryptData(array $data, string $key): string
+{
+    return openssl_encrypt (json_encode($data), 'AES-128-ECB', $key);
+}
+// CURL kérés küldése
+function sendApiRequest(string $url, array $data): array
+{
+    $ch = curl_init();
+    curl_setopt_array ($ch, [
+        CURLOPT_URL => $url,
+        CURLOPT_POST => true,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HEADER => false,
+        CURLOPT_NOBODY => false,
+        CURLOPT_CONNECTTIMEOUT => 10, // Max 10 másodperc várakozás 
+csatlakozásra
+        CURLOPT_TIMEOUT => 60, // Max 60 másodperc a teljes kérésre
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_POSTFIELDS => $data,
+    ]);
+    $response = curl_exec($ch);
+    $error = curl_error($ch);
+    curl_close($ch);
+    if ($error) {
+        throw new RuntimeException( 'CURL hiba: ' . $error);
+    }
+    return json_decode($response, true) ?? [];
+}
+// Az API kérés
+try {
+    // Kérés előkészítése
+    $requestData = [
+        'ugyfelkod' => UGYFELKOD,
+        'technikai_felhasznalo' => TECHNIKAI_FELHASZNALO ,
+        'jelszo' => hashPassword(JELSZO),
+        'keres' => '',
+    ];
+    $response = sendApiRequest(API_URL, $requestData);
+    // Eredmény megjelenítése
+    echo '<h3>Kérés tömb formátumban:</h3> ';
+    echo '<pre>' . print_r($requestData, true) . '</pre>';
+    echo '<h3>Válasz JSON formátumban:</h3> ';
+    echo '<pre>' . htmlspecialchars (json_encode($response, 
+JSON_PRETTY_PRINT ), ENT_QUOTES, 'UTF-8') . '</pre>';
+    echo '<h3>Válasz tömb formátumban:</h3> ';
+    echo '<pre>' . print_r($response, true) . '</pre>';
+} catch (Exception $e) {
+    echo '<h3>Hiba történt:</h3> ';
+    echo '<pre>' . htmlspecialchars ($e->getMessage(), ENT_QUOTES, 'UTF-8') . 
+'</pre>';
+}
+6. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+A POST request tartalma:
+Array
+(
+    [ugyfelkod] => MINT
+    [technikai_felhasznalo] => kT4c3gh6GoeD8i5j
+    [jelszo] => 22FB970B3128660168EB8EE96D76B1B0F9B41957B8F9F2EB885C5F08...
+    [keres] => 
+)
+Kapcsolat tesztelése
+Teszteléshez használható URL:
+https://mypxp-test.pannonxp.hu/api/v3/kapcsolat/
+Sikeres bejelentkezés esetén a válasz:
+JSON:
+{
+"kapcsolat": {
+"statusz": "OK"
+}
+}
+Sikertelen bejelentkezés esetén a válasz:
+JSON:
+{
+"kapcsolat": {
+"statusz": "error",
+"kulcs": "ugyfelkod",
+"adat": "MINT",
+"uzenet": "Érvénytelen ügyfélkód!"
+}
+}
+Bővebb információ a 4.1. Hibakezelés  részben.
+2.3. Kérés osztály
+Minden API-hívásban a keres mező egy JSON kódolású tömb, amelyet az API-hoz  
+tartozó cserekulccsal titkosítva kell elküldeni.
+A cserekulcsot a Pannon XP biztosítja, és az AES-128-ECB titkosítási algoritmust  
+kell használni.
+KulcsTípusMegnevezésLeírás
+keresarraymentes
+modositas
+torles
+nyomtatas
+napizarasA kérésben szereplő, a 3. Szolgáltatások részben leírtaknak  
+megfelelően formázott tömböt, JSON kódolással és az API 
+felhasználóhoz tartozó cserekulccsal, AES-128-ECB 
+7. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+KulcsTípusMegnevezésLeírás
+atvetelipontok
+kuldemenyadatok
+kuldemenystatusz
+kuldemenytortenetkódolási és titkosítási algoritmussal kell küldeni.
+Példa:
+A kérés JSON kódolása és titkosítása a cserekulccsal:
+<?php
+// JSON adat titkosítása cserekulccsal
+function encryptData(array $data, string $key): string
+{
+    return openssl_encrypt (json_encode($data), 'AES-128-ECB', $key);
+}
+3. Szolgáltatások
+3.1. Küldemény adatainak rögzítése
+A kérésben egyszerre  legfeljebb 100 küldemény  adata küldhető be, egy  0-99-ig 
+indexelt tömbben .
+Kérés paraméterei:
+Mezőnév TípusMegnevezés Leírás
+tipus integerA küldemény típusa, 
+ami lehet:
+”Küldemény feladás”
+”Küldemény fogadás”
+”Harmadik feles 
+szállítás”Küldemény feladás esetén az érték ”0”
+Küldemény fogadás esetén az érték ”1”
+Harmadik feles szállítás esetén az érték ”2” de 
+nem kötelező megadni. Alapértelmezett értéke: 
+0;
+felado arrayCímadatok
+[nev]
+[telefon]
+[emailcim]
+[ceg_nev]
+[cim_telepules]
+[cim_iranyito]
+[cim_kozterulet]
+[cim_megjegyzes]A feladó címadatai.
+Küldemény feladás ([tipus] = 0) esetén a [felado]  
+tömböt nem kötelező létrehozni. Alapértelmezett  
+adat a Pannon XP ügyfélfelületén, az 
+ügyfélkódhoz rögzített alapértelmezett 
+címadatok. Fontos! Kitöltés esetén a [felado] 
+tömbben minden változót létre kell hozni.
+Küldemény fogadás vagy Harmadik feles 
+szállítás esetén a felvételi cím (feladó) adatai. A 
+[felado] tömb minden változóját létre kell hozni!
+cimzett arrayCímadatok
+[ap_code]
+[nev]
+[telefon]
+[emailcim]
+[ceg_nev]
+[cim_telepules]
+[cim_iranyito]
+[cim_kozterulet]
+[cim_megjegyzes]A címzett címadatai.
+Küldemény fogadás ([tipus] = 1) esetén a 
+[cimzett] tömböt nem kötelező létrehozni. 
+Alapértelmezett adat a Pannon XP 
+ügyfélfelületén, az ügyfélkódhoz rögzített 
+alapértelmezett címadatok.
+Fontos! Kitöltés esetén a [cimzett] tömbben 
+minden változót létre kell hozni. Kivétel az 
+[ap_code] amit csak átvételi pontra történő 
+szállítás esetén kell létrehozni és megadni.
+Küldemény feladás vagy Harmadik feles 
+szállítás esetén a címzett cím (címzett) adatai.
+szolgaltatas varcharIdő garantált Az idő garantált szolgáltatás meghatározása: 
+"12H" = a következő munkanapon 12 óráig 
+8. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezés Leírás
+történő kiszállítás vagy "24H" = a következő 
+munkanapi kiszállítás, illetve átvételi pontra 
+szállítás: ”D2S”, de nem kötelező megadni. 
+Alapértelmezett értéke: 24H;
+okmany boolJelöli a kiszállítás 
+alkalmával az 
+okmánykezelés 
+kérését.Okmánykezelés esetén "true" és az [okmanyok] 
+változóban a kezelendő okmány számát 
+kötelező megadni. Amennyiben nincs 
+okmánykezelés, értéke "false" de nem kötelező 
+megadni. Alapértelmezett értéke: false;
+okmanyok varcharA kezelendő okmány 
+számát kell megadni.Az okmányok változó értéke, lehet min. 4 és 
+max. 30 karakter, valamint nem tartalmazhat 
+néhány speciális (\' " \ < > ? $ ;) karaktert! 
+Amennyiben az [okmany] változó értéke "true", 
+kötelező megadni. Amennyiben az [okmany] 
+változó értéke nem "true", nem kötelező 
+létrehozni vagy kitölteni.
+visszaru boolJelöli a kiszállítás 
+alkalmával a visszáru 
+felvételének kérését.Visszáru felvétel esetén "true". Amennyiben 
+nincs visszáru felvétel, értéke "false" de nem 
+kötelező megadni. Alapértelmezett értéke: false;
+sms boolJelöli a kiszállítás 
+napjának reggelén az 
+SMS értesítést, a 
+címzettnek a 
+kiszállításról, a 
+[cimzett][telefon] 
+változóban megadott 
+számra.SMS értesítés kérése esetén "true", true és a 
+[cimzett][telefon] változó kitöltése kötelező. 
+Amennyiben nincs SMS értesítés, értéke "false",  
+false de nem kötelező megadni. Alapértelmezett  
+értéke: false;
+csomagok arrayCsomagadatok
+[0-98][db]
+[0-98][suly]
+[0-98][hosszusag]
+[0-98][szelesseg]
+[0-98][magassag]
+[0-98][tipus]A küldeményhez tartozó, azonos súlyú és 
+méretű csomagok: darabszáma, csomagonkénti  
+súlya, csomagonkénti hosszúsága, 
+csomagonkénti szélessége, csomagonkénti 
+magassága, típusa.
+tartalom varcharA küldemény 
+tartalmának rövid 
+leírása.A [tartalom] változó értéke, lehet üres vagy min. 
+4 és max. 40 karakter, valamint nem 
+tartalmazhat néhány speciális (\' " \ < > ? $ ;) 
+karaktert! Nem kötelező létrehozni vagy kitölteni.
+biztositas boolJelöli a küldemény 
+értékbiztosítását.Értékbiztosítás esetén "true" és az [aruertek] 
+változóban a biztosítási értéket kötelező 
+megadni. Amennyiben nincs értékbiztosítás, 
+értéke "false" de nem kötelező megadni. 
+Alapértelmezett értéke: false; Fontos! 
+Értékbiztosítás nélkül feladott küldemények 
+esetében a felelősségvállalásunk felső határa 
+100000 Ft, de maximum a nettó beszerzési 
+számlával igazolt összeg!
+aruertek integerA küldemény értéke az 
+értékbiztosításhoz.Amennyiben a [biztositas] változó értéke "true", 
+kötelező megadni, értéke lehet pozitív egész 
+szám, ami minimum 1 Ft. és maximum 500000 
+Ft. lehet! Amennyiben a [biztositas] változó 
+értéke nem "true", nem kötelező létrehozni és 
+kitölteni, értéke lehet üres vagy pozitív egész 
+9. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezés Leírás
+szám, ami minimum 0 Ft. és maximum 500000 
+Ft. lehet! Fontos! Értékbiztosítás nélkül feladott 
+küldemények esetében a felelősségvállalásunk 
+felső határa 100000 Ft, de maximum a nettó 
+beszerzési számlával igazolt összeg!
+utanvet integerA kiszállítás során 
+készpénzben 
+beszedendő összeg, 
+amit a feladó részére 
+visszajuttatunk.Értéke 0 (nulla) vagy a beszedendő összeg 
+forintban, maximum 1000000 forint lehet! 
+Fontos! Nem minden szállítási területen vehető 
+igénybe az utánvét beszedés szolgáltatás. A 
+rendszer a feladó és a címzett irányítószáma 
+alapján jelzi amennyiben a szolgáltatás a 
+megadott szállítási viszonylatban nem elérhető.
+ekaer_szam varcharEKÁER köteles 
+küldemény EKÁER 
+száma.Nem kötelező létrehozni vagy kitölteni, de 
+kitöltés esetén az EKÁER emailcím 
+[ekaer_email] változó kitöltése is kötelező! A 
+változó értéke, lehet üres vagy min. 4 és max. 
+20 karakter, valamint nem tartalmazhat néhány 
+speciális (\' " \ < > ? $ ;) karaktert!
+ekaer_email varcharEKÁER köteles 
+küldemény 
+rendszámváltozásának  
+fogadására szolgáló 
+emailcím.Nem kötelező létrehozni vagy kitölteni, de 
+kitöltés esetén az EKÁER szám [ekaer_szam] 
+változó kitöltése is kötelező! A változó értéke, 
+lehet üres vagy min. 6 és max. 50 karakter!
+koltseghely varcharKöltséghelyet adhat 
+meg.Nem kötelező létrehozni vagy kitölteni! 
+Létrehozás esetén a változó értéke, lehet üres 
+vagy min. 4 és max. 30 karakter, valamint nem 
+tartalmazhat néhány speciális (\' " \ < > ? $ ;) 
+karaktert!
+referenciaszam varcharReferenciaszámot 
+adhat meg.Nem kötelező létrehozni vagy kitölteni! 
+Létrehozás esetén a változó értéke, lehet üres 
+vagy min. 4 és max. 30 karakter, valamint nem 
+tartalmazhat néhány speciális (\' " \ < > ? $ ;) 
+karaktert!
+koltsegviselo varcharA szállítási díj 
+fizetőjének, valamint a 
+fizetési módnak a 
+meghatározása.Lehetséges értékei: "cimzett" = a szállítási díjat 
+a címzett fizeti készpénzben. A címzett 
+emailcíme [cimzett][email] változó kitöltése 
+kötelező! (Amennyiben a szállítási cím eltér a 
+számlázási címtől a [szamla] tömbben adható 
+meg a számlázási cím.); "megbizo" = a szállítási  
+díjat a megbízó fizeti átutalással, de nem 
+kötelező létrehozni. Alapértelmezett értéke: 
+megbizo; Fontos! Nem minden szállítási 
+területen vehető igénybe a címzett fizet 
+készpénzben szolgáltatás. A rendszer a feladó 
+és a címzett irányítószáma alapján jelzi 
+amennyiben a szolgáltatás a megadott szállítási 
+viszonylatban nem elérhető!
+maganszemely boolJelöli, hogy a 
+küldemény 
+költségviselője 
+magánszemély vagy 
+cég.Amennyiben értéke "true" a költségviselő 
+magánszemély, és az adószám [adoszam] 
+változó létrehozása nem kötelező vagy lehet 
+üres. Amennyiben értéke "false" a költségviselő 
+cég, és az adószám [adoszam] változó kitöltése 
+kötelező, de nem kötelező megadni! 
+Alapértelmezett értéke: false; Amennyiben a 
+10. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezés Leírás
+magánszemély [maganszemely] változó nem 
+létezik vagy értéke "false" és a [koltsegviselo] 
+változó értéke "cimzett", az adószám [adoszam] 
+változó értéke, csak érvényes adószám lehet!
+adoszam varcharA költségviselő 
+adószáma.Amennyiben a költségviselő [koltsegviselo] 
+változó értéke "megbizo", vagy a költségviselő 
+[koltsegviselo] értéke "cimzett" és a 
+magánszemély [maganszemely] értéke "true", 
+nem kötelező létrehozni vagy lehet üres. 
+Alapértelmezett értéke: amennyiben a 
+költségviselő [koltsegviselo] értéke "megbizo", a 
+megbízó cég, a Pannon XP ügyfélfelületen, a 
+székhely adatoknál rögzített adószáma, vagy 
+amennyiben a költségviselő [koltsegviselo] 
+értéke "cimzett" és a magánszemély 
+[maganszemely] értéke "true", értéke nincsen 
+vagy üres. Amennyiben az adószám [adoszam] 
+változó nem létezik vagy üres és a költségviselő  
+[koltsegviselo] változó értéke "cimzett", a 
+magánszemély [maganszemely] változó értéke 
+csak "true" lehet!
+szamla arrayCímadatok
+[ceg_nev]
+[cim_telepules]
+[cim_iranyito]
+[cim_kozterulet]A címzett szállítási címtől eltérő, számlázási 
+adatai.
+Költségviselő megbízó átutalással 
+([koltsegviselo] = "megbizo") esetén a [szamla] 
+tömböt nem kell létrehozni.
+Költségviselő címzett készpénz ([koltsegviselo] 
+= "cimzett") esetén a címzett számlázási adatai, 
+amennyiben azok eltérnek a [cimzett] tömbben 
+megadott szállítási adatoktól. Nem kell 
+létrehozni ha a címzett szállítási címe 
+megegyezik a számlázási címmel. Kitöltés 
+esetén a [szamla] tömb minden változóját létre 
+kell hozni!
+Címadatok paraméterei:
+Mezőnév TípusMegnevezésLeírás
+ap_code integerÁtvételi pont 
+egyedi 
+azonosító
+[cimzett]Fonos! Csak a [cimzett] tömbben szerepelhet!
+Létrehozni és kitölteni csak akkor kell, ha a 
+küldeményt átvételi pontra kell szállítani, de ez  
+esetben kötelező érvényes átvételi pont 
+azonosítót megadni. Értéke az átvételi pont 
+egyedi azonosítója. (Az átvételi pontok adatai 
+a 3.6 részben kerülnek részletezésre)
+nev varcharA kapcsolattartó 
+neve.
+[felado]
+[cimzett]A név változó értéke, lehet üres vagy min. 4 
+és max. 30 karakter, valamint nem 
+tartalmazhat néhány speciális (\' " \ < > ? $ ;) 
+karaktert!
+Fontos! Átvételi pontra szállítás esetén a 
+tényleges címzett (megrendelő) neve.
+telefon varcharA kapcsolattartó 
+telefonszáma.
+[felado]A telefonszám változó értéke, lehet üres vagy 
+min. 11 és max. 20 karakter, Magyarország 
+esetén mindig +36-al kezdődik és kizárólag 
+11. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezésLeírás
+[cimzett]számokat és szóköz karaktert tartalmazhat!
+Fontos! Átvételi pontra szállítás esetén a 
+tényleges címzett (megrendelő) telefonszáma.
+emailcim varcharA kapcsolattartó 
+emailcíme.
+[felado]
+[cimzett]Az emailcím változó értéke, lehet üres vagy 
+min. 6 és max. 50 karakter!
+Fontos! Átvételi pontra szállítás esetén a 
+tényleges címzett (megrendelő) e-mailcíme.
+ceg_nev varcharA cégnév. 
+(magánszemély 
+esetén, 
+személynév)
+[felado]
+[cimzett]
+[szamla]A cégnév (magánszemély esetén, 
+személynév) változó értéke, lehet min. 4 és 
+max. 50 karakter, valamint nem tartalmazhat 
+néhány speciális (\' " \ < > ? $ ;) karaktert!
+Fontos! Átvételi pontra szállítás esetén az 
+átvételi pont neve (name).
+cim_telepules varcharA címből a 
+településnév.
+[felado]
+[cimzett]
+[szamla]A településnév változó értéke, lehet min. 2 és 
+max. 40 karakter, valamint nem tartalmazhat 
+néhány speciális (\' " \ < > ? $ ;) karaktert!
+Fontos! Átvételi pontra szállítás esetén az 
+átvételi pont városneve (city).
+cim_iranyito varcharA címből az 
+irányítószám.
+[felado]
+[cimzett]
+[szamla]Az irányítószám változó értéke kizárólag 4 
+szám karaktert tartalmazhat!
+Fontos! Átvételi pontra szállítás esetén az 
+átvételi pont irányítószáma (zip_code).
+cim_kozterulet varcharA címből a 
+közterület.
+[felado]
+[cimzett]
+[szamla]A közterület változó értéke, lehet min. 4 és 
+max. 60 karakter, valamint nem tartalmazhat 
+néhány speciális (\' " \ < > ? $ ;) karaktert!
+Fontos! Átvételi pontra szállítás esetén az 
+átvételi pont utca, házszáma (street).
+cim_megjegyzes varcharMegjegyzés a 
+címhez.
+[felado]
+[cimzett]Minden olyan egyéb információ ami a lehívás 
+felvételét segíti. A feladó címéből a 
+megjegyzés változó értéke, lehet üres vagy 
+min. 4 és max. 100 karakter, valamint nem 
+tartalmazhat néhány speciális (\' " \ < > ? $ ;) 
+karaktert!
+Csomagadatok paraméterei:
+A csomagadatokban legfeljebb 99 különböző súlyú és/vagy méretű csomag adata  
+adható meg, egy 0-98-ig indexelt többen.
+Mezőnév TípusMegnevezésLeírás
+db integerA küldeményhez 
+tartozó, azonos 
+súlyú és méretű 
+csomagok 
+darabszáma.A [db] változó értéke pozitív egész szám, ami 
+minimum 1 és maximum 99 lehet úgy, hogy a 
+[csomagok] tömbben felsorolt [db] változók 
+összegzett értéke maximum 99 lehet!
+suly floatA küldeményhez 
+tartozó, azonos 
+súlyú és méretű 
+csomagok 
+csomagonkénti 
+súlya.A [suly] változó értéke pozitív tizedes szám, ami  
+minimum 0,01 kg és maximum 600 kg lehet. A 
+tizedes jelölésére használható a pont (.) vagy a 
+vessző (,) és az érték két tizedesig adható meg 
+100 kg alatt. 100 kg felett kizárólag pozitív 
+egész szám lehet!
+12. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezésLeírás
+hosszusag integerA küldeményhez 
+tartozó, azonos 
+súlyú és méretű 
+csomagok 
+csomagonkénti 
+hosszúsága.A [hosszusag] változó értéke pozitív egész 
+szám, ami minimum 1 cm és maximum 420 cm 
+lehet!
+szelesseg integerA küldeményhez 
+tartozó, azonos 
+súlyú és méretű 
+csomagok 
+csomagonkénti 
+szélessége.A [szelesseg] változó értéke pozitív egész 
+szám, ami minimum 1 cm és maximum 150 cm 
+lehet!
+magassag integerA küldeményhez 
+tartozó, azonos 
+súlyú és méretű 
+csomagok 
+csomagonkénti 
+magasságaA [magassag] változó értéke pozitív egész 
+szám, ami minimum 1 cm és maximum 160 cm 
+lehet!
+tipus varcharA küldeményhez 
+tartozó, azonos 
+súlyú és méretű 
+csomagok típusa 
+adható meg!Lehetséges értékei: "level"; "doboz"; "raklap"; 
+vagy az ügyfélhez tartozó egyedi 
+csomagtípusok, de nem kötelező megadni! 
+Alapértelmezett értéke: doboz; Fontos! 
+Amennyiben a csomag ("level", "doboz") súlya 
+eléri vagy meghaladja a 40 kg-ot, a csomag 
+raklapos, alapértelmezett értéke "raklap"!
+A válasz JSON kódolással:
+A [mentes] tömbben, a beküldés indexének megfelelően, minden sikeresen mentett 
+küldemény küldeményszáma (egyedi küldeményazonosítója) szerepel.
+Sikertelen mentés esetén az [ervenytelen_adat] tömbben, a beküldés indexének 
+megfelelően hibaüzenet szerepel.
+Bővebb információ a 4.2. Hibakezelés részben.
+JSON:
+{
+"kapcsolat": {
+"statusz": "OK"
+},
+"mentes": {
+"0": {
+"kuldemenyszam": "358144779665000013601224"
+},
+"2": {
+"kuldemenyszam": "358144779891000013601144"
+}
+},
+"ervenytelen_adat": {
+"1": {
+"kulcs": "tipus",
+"adat": "hamis",
+13. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+"uzenet": "Érvénytelen típus! A küldemény típusa, lehet: Küldemény feladás: 
+0, Küldemény fogadás: 1, Harmadik feles szállítás: 2, de nem kötelező megadni! Alapértelmezett 
+értéke: 0;"
+}
+}
+}
+3.2. Küldemény adatainak módosítása
+A kérésben egyszerre  legfeljebb 100 küldemény  adata módosítható, egy  0-99-ig 
+indexelt tömbben .
+Kérés paraméterei:
+MezőnévTípusMegnevezés Leírás
+modositasvarcharA küldemény 
+küldeményszáma. 
+(egyedi 
+küldeményazonosítója)A módosítani kívánt küldemény, 24 karakteres 
+fuvarlevélszámát kell megadni.
+tipusintegerA küldemény típusa. Az adat nem módosítható!
+A kérésben nem szerepelhet!
+A típus lehet: • “Küldemény feladás” • 
+“Küldemény fogadás” • “Harmadik feles szállítás”
+A kérésben szereplő adatokat a 3.1 részben leírtak szerint kell továbbítani!
+A válasz JSON kódolással:
+A [modositas] tömbben, a beküldés indexének megfelelően, minden sikeresen 
+módosított küldemény küldeményszáma (egyedi küldeményazonosítója) szerepel.
+FONTOS! Az irányítószám változásával a küldeményszám változhat! Valamint a 
+módosítást követően a címkét újra kell nyomtatni!
+Sikertelen módosítás esetén az [ervenytelen_adat] tömbben, a beküldés indexének 
+megfelelően hibaüzenet szerepel.
+Bővebb információ a 4.2. Hibakezelés részben.
+JSON:
+{
+"kapcsolat": {
+"statusz": "OK"
+},
+"modositas": {
+"0": {
+"kuldemenyszam": "358144779665000013601224"
+},
+"2": {
+"kuldemenyszam":"358144779891000013601144"
+}
+},
+"ervenytelen_adat": {
+14. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+"1": {
+"kulcs": "tipus",
+"adat": "0",
+"uzenet": "Az adat nem módosítható! A módosításban nem szerepelhet!"
+}
+}
+}
+3.3. Küldemény törlése
+A  kérésben  egyszerre  legfeljebb  100  küldemény  adata  törölhető,  egy  0-99-ig 
+indexelt tömbben .
+Kérés paraméterei:
+MezőnévTípusMegnevezés Leírás
+torlesvarcharA küldemény 
+küldeményszáma. 
+(egyedi 
+küldeményazonosítója)A törölni kívánt küldemény, 24 karakteres 
+fuvarlevélszámát kell megadni.
+A válasz JSON kódolással:
+A [torles] tömbben, a beküldés indexének megfelelően, minden sikeresen törölt 
+küldemény küldeményszáma (egyedi küldeményazonosítója) szerepel.
+Sikertelen törlés esetén az [ervenytelen_adat] tömbben, a beküldés indexének 
+megfelelően hibaüzenet szerepel.
+Bővebb információ a 4.2. Hibakezelés részben.
+JSON:
+{
+"kapcsolat": {
+"statusz": "OK"
+},
+"torles": {
+"0": {
+"kuldemenyszam": "358144779665000013601224"
+},
+"2": {
+"kuldemenyszam": "358144779891000013601144"
+}
+},
+"ervenytelen_adat": {
+"1": {
+"kulcs": "torles",
+"adat": "358144806248000013607201",
+"uzenet": "A megadott küldeményszám nem létezik!"
+}
+}
+}
+15. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+3.4. Csomagcímke/címkék nyomtatása
+A kérés tartalmazza a címkenyomtatás beállításait és a nyomtatandó küldemények  
+listáját.
+A  kérésben  a  [cimketipus]  és  opcionálisan  a  [cimkesorszam]  megadása  után,  a  
+[cimkek]  kulcs  alatt,  legfeljebb  100  küldemény  nyomtatható  egyszerre,  0-99-ig  
+indexelve.
+Kérés paraméterei:
+MezőnévTípusMegnevezés Leírás
+cimketipusvarcharA nyomtatásra használt  
+nyomtató és címke 
+meghatározása.Lehetséges értékei: "1c101,6x152,4" = 
+címkenyomtatóhoz és 101,6x152,4 mm-es 
+etiketthez; "4dbA4" = az A4-es oldalon 4db 
+szállítólevél jelenik meg, ahol egy szállítólevél 
+mérete 105×148mm, valamint az oldal tájolása 
+álló, de nem kötelező létrehozni. 
+Alapértelmezett értéke: "4dbA4" ;
+cimkesorszamintegerAz A4-es címkén a 
+következő etikett 
+sorszáma.Lehetséges értékei: "1-4"; Meghatározható az 
+A4-es oldalon 4db címke közül a nyomtatás 
+kezdete. A megadott érték hatása csak akkor 
+érvényesül, ha a [cimketipus] = "4dbA4";
+cimkekarrayNyomtatandó 
+küldemények listája.Legfeljebb 100 elemű tömb, amelyben minden 
+elem egy küldeményt azonosít a [nyomtatas] 
+mező segítségével.
+Címkék (cimkek tömb) paraméterei:
+A [cimkek] kulcsban, legfeljebb 100 küldemény adható meg, egy 0-99-ig indexelt  
+többen.
+MezőnévTípusMegnevezés Leírás
+nyomtatasvarcharA küldemény 
+küldeményszáma. 
+(egyedi 
+küldeményazonosítója)A nyomtatni kívánt küldemény, 24 karakteres 
+küldeményszámát kell megadni.
+A válasz JSON kódolással:
+A  [nyomtatas]  tömbben,  a  beküldés  indexének  megfelelően,  minden  sikeresen  
+nyomtatott küldemény küldeményszáma (egyedi küldeményazonosítója) szerepel.
+A sikeresen nyomtatott küldemények címkéi a [pdf] változóban base64 kódolással  
+visszaküldött pdf-ből nyomtathatók.
+Sikertelen nyomtatás esetén az [ervenytelen_adat] tömbben, a beküldés indexének  
+megfelelően hibaüzenet szerepel.
+Bővebb információ a 4.2. Hibakezelés részben.
+JSON:
+16. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+{
+"kapcsolat": {
+"statusz": "OK"
+},
+"nyomtatas": {
+"0": {
+"kuldemenyszam": "358144806252000013604320"
+},
+"2": {
+"kuldemenyszam": "358144806269000013601239"
+}
+},
+"ervenytelen_adat": {
+"1": {
+"kulcs": "nyomtatas",
+"adat": "358144806260000013609700",
+"uzenet": "A megadott küldeményszám nem létezik!"
+}
+},
+"pdf": "JVBERi0xLjMKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QY…"
+}
+17. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+18. oldal
+358145077009 000 01 36 04321
+ 
+Feladó:
+Próba Cég Kft.
++36215555555Címzett:
+Tesztelõ Kft.
+Teszt Elek
+Tesztelgetés útja 5.
++36207654321
+Vidék
+HU 4321Darab: 1/1 db 1/1 kg
+Utánvét: 0 HUF
+24H
+Futár be: Futár ki:B03EXO
+Futárszolgálat: pannonxp.hu | +36207733399 | info@pannonxp.hu358149029308 000 01 36 04321
+ 
+Feladó:
+Tesztelő Kft.
++36207654321Címzett:
+Próba Cég Kft.
+Próba Elemér
+Próba u. 1
++36215555555
+Vidék
+HU 4321Darab: 1/1 db 1/1 kg
+Utánvét: 0 HUF
+24H
+Futár be: Futár ki:EXOEXO
+Futárszolgálat: pannonxp.hu | +36207733399 | info@pannonxp.huPannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+3.5. Napi zárás (Gyűjtőlista nyomtatás)
+A napi zárás kezdeményezéséhez a kérésben a napizaras = true paramétert kell  
+megadni, logikai (boolean)  típusként.
+A true érték elküldésével és az aláírással a felhasználó nyilatkozik arról, hogy  
+jogosult a megadott személyes adatok kezelésére és továbbítására, valamint  
+kifejezetten  hozzájárul  azok  kezeléséhez  a  megrendelt  szállítási  
+szolgáltatáshoz kapcsolódóan!
+Kérés paraméterei:
+MezőnévTípusMegnevezés Leírás
+napizarasboolA napi zárás "Gyűjtő 
+lista" (Összesítő)A napi zárás során gyűjtőlistára (összesítőre)  
+azok a küldemények kerülnek, amelyekhez már 
+etikett lett nyomtatva, és a nyomtatás után 
+nem történt módosítás .
+A zárás után ezek a küldemények nem 
+módosíthatók.
+napizarasokarrayNapi zárásra kijelölt 
+küldemények listájaOpcionális! Legfeljebb 100 elemű tömb, 
+amelyben minden elem egy küldeményt azonosít  
+a [napizarasnyomtatas] mező segítségével.
+Ha a kulcs nem szerepel a kérésben, a rendszer 
+minden jogosult küldeményt automatikusan zár.
+Napi zárások (napizarasok tömb) paraméterei:
+Opcionális! A [napizarasok] kulcsban, legfeljebb 100 küldemény adható meg, egy 0-
+99-ig indexelt többen. (Amennyiben több mint 100 küldemény napi zárását szeretné,  
+nem kell a kulcsot létrehozni a rendszer minden jogosult küldeményt automatikusan  
+zár.)
+Mezőnév TípusMegnevezés Leírás
+napizarasnyomtatas varcharA küldemény 
+küldeményszáma. (egyedi 
+küldeményazonosítója)A nyomtatni kívánt küldemény, 
+24 karakteres küldeményszámát 
+kell megadni.
+A válasz JSON kódolással:
+A [napizaras] tömbben, minden sikeresen napi zárás alá vont küldemény, 
+küldeményszáma (egyedi küldeményazonosítója) szerepel.
+A gyűjtő lista a [pdf] változóban, base64 kódolással visszaküldött pdf-ből 
+nyomtatható.
+JSON:
+{
+"kapcsolat" {
+"statusz": "OK"
+19. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+},
+"napizaras": {
+"0": {
+"kuldemenyszam": "358144806252000013604320"
+},
+"2": {
+"kuldemenyszam": "358144806269000013601239"
+}
+},
+"pdf": "JVBERi0xLjMKMyAwIG9iago8PC9UeXBlIC9QYWdlCi9QYXJlbnQgMSA…"
+}
+20. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+21. oldal
+Gyûjtõ lista
+2022.11.14 09:05
+35814221114090527
+Pannon XP Kft.
+2142 Nagytarcsa, Csonka János utca 5
+ https://pannonxp.hu
+Fuvarlevél Adatok Címzett adatai Bizonylat
+Tesztelõ Kft.
+F.:2022.11.15358149029308 000 01 36 04321 Teszt Elek +36207654321 EXO K.:
+Súly:Ft.2 038Tip.:Ft.0xCimzett ARU 1 db 1 kg Tesztelgetés útja 5. Op.:Ft.0Szol.:Ft.0
+Vissz.:Ft.0Okm.:Ft.0Raklap. AUc UV: 0 Ft SMS:Ft.20Bizt.:Ft.0
+UV: Ft.0T.adó: Ft.0xSMS Értékb. É: 0 FtHU Hungary 4321 Vidék Pótd:Ft.0Üzema.:Ft.0
+Egyéb:Ft.0Táv.ter.:Ft.0Visszáru Okm.kez. EKÁER:  Össz.:Ft.2 058Bruttó:Ft.2 614
+Összesen: 1 tétel 1 db 1 kg 
+ Tesztelõ Kft.
+F.:2022.11.10358145077009 000 01 36 04321 Teszt Elek +36207654321 EXO K.:
+Súly:Ft.1 784Tip.:Ft.0Cimzett 24H 1 db 1 kg Tesztelgetés útja 5. Op.:Ft.0Szol.:Ft.0
+Vissz.:Ft.0Okm.:Ft.0Raklap. AUf UV: 0 Ft SMS:Ft.20Bizt.:Ft.0
+UV: Ft.0T.adó: Ft.0xSMS Értékb. É: 0 FtHU Hungary 4321 Vidék Pótd:Ft.0Üzema.:Ft.428
+Egyéb:Ft.0Táv.ter.:Ft.0Visszáru Okm.kez. EKÁER:  Össz.:Ft.2 232Bruttó:Ft.2 835
+Összesen: 1 tétel 1 db 1 kg 
+Összesen: 1 tétel 1 db 1 kg 
+Budapest, 2022. november 14.
+1/1 oldalPannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Sikertelen napi zárás esetén az [ervenytelen_adat] tömbben, hibaüzenet szerepel.
+Bővebb információ a 4.2. Hibakezelés részben.
+JSON:
+{
+"kapcsolat": {
+"statusz": "OK"
+},
+"ervenytelen_adat": {
+"kulcs": "napizaras",
+"adat": null,
+"uzenet": "Nem járult hozzá a személyes adatai kezeléséhez a "true" érték küldésével!  
+A NAPI ZÁRÁS nem végezhető el!"
+}
+}
+3.6. Átvételi pontok lekérdezése
+Az átvételi pontok teljes listájának lekérdezéséhez a kérésben az atvetelipontok =  
+true értéket kell megadni, logikai (boolean)  típusként.
+FONTOS!
+Az átvételi pontok listáját érdemes naponta egyszer automatikusan frissíteni , 
+hogy mindig a legaktuálisabb adatok álljanak rendelkezésre. Ezzel elkerülhető, hogy 
+a rendszer olyan átvételi pontra irányítsa a csomagot, amely már nem elérhető.
+Újabb lekérdezés csak a megelőző lekérdezés után eltelt legalább 11 perc 
+múlva indítható.
+Kérés paraméterei:
+MezőnévTípusMegnevezés Leírás
+atvetelipontokboolÁtvételi pontok listája Az átvételi pontok, csomagautomaták típusa, 
+neve, címe, telefonos elérhetősége, 
+nyitvatartásának ideje, gps koordinátái, 
+rendkívüli zárvatartási napok és a bankkártyás 
+fizetési lehetőség listája.
+A válasz JSON kódolással:
+JSON:
+{
+"kapcsolat": {
+"statusz": "OK"
+},
+"atvetelipontok": [
+{
+"code": "30001",
+"provider": "alzabox",
+"name": "AlzaBox - Budapest XXI - Csepel (Penny)",
+"country": "HU",
+"county": "",
+"zip_code": "1212",
+22. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+"city": "Budapest",
+"street": "Kossuth Lajos u. 69",
+"phone1": "",
+"phone2": "",
+"fax": "",
+"opening": "Hétfő: 00:00-23:59, Kedd: 00:00-23:59, Szerda: 00:00-23:59, 
+Csütörtök: 00:00-23:59, Péntek: 00:00-23:59, Szombat: 00:00-23:59, Vasárnap: 00:00-23:59",
+"latitude": "47.428497",
+"longitude": "19.069677",
+"exceptions": "",
+"bankcard": "1"
+},
+{
+"code": "30002",
+"provider": "alzabox",
+"name": "AlzaBox - Budapest XX - Pesterzsébet (Penny)",
+"country": "HU",
+"county": "",
+"zip_code": "1203",
+"city": "Budapest",
+"street": "Topánka u. 7",
+"phone1": "",
+"phone2": "",
+"fax": "",
+"opening":"Hétfő: 00:00-23:59, Kedd: 00:00-23:59, Szerda: 00:00-23:59, 
+Csütörtök: 00:00-23:59, Péntek: 00:00-23:59, Szombat: 00:00-23:59, Vasárnap: 00:00-23:59",
+"latitude": "47.438126",
+"longitude": "19.101498",
+"exceptions": "",
+"bankcard":"1"
+},
+…
+{
+"code": "37336",
+"provider": "packeta",
+"name": "Packeta - Budai Kantin étterem",
+"country": "HU",
+"county": "",
+"zip_code": "1024",
+"city": "Budapest",
+"street": "Lövőház utca 12",
+"phone1": "",
+"phone2": "",
+"fax": "",
+"opening": "Hétfő: 10:30-21:00, Kedd: 10:30-21:00, Szerda: 10:30-21:00, 
+Csütörtök: 10:30-21:00, Péntek: 10:30-21:00, Szombat: 10:30-21:00, Vasárnap: 10:30-21:00",
+"latitude": "47.509121",
+"longitude": "19.025320",
+"exceptions": "[\"2024-12-24\",\"2024-12-25\",\"2024-12-26\",\"2024-12-27\",
+\"2024-12-28\",\"2024-12-29\",\"2024-12-30\",\"2024-12-31\",\"2025-01-01\"]",
+"bankcard": "0"
+}
+]
+}
+Válasz paraméterei:
+23. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+MezőnévTípusMegnevezés Leírás
+codeintegerÁtvételi pont egyedi 
+azonosítóAz átvételi pont azonosítót kell átadni csomag  
+feladáskor a [cimzett][ap_code].
+providervarcharSzolgáltató neve pl.: AlzaBox, Packeta, stb.
+namevarcharÁtvételi pont neve A név arra utal, hogy az átvételi pontot a 
+címen belül, hol és milyen néven kell keresni.
+countryvarcharOrszágkód
+countyvarcharMegye
+zip_codevarcharIrányítószám
+cityvarcharVáros
+streetvarcharUtca, házszám
+phone1varcharTelefonszám Az átvételi pont telefonos elérhetősége.
+phone2varcharTelefonszám Az átvételi pont telefonos elérhetősége.
+faxvarcharFax Az átvételi pont fax száma.
+openingtextNyitvatartás Az átvételi pont általános nyitvatartása.
+latitudedecimal(10,7) Földrajzi szélesség
+longitudedecimal(10,7) Földrajzi hosszúság
+exceptionstextKivételek a 
+nyitvatartásbanAz átvételi pont általános nyitvatartását érintő 
+napok, amikor az átvétel nem lehetséges, 
+mert az átvételi pont zárva.
+bankcardtinyint(1)Kártyás fizetés Az átvétel során lehetséges a bankkártyás 
+fizetés, akkor az értéke ”1”, ha nem 
+lehetséges akkor ”0”.
+3.7. Küldeményadatok
+A kérésben egyszerre legfeljebb 100 küldemény  státusza kérdezhető le, egy 0-99-
+ig indexelt tömbben .
+Kérés paraméterei:
+Mezőnév TípusMegnevezés Leírás
+kuldemenyadatok varcharA küldeményszám. (egyedi  
+küldeményazonosítója)A lekérdezni kívánt küldemény, 24 
+karakteres küldeményszámát kell 
+megadni.
+FONTOS!
+Egyesével történő küldeményadat lekérdezés, minden megkezdett percben, 10x 
+lehetséges. Tömeges lekérdezést (1-nél több) a megelőző lekérdezés után eltelt 11 
+percet követően lehet indítani.
+A válasz JSON kódolással:
+A [kuldemenyadatok] tömbben, a beküldés indexének megfelelően, minden 
+sikeresen lekérdezett küldemény adatai szerepel.
+24. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Sikertelen lekérdezés esetén az [ervenytelen_adat] tömbben, a beküldés indexének 
+megfelelően hibaüzenet szerepel.
+Bővebb információ a 4.2. Hibakezelés részben.
+JSON:
+{
+    "kapcsolat": {
+        "statusz": "OK"
+    },
+    "kuldemenyadatok": {
+        "0": {
+            "kuldemenyszam": "358145646876000013603060",
+            "felnev": "apiv3",
+            "statusz_kod": 32,
+            "statusz_szoveg": "Feladásra előkészítve (Napi zárás)",
+            "torolve": false,
+            "mellekcsomag_szamok": "358145646876000023603060",
+            "felvetel_datum": "2025-05-21",
+            "felveve_datum_ido": null,
+            "beerkezes_datum_ido": null,
+            "kiszallitas_datum": "2025-05-22",
+            "kiszallitva_datum_ido": null,
+            "atvevo": "",
+            "vissza": false,
+            "ujrakuldve": false,
+            "k_arukar_serult": false,
+            "k_arukar_megsemmisult": false,
+            "k_arukar_elveszett": false,
+            "utanvet_vissza_datum": null,
+            "utanvet_vissza": null,
+            "tipus": 0,
+            "felado": {
+                "ceg_nev": "Pannon XP Kft.",
+                "nev": "Tóth Balázs",
+                "telefon": "+36207733399",
+                "emailcim": "info@pannonxp.hu",
+                "cim_orszag_kod": "HU",
+                "cim_orszag": "Magyarország",
+                "cim_telepules": "Vecsés",
+                "cim_iranyito": "2220",
+                "cim_kozterulet": "Fő út 1.",
+                "cim_megjegyzes": "",
+                "adoszam": "",
+                "bankszamlaszam": "11111111-12345678"
+            },
+            "cimzett": {
+                "ap_code": 0,
+                "ceg_nev": "Próba Péter",
+                "nev": "",
+                "telefon": "+36707654321",
+                "emailcim": "proba.peter@probacim.hu",
+                "cim_orszag_kod": "HU",
+                "cim_orszag": "Magyarország",
+                "cim_telepules": "Pásztó",
+                "cim_iranyito": "3060",
+                "cim_kozterulet": "Próbálkozás utca 17",
+25. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+                "cim_megjegyzes": "A Minta Kft telephelyén",
+                "adoszam": ""
+            },
+            "szolgaltatas": "24H",
+            "biztositas": true,
+            "aruertek": 150000,
+            "visszaru": false,
+            "utanvet": 150000,
+            "utanvet_pos": false,
+            "okmany": false,
+            "okmanyok": "",
+            "sms": true,
+            "csomagszam": 2,
+            "kuldemenysuly": 24,
+            "kuldemeny_terfogatsuly": 3.66,
+            "dijsuly": 24,
+            "csomagok": {
+                "1": {
+                    "db": 1,
+                    "suly": 12,
+                    "hosszusag": 110,
+                    "szelesseg": 20,
+                    "magassag": 5,
+                    "terfogatsuly": 1.83,
+                    "tipus": "doboz"
+                },
+                "2": {
+                    "db": 1,
+                    "suly": 12,
+                    "hosszusag": 110,
+                    "szelesseg": 20,
+                    "magassag": 5,
+                    "terfogatsuly": 1.83,
+                    "tipus": "doboz"
+                }
+            },
+            "tartalom": "A tartalom rövid leírása",
+            "koltseghely": "",
+            "refernciaszam": "W0452812",
+            "ekaer_szam": "",
+            "ekaer_email": "",
+            "koltsegviselo_kod": 6,
+            "koltsegviselo": "Címzett (készpénzben átvételkor)",
+            "dijak": {
+                "suly": 4956,
+                "tipus": 0,
+                "operacio": 299,
+                "szolgaltatas": 0,
+                "okmany": 0,
+                "visszaru": 0,
+                "sms": 27,
+                "biztositas": 600,
+                "uv": 1500,
+                "uv_pos": 0,
+                "tranzakciosado": 1350,
+                "potdij": 0,
+                "eun_kivuli_teruletek": 0,
+26. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+                "tavoli_teruletek": 0,
+                "lakasra_szallitas": 0,
+                "hibas_cimzes": 0,
+                "elsobbsegi_kezeles": 0,
+                "nem_automatikusan_szortirozhato": 0,
+                "tulmeretes": 0,
+                "tovabbi_kezeles_csomagolas": 0,
+                "tovabbi_kezeles_suly": 0,
+                "tovabbi_kezeles_meret": 0,
+                "nem_halmozhato": 0,
+                "litium_akkumulator": 0,
+                "vamkezeles": 0,
+                "import": 0,
+                "uzemanyag": 743,
+                "egyeb": 0,
+                "netto": 9475,
+                "brutto": 12033
+            },
+            "szallitasi_ido": "lehetséges 1-2 munkanap",
+            "szamlaszam": "",
+            "szamla": {
+                "ceg_nev": "",
+                "cim_orszag_kod": "",
+                "cim_orszag": "",
+                "cim_telepules": "",
+                "cim_iranyito": "",
+                "cim_kozterulet": "",
+                "adoszam": ""
+            }
+        }
+    },
+    "ervenytelen_adat": {
+        "1": {
+            "kuldemenyadatok_ugyfelkod": {
+                "kulcs": "kuldemenyadatok_ugyfelkod",
+                "adat": "358145646876000013603061 TOBA",
+                "uzenet": "A lekérdezés nem hozott eredményt!"
+            }
+        }
+    }
+}
+Válasz paraméterei:
+Mezőnév TípusMegnevezés Leírás
+kuldemenyszam varcharKüldeményszám (fuvarlevélszám) A küldemény 24 
+karakteres egyedi 
+azonosítója.
+felnev varcharFelhasználónév A rögzítő felhasználóneve
+statusz_kod integerStátusz kód A küldemény, aktuális 
+státuszának numerikus 
+kódja.
+statusz_szoveg varcharStátusz szöveg A küldemény, aktuális 
+státusza, szöveges 
+formában.
+torolve boolTörölve Jelöli, ha a küldemény 
+27. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezés Leírás
+törölve.
+Nincs törölve: false;Törölve: true;
+mellekcsomag_szamok varcharMellékcsomagszám(ok) A küldemény 24 
+karakteres egyedi 
+mellékcsomag azonosító(i  
+szóközzel elválasztva).
+felvetel_datum dateFelvétel dátum A tervezett felvételi nap.
+felveve_datum_ido datetimeFelvéve időpont A felvétel megtörténtének 
+időpontja vagy null ha 
+nincs időpont.
+beerkezes_datum_ido datetimeBeérkezés időpont A küldemény első 
+kezelésének időpontja 
+(raktárba érkezés) vagy 
+null ha nincs időpont.
+kiszallitas_datum dateKiszállítás dátum A tervezett kiszállítás 
+napja.
+kiszallitva_datum_ido datetimeKiszállítva időpont A kiszállítás 
+megtörténtének időpontja 
+vagy null ha nincs időpont.
+atvevo varcharÁtvevő Az átvevő neve.
+vissza boolVissza a feladónak Jelöli, ha a küldemény 
+vissza a feladónak.
+Nem vissza a feladónak: false;Vissza a feladónak: true;
+ujrakuldve boolÚj küldeményszámon továbbítva. Jelöli, ha a küldemény új 
+küldeményszámon lett 
+szállítva.
+Nincs újraküldve: false;Újraküldve: true;
+k_arukar_serult boolSérült Jelöli, ha a küldemény a 
+szállítás során sérült.
+Nincs sérülés: false;Sérült: true;
+k_arukar_megsemmisult boolMegsemmisült Jelöli, ha a küldemény a 
+szállítás során 
+megsemmisült.
+Nincs megsemmisülve: false;Megsemmisült: true;
+k_arukar_elveszett boolElveszett Jelöli, ha a küldemény a 
+szállítás során elveszett.
+Nem veszett el: false;Elveszett: true;
+utanvet_vissza_datum dateUtánvét visszaküldési nap Az utánvét 
+visszaküldésének napja 
+vagy null ha nincs 
+visszaküldve.
+utanvet_vissza integerUtánvétkiosztás szám Megadja az 
+utánvétkiosztás számát, 
+amin a küldemény 
+szerepel vagy null ha 
+nincs visszaküldve.
+tipus integerKüldemény típus A küldeménytípus 
+numerikus kódja.
+28. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezés Leírás
+0: Küldeményfeladás;1: Küldeményfogadás;2: Harmadik feles szállítás;5: Csomagpontra szállítás;
+felado arrayCímadatok
+[ceg_nev] string
+[nev] string
+[telefon] string
+[emailcim] string
+[cim_orszag_kod] string
+[cim_orszag] string
+[cim_telepules] string
+[cim_iranyito] string
+[cim_kozterulet] string
+[cim_megjegyzes] string
+[adoszam] string
+[bankszamlaszam] strA feladó címadatai.
+Cégnév vagy személynévKapcsolattartó neveKapcsolattartó telefonszámaKapcsolattartó e-mailcímeOrszágkód (HU)OrszágnévTelepülésnévIrányítószámKözterület elnevezése, utca házszám, stb.Minden olyan információ ami a felvételt segítiAdószámBankszámlaszám az utánvét visszautaláshoz
+cimzett arrayCímadatok
+[ap_code] integer
+[ceg_nev] string
+[nev] string
+[telefon] string
+[emailcim] string
+[cim_orszag_kod] string
+[cim_orszag] string
+[cim_telepules] string
+[cim_iranyito] string
+[cim_kozterulet] string
+[cim_megjegyzes] string
+[adoszam] stringA címzett címadatai.
+Átvételi pont kódjaCégnév vagy személynévKapcsolattartó neveKapcsolattartó telefonszámaKapcsolattartó e-mailcímeOrszágkód (HU)OrszágnévTelepülésnévIrányítószámKözterület elnevezése, utca házszám, stb.Minden olyan információ ami a kiszállítást segítiAdószám
+szolgaltatas varcharSzolgáltatáskód A szolgáltatás 
+alfanumerikus kódja.
+24H: következő munkanap, munkaidő végéig;12H: következő munkanap, 12 óráig;10H: következő munkanap, 10 óráig;08H: következő munkanap, 8 óráig;SZO: szombat délelőtt;EJ: éjszakai szállítás, reggel 8 óráig;INT: nemzetközi szállítás;    IPU: import szállítás;    EXP: export szállítás;D2S: csomagpontra szállítás;
+biztositas boolÉrtékbiztosítás Jelöli, ha a küldeményhez 
+értékbiztosítást kértek.
+Nincs értékbiztosítás: false;Értékbiztosítás: true;
+aruertek integerÁruérték Az értékbiztosításhoz az 
+áru értéke.
+visszaru boolVisszáru Jelöli, ha a küldeményhez 
+visszáru felvételt kértek.
+Nincs visszáru felvétel: false;Visszáru felvétel: true;
+utanvet integerUtánvét A megadott 
+29. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezés Leírás
+utánvétösszeg a címzettől  
+kerül beszedésre és a 
+feladó részére juttatjuk 
+vissza.
+utanvet_pos boolBankkártyás fizetés Jelöli, ha az utánvét 
+összeget bankkártyával 
+fizette a címzett.
+Készpénz: false;Bankkártya: true;
+okmany boolOkmány visszaforgatás Jelöli, ha a küldeményhez 
+okmány visszaforgatást 
+kértek.
+Nincs okmánykezelés: false;Okmánykezelés: true;
+okmanyok varcharOkmányok száma A kezelendő okmány(ok) 
+egyedi azonosítója.
+sms boolSMS Jelöli, ha a küldeményhez 
+SMS értesítés kértek.
+Nincs SMS értesítés: false;SMS értesítés: true;
+csomagszam integerCsomagszám A küldeményhez tartozó 
+csomagok száma.
+kuldemenysuly decimal(3,2)Küldeménysúly A küldeményhez tartozó 
+összes csomag valós 
+súlya.
+kuldemeny_terfogatsuly decimal(3,2)Küldemény térfogatsúly A küldeményhez tartozó 
+összes csomag 
+térfogatsúlya.
+dijsuly decimal(3,2)Küldemény díjsúly A díjszámítás alapja. (A 
+küldeményhez tartozó összes csomag csomagonként mért súlya vagy térfogatsúlya közül a nagyobb értékek összesítve.)
+csomagok arrayCsomagadatok
+[0-98][db] integer
+[0-98][suly] float
+[0-98][hosszusag] int
+[0-98][szelesseg] int
+[0-98][magassag] int
+[0-98][terfogatsuly] float
+[0-98][tipus] stringIndexelt tömb, amely 
+tartalmazza a 
+küldeményhez tartozó, 
+azonos súlyú és méretű 
+csomagok: darabszámát, 
+csomagonkénti súlyát, 
+csomagonkénti 
+hosszúságát, 
+csomagonkénti 
+szélességét, 
+csomagonkénti 
+magasságát, a 
+darabszámnak megfelelő 
+térfogatsúlyt és a csomag 
+típusát.
+tartalom varcharTartalom A küldemény tartalmának 
+rövid leírása.
+koltseghely varcharKöltséghely Opcionálisan megadható 
+adat, ami feltüntetésre 
+kerül a számlamellékleten.
+referenciaszam varcharKöltséghely Opcionálisan megadható 
+30. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezés Leírás
+adat, ami feltüntetésre 
+kerül a számlamellékleten.
+ekaer_szam varcharEKÁER szám Az EKÁER köteles 
+küldemény, EKÁER 
+száma.
+ekaer_email varcharEKÁER értesítési e-mailcím Az EKÁER köteles 
+küldemény, rendszám 
+változásait fogadó e-
+mailcím.
+koltsegviselo_kod integerA költségviselő numerikus kódja 0: Megbízó átutalással
+2: Feladó Készpénz
+4: Feladó átutalás
+6: Címzett készpénz
+7: Címzett bankkártyával
+8: címzett átutalás
+9: Harmadik fél átutalás
+10: Pannon XP
+koltsegviselo stringA költségviselő szöveges formában Megmutatja a szállításidíj 
+fizetőjét.
+dijak arraySzállítási díjak (float)
+[suly]
+[tipus]
+[operacio]
+[szolgaltatas]
+[okmany]
+[visszaru]
+[sms]
+[biztositas]
+[uv]
+[uv_pos]
+[tranzakciosado]
+[potdij
+[eun_kivuli_teruletek]
+[tavoli_teruletek]
+[lakasra_szallitas]
+[hibas_cimzes]
+[elsobbsegi_kezeles]
+[nem_automatikusan_szortirozhato]
+[tulmeretes]
+[tovabbi_kezeles_csomagolas]
+[tovabbi_kezeles_suly]
+[tovabbi_kezeles_meret]
+[nem_halmozhato]
+[litium_akkumulator]
+[vamkezeles]
+[import]
+[uzemanyag]
+[egyeb]
+[netto]
+[brutto]Szállítási díjak 
+részletezése.
+szallitasi_ido varcharSzállítási idő A várható szállítási idő.
+szamlaszam varcharSzámlaszám A készpénzes számla 
+száma vagy a 
+számlamelléklet száma 
+31. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+Mezőnév TípusMegnevezés Leírás
+átutalásos fizetés esetén.
+szamla arraySzámlázási adatok
+[ceg_nev] string
+[cim_orszag_kod] string
+[cim_orszag] string
+[cim_telepules] string
+[cim_iranyito] string
+[cim_kozterulet] string
+[adoszam] stringA számlázási adatok 
+amennyiben a feladótól 
+vagy címzettől eltérő cím 
+került megadásra.
+Cégnév vagy személynévOrszágkód (HU)OrszágnévTelepülésnévIrányítószámKözterület elnevezése, utca házszám, stb.Adószám
+3.8. Küldeménystátusz
+A kérésben egyszerre legfeljebb 100 küldemény  státusza kérdezhető le, egy 0-99-
+ig indexelt tömbben .
+Kérés paraméterei:
+Mezőnév TípusMegnevezés Leírás
+kuldemenystatusz varcharA küldeményszám. (egyedi  
+küldeményazonosítója)A lekérdezni kívánt küldemény, 24 
+karakteres küldeményszámát kell 
+megadni.
+FONTOS!
+Egyesével történő státusz lekérdezés, minden megkezdett percben, 10x lehetséges. 
+Tömeges lekérdezést (1-nél több) a megelőző lekérdezés után eltelt 11 percet 
+követően lehet indítani.
+A válasz JSON kódolással:
+A [kuldemenystatusz] tömbben, a beküldés indexének megfelelően, minden 
+sikeresen lekérdezett küldemény küldeményszáma [kuldemenyszam] (egyedi 
+küldeményazonosítója), a státusz szöveges formában [statusz] és a státusz kódja 
+[statusz_kod] szerepel.
+Sikertelen lekérdezés esetén az [ervenytelen_adat] tömbben, a beküldés indexének 
+megfelelően hibaüzenet szerepel.
+Bővebb információ a 4.2. Hibakezelés részben.
+JSON:
+{
+    "kapcsolat": {
+        "statusz": "OK"
+    },
+    "kuldemenystatusz": {
+        "0": {
+32. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+            "kuldemenyszam": "358145621426000013603077",
+            "statusz": "A küldeményadatok rögzítve",
+            "statusz_kod": 12
+        },
+        "2": {
+            "kuldemenyszam": "358145621428000013603060",
+            "statusz": "A küldeményadatok rögzítve",
+            "statusz_kod": 12
+        }
+    },
+    "ervenytelen_adat": {
+        "1": {
+            "kulcs": "kuldemenystatusz ugyfelkod",
+            "adat": "358145621428000013603061 MINT",
+            "uzenet": "A lekérdezés nem hozott eredményt!"
+        }
+    }
+}
+3.9. Küldeménytörténet
+A kérésben egyszerre legfeljebb 100 küldemény  státusza kérdezhető le, egy 0-99-
+ig indexelt tömbben .
+Kérés paraméterei:
+Mezőnév TípusMegnevezés Leírás
+kuldemenytörténet varcharA küldeményszám. 
+(egyedi 
+küldeményazonosítója)A lekérdezni kívánt küldemény, 24 
+karakteres küldeményszámát kell 
+megadni.
+FONTOS!
+Egyesével történő történet lekérdezés, minden megkezdett percben, 10x lehetséges.  
+Tömeges lekérdezést (1-nél több) a megelőző lekérdezés után eltelt 11 percet 
+követően lehet indítani.
+A válasz JSON kódolással:
+A [kuldemenytortenet] tömbben, a beküldés indexének megfelelően, minden 
+sikeresen lekérdezett küldemény küldeményszáma [kuldemenyszam] (egyedi 
+küldeményazonosítója), és a [tortenet] kulcsban időrendben indexelve, az esemény 
+időpontja [esemeny_datum_ido] és tevékenység [tevekenyseg] szöveges formában 
+szerepel.
+Sikertelen lekérdezés esetén az [ervenytelen_adat] tömbben, a beküldés indexének 
+megfelelően hibaüzenet szerepel.
+Bővebb információ a 4.2. Hibakezelés részben.
+JSON:
+{
+33. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+    "kapcsolat": {
+        "statusz": "OK"
+    },
+    "kuldemenytortenet": [
+        {
+            "kuldemenyszam": "358145646834000013603060",
+            "tortenet": [
+                {
+                    "esemeny_datum_ido": "2025-04-30 14:13:27",
+                    "tevekenyseg": "A szállítási információ a rendszerbe került"
+                }
+            ]
+        },
+        {
+            "kuldemenyszam": "358145646803000013602233",
+            "tortenet": [
+                {
+                    "esemeny_datum_ido": "2025-04-29 16:31:33",
+                    "tevekenyseg": "A szállítási információ a rendszerbe került"
+                },
+                {
+                    "esemeny_datum_ido": "2025-04-29 16:31:35",
+                    "tevekenyseg": "A szállítási címke létrehozva"
+                },
+                {
+                    "esemeny_datum_ido": "2025-04-29 16:32:17",
+                    "tevekenyseg": "A feladó előkészítette a küldeményt"
+                }
+            ]
+        }
+    ],
+    "ervenytelen_adat": {
+        "2": {
+            "kuldemenytortenet_ugyfelkod": {
+                "kulcs": "kuldemenytortenet_ugyfelkod",
+                "adat": "358145646803000013602234 TOBA",
+                "uzenet": "A lekérdezés nem hozott eredményt!"
+            }
+        }
+    }
+}
+4. Hibakezelés
+A kérésnek POST metódussal kell történnie és a $_POST tömbben minden esetben 
+léteznie kell a [ugyfelkod], [technikai_felhasznalo], [jelszo] valamint a [keres] 
+kulcsoknak, ellenkező esetben az API hívás érvénytelen!
+A válasz felépítése JSON kódolással:
+JSON:
+{
+"kapcsolat": {
+"statusz": "error",
+"adat": "a hibás adat",
+34. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+"uzenet": "a hibaüzenet"
+}
+}
+vagy ha a hiba a keres-ben van:
+{
+    "kapcsolat": {
+        "statusz": "OK"
+    },
+    "ervenytelen_adat": {
+        "0": {
+            "kulcs": "a hibás kulcsok",
+            "adat": "a hibás adat",
+            "uzenet": "a hibaüzenet"
+        }
+    }
+}
+4.1. Autentikáció
+A [kapcsolat] válasz paraméterei:
+kulcs uzenet
+Érvénytelen url!
+ugyfelkod Érvénytelen ügyfélkód!
+technikai_felhasznalo Érvénytelen technikai felhasználónév!
+jelszo Érvénytelen jelszó!
+ugyfelkod technikai_felhasznalo jelszo Érvénytelen bejelentkezési adatok!
+4.2. Szolgáltatások
+A válaszok az [ervenytelen_adat] tömbben kerülnek visszaküldésre.
+A [mentes] válasz paraméterei:
+kulcs uzenet
+keres index Érvénytelenül indexelt kérés!
+keres Érvénytelen kérés!
+tipus Érvénytelen típus!
+A küldemény típusa, lehet:
+Küldemény feladás: 0
+Küldemény fogadás: 1
+Harmadik feles szállítás: 2
+de nem kötelező megadni! Alapértelmezett értéke: 0;
+felado nev A feladó kapcsolattartó neve [felado][nev] változó értéke, lehet üres 
+vagy min. 4 és max. 30 karakter, valamint nem tartalmazhat néhány 
+speciális (\' " \ < > ? $ ;) karaktert!
+felado telefon A feladó kapcsolattartó telefonszáma [felado][telefon] változó értéke, 
+lehet üres vagy min. 11 és max. 20 karakter, Magyarország esetén 
+mindig +36-al kezdődik és kizárólag számokat és szóköz karaktert 
+tartalmazhat!
+felado emailcim A feladó kapcsolattartó emailcíme [felado][emailcim] változó értéke, 
+lehet üres vagy min. 6 és max. 50 karakter!
+felado ceg_nev A feladó cégneve (magánszemély esetén, személynév) [felado]
+35. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+kulcs uzenet
+[ceg_nev] változó értéke, lehet min. 4 és max. 50 karakter, valamint 
+nem tartalmazhat néhány speciális (\' " \ < > ? $ ;) karaktert!
+felado cim_iranyito A feladó címéből az irányítószám [felado][cim_iranyito] változó értéke 
+kizárólag 4 szám karaktert tartalmazhat!
+felado cim_iranyito Nyilvántartásunk szerint a feladó címéből az irányítószám [felado]
+[cim_iranyito] változó értéke nem létező irányítószám!
+felado cim_telepules A feladó címéből a településnév [felado][cim_telepules] változó értéke, 
+lehet min. 2 és max. 40 karakter, valamint nem tartalmazhat néhány 
+speciális (\' " \ < > ? $ ;) karaktert!
+felado cim_telepules Nyilvántartásunk szerint a feladó címéből a településnév [felado]
+[cim_telepules] változó értéke nem létező településnév!
+felado cim_iranyito Nyilvántartásunk szerint a feladó címéből az irányítószám [felado]
+[cim_iranyito] és a hozzá megadott településnév [felado]
+[cim_telepules] változó értékek nem azonos helységet jelölnek!
+felado cim_telepules Nyilvántartásunk szerint a feladó címéből a településnév [felado]
+[cim_telepules] és a hozzá megadott irányítószám [felado]
+[cim_iranyito] változó értékek nem azonos helységet jelölnek!
+felado cim_kozterulet A feladó címéből a közterület [felado][cim_kozterulet] változó értéke, 
+lehet min. 4 és max. 60 karakter, valamint nem tartalmazhat néhány 
+speciális (\' " \ < > ? $ ;) karaktert!
+felado cim_megjegyzes A feladó címéből a megjegyzés [felado][cim_megjegyzes] változó 
+értéke, lehet üres vagy min. 4 és max. 100 karakter, valamint nem 
+tartalmazhat néhány speciális (\' " \ < > ? $ ;) karaktert!
+cimzett ap_code Érvénytelen átvételi pont azonosító!
+cimzett nev A címzett kapcsolattartó neve [cimzett][nev] változó értéke, lehet üres 
+vagy min. 4 és max. 30 karakter, valamint nem tartalmazhat néhány 
+speciális (\' " \ < > ? $ ;) karaktert!
+cimzett telefon A címzett kapcsolattartó telefonszáma [cimzett][telefon] változó értéke 
+lehet üres vagy/de SMS értesítés szolgáltatással min. 11 és max. 20 
+karakter, Magyarország esetén mindig +36-al kezdődik és kizárólag 
+számokat és szóköz karaktert tartalmazhat!
+cimzett emailcim A címzett kapcsolattartó emailcíme [cimzett][emailcim] változó értéke, 
+lehet üres vagy/de címzett fizet szolgáltatással min. 6 és max. 50 
+karakter!
+cimzett ceg_nev A címzett cégneve (magánszemély esetén, személynév) [cimzett]
+[ceg_nev] változó értéke, lehet min. 4 és max. 50 karakter, valamint 
+nem tartalmazhat néhány speciális (\' " \ < > ? $ ;) karaktert!
+cimzett cim_telepules A címzett címéből a településnév [cimzett][cim_telepules] változó 
+értéke, lehet min. 2 és max. 40 karakter, valamint nem tartalmazhat 
+néhány speciális (\' " \ < > ? $ ;) karaktert!
+cimzett cim_telepules Nyilvántartásunk szerint a címzett címéből a településnév [cimzett]
+[cim_telepules] változó értéke nem létező településnév!
+cimzett cim_iranyito A címzett címéből az irányítószám [cimzett][cim_iranyito] változó 
+értéke kizárólag 4 szám karaktert tartalmazhat!
+cimzett cim_iranyito Nyilvántartásunk szerint a címzett címéből az irányítószám [cimzett]
+[cim_iranyito] változó értéke nem létező irányítószám!
+cimzett cim_telepules Nyilvántartásunk szerint a címzett címéből a településnév [cimzett]
+[cim_telepules] és a hozzá megadott irányítószám [cimzett]
+[cim_iranyito] változó értékek nem azonos helységet jelölnek!
+cimzett cim_iranyito Nyilvántartásunk szerint a címzett címéből az irányítószám [cimzett]
+[cim_iranyito] és a hozzá megadott településnév [cimzett]
+36. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+kulcs uzenet
+[cim_telepules] változó értékek nem azonos helységet jelölnek!
+cimzett cim_kozterulet A címzett címéből a közterület [cimzett][cim_kozterulet] változó értéke, 
+lehet min. 4 és max. 60 karakter, valamint nem tartalmazhat néhány 
+speciális (\' " \ < > ? $ ;) karaktert!
+cimzett cim_megjegyzes A címzett címéből a megjegyzés [cimzett][cim_megjegyzes] változó 
+értéke, lehet üres vagy min. 4 és max. 100 karakter, valamint nem 
+tartalmazhat néhány speciális (\' " \ < > ? $ ;) karaktert!
+szolgaltatas Az idő garantált szolgáltatás meghatározása: "12H" = a következő 
+munkanapon 12 óráig történő kiszállítás vagy "24H" = a következő 
+munkanapi kiszállítás, de nem kötelező megadni! Alapértelmezett 
+értéke: 24H;
+okmany Jelöli a kiszállítás alkalmával az okmánykezelés kérését. 
+Okmánykezelés esetén "true" és az [okmanyok] változóban a 
+kezelendő okmány számát kötelező megadni! Amennyiben nincs 
+okmánykezelés, értéke "false" de nem kötelező megadni! 
+Alapértelmezett értéke: false;
+okmanyok Az okmányok [okmanyok] változó értéke, lehet min. 4 és max. 30 
+karakter, valamint nem tartalmazhat néhány speciális (\' " \ < > ? $ ;) 
+karaktert!
+visszaru Jelöli a kiszállítás alkalmával a visszáru felvételének kérését. Visszáru 
+felvétel esetén "true", amennyiben nincs visszáru felvétel, értéke 
+"false" de nem kötelező megadni! Alapértelmezett értéke: false;
+sms Jelöli a kiszállítás napjának reggelén az SMS értesítést, a címzettnek a  
+kiszállításról, a [cimzett][telefon] változóban megadott számra. SMS 
+értesítés kérése esetén "true" és a [cimzett][telefon] változó kitöltése 
+kötelező! Amennyiben nincs SMS értesítés, értéke "false" de nem 
+kötelező megadni! Alapértelmezett értéke: false;
+csomagok db A küldeményhez tartozó összes csomag darabszáma: a [csomagok] 
+tömbben felsorolt [db] változók összegzett értéke, pozitív egész szám, 
+ami minimum 1 és maximum 99 lehet!
+csomagok [index] db A küldeményhez tartozó, azonos súlyú és méretű csomagok 
+darabszáma: a [db] változó értéke pozitív egész szám, ami minimum 1 
+és maximum 99 lehet úgy, hogy a [csomagok] tömbben felsorolt [db] 
+változók összegzett értéke maximum 99 lehet!
+csomagok [index] suly A küldeményhez tartozó, azonos súlyú és méretű csomagok 
+darabonkénti súlya: a [suly] változó értéke pozitív tizedes szám, ami 
+minimum 0,01 kg és maximum 600 kg lehet. A tizedes jelölésére 
+használható a pont (.) vagy a vessző (,) és az érték két tizedesig 
+adható meg 100 kg alatt. 100 kg felett kizárólag pozitív egész szám 
+lehet!
+csomagok [index] hosszusag A küldeményhez tartozó, azonos súlyú és méretű csomagok 
+darabonkénti husszúsága: a [hosszusag] változó értéke pozitív egész 
+szám, ami minimum 1 cm és maximum 400 cm lehet!
+csomagok [index] szelesseg A küldeményhez tartozó, azonos súlyú és méretű csomagok 
+darabonkénti szélessége: a [szelesseg] változó értéke pozitív egész 
+szám, ami minimum 1 cm és maximum 150 cm lehet!
+csomagok [index] magassag A küldeményhez tartozó, azonos súlyú és méretű csomagok 
+darabonkénti magassága: a [magassag] változó értéke pozitív egész 
+szám, ami minimum 1 cm és maximum 160 cm lehet!
+csomagok [index] tipus A küldeményhez tartozó, azonos súlyú és méretű csomag típusa 
+adható meg! Lehetséges értékei: "doboz"; "raklap"; de nem kötelező 
+megadni! Alapértelmezett értéke: doboz; Fontos! Amennyiben a 
+37. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+kulcs uzenet
+csomag súlya eléri vagy meghaladja a 40 kg-ot, a csomag raklapos, 
+alapértelmezett értéke "raklap"!
+tartalom A küldemény tartalmának rövid leírása. A [tartalom] változó értéke, 
+lehet üres vagy min. 4 és max. 40 karakter, valamint nem tartalmazhat 
+néhány speciális (\' " \ < > ? $ ;) karaktert! Nem kötelező létrehozni 
+vagy kitölteni.
+biztositas Jelöli a küldemény értékbiztosítását. Értékbiztosítás esetén "true" és 
+az [aruertek] változóban a biztosítási értéket kötelező megadni. 
+Amennyiben nincs értékbiztosítás, értéke "false" de nem kötelező 
+megadni. Alapértelmezett értéke: false;
+aruertek A küldemény értéke az értékbiztosításhoz. Amennyiben a [biztositas] 
+változó értéke "true", kötelező megadni, értéke lehet pozitív egész 
+szám, ami minimum 1 Ft. és maximum 500000 Ft. lehet! Amennyiben 
+a [biztositas] változó értéke nem "true", nem kötelező létrehozni és 
+kitölteni, értéke lehet üres vagy pozitív egész szám, ami minimum 0 Ft.  
+és maximum 500000 Ft. lehet!
+utanvet A kiszállítás során készpénzben beszedendő összeg, amit a feladó 
+részére visszajuttatunk. Értéke 0 (nulla) vagy a beszedendő összeg 
+forintban, maximum 1000000 forint lehet! Fontos! Nem minden 
+szállítási területen vehető igénybe az utánvét beszedés szolgáltatás. A  
+rendszer a feladó és a címzett irányítószáma alapján jelzi amennyiben 
+a szolgáltatás a megadott szállítási viszonylatban nem elérhető.
+ekaer_szam EKÁER köteles küldemény EKÁER száma. Nem kötelező létrehozni 
+vagy kitölteni, de kitöltés esetén az EKÁER emailcím [ekaer_email] 
+változó kitöltése is kötelező! A változó értéke, lehet üres vagy min. 4 
+és max. 20 karakter, valamint nem tartalmazhat néhány speciális (\' " \ 
+< > ? $ ;) karaktert!
+ekaer_email EKÁER köteles küldemény rendszámváltozásának fogadására 
+szolgáló emailcím. Nem kötelező létrehozni vagy kitölteni, de kitöltés 
+esetén az EKÁER szám [ekaer_szam] változó kitöltése is kötelező! A 
+változó értéke, lehet üres vagy min. 6 és max. 50 karakter!
+koltseghely Költséghelyet adhat meg. Nem kötelező létrehozni vagy kitölteni! 
+Létrehozás esetén a változó értéke, lehet üres vagy min. 4 és max. 30 
+karakter, valamint nem tartalmazhat néhány speciális (\' " \ < > ? $ ;) 
+karaktert!
+referenciaszam Referenciaszámot adhat meg. Nem kötelező létrehozni vagy kitölteni! 
+Létrehozás esetén a változó értéke, lehet üres vagy min. 4 és max. 30 
+karakter, valamint nem tartalmazhat néhány speciális (\' " \ < > ? $ ;) 
+karaktert!
+koltsegviselo A szállítási díj fizetőjének, valamint a fizetési módnak a 
+meghatározása. Lehetséges értékei: "cimzett" = a szállítási díjat a 
+címzett fizeti készpénzben. A címzett emailcíme [cimzett][email] 
+változó kitöltése kötelező! (Amennyiben a szállítási cím eltér a 
+számlázási címtől a [szamla] tömbben adható meg a számlázási cím.);  
+"megbizo" = a szállítási díjat a megbízó fizeti átutalással, de nem 
+kötelező létrehozni. Alapértelmezett értéke: megbizo; Fontos! Nem 
+minden szállítási területen vehető igénybe a címzett fizet készpénzben  
+szolgáltatás. A rendszer a feladó és a címzett irányítószáma alapján 
+jelzi amennyiben a szolgáltatás a megadott szállítási viszonylatban 
+nem elérhető!
+maganszemely Jelöli, hogy a küldemény költségviselője magánszemély vagy cég. 
+Amennyiben értéke "true" a költségviselő magánszemély, és az 
+adószám [adoszam] változó létrehozása nem kötelező vagy lehet üres.  
+38. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+kulcs uzenet
+Amennyiben értéke "false" a költségviselő cég, és az adószám 
+[adoszam] változó kitöltése kötelező, de nem kötelező megadni! 
+Alapértelmezett értéke: false; Amenniben a magánszemély 
+[maganszemely] változó nem létezik vagy értéke "false" és a 
+[koltsegviselo] változó értéke "cimzett", az adószám [adoszam] változó  
+értéke, csak érvényes adószám lehet!
+adoszam A költségviselő adószám [adoszam] változó értékének formátuma: 
+"12345678-1-12", ami 13 karakter lehet vagy "12345678-4-12 
+87654321-5-12", ami 27 karakter lehet!
+adoszam A költségviselő adószám [adoszam] változó értékének az áfakód 
+lehetséges értékei: "12345678-(1|2|3)-12", vagy "12345678-(4)-12 
+12345678-(5)-12"!
+adoszam A költségviselő adószám [adoszam] változó értékének a területi 
+adóhatóság kódjának lehetséges értékei: "12345678-1-(02|22|03|23|
+04|24|05|25|06|26|07|27|08|28|09|29|10|30|11|31|12|32|13|33|14|34|
+15|35|16|36|17|37|18|38|19|39|20|40|41|42|43|44|51)"!
+adoszam A költségviselő adószám [adoszam] változó értéke: ha csoport 
+adószámot szeretne rögzíteni, úgy előbb a csoporttag egyedi 
+adószámát ("12345678-(4)-12"), majd a csoport adószámát 
+("12345678-(5)-12") adja meg és a két adószám között hagyjon 
+szóközt! ("12345678-(4)-12 12345678-(5)-12")
+adoszam A költségviselő adószám [adoszam] változó értéke a NAV rendszere 
+szerint érvénytelen! Kérem ellenőrizze és/vagy vegye fel a kapcsolatot 
+a partnerével!
+adoszam A költségviselő adószám [adoszam] változó értékéből a csoporttag 
+adószáma a NAV rendszere szerint érvénytelen! Kérem ellenőrizze 
+és/vagy vegye fel a kapcsolatot a partnerével!
+adoszam A költségviselő adószám [adoszam] változó értékéből a csoport 
+adószáma a NAV rendszere szerint érvénytelen! Kérem ellenőrizze 
+és/vagy vegye fel a kapcsolatot a partnerével!
+adoszam NAV adatkapcsolati hiba! Amennyiben a hiba továbbra is fennáll, úgy 
+később kísérelje meg az adatküldést!
+adoszam A költségviselő adószám [adoszam] változó értékének az ellenőrzése 
+sikertelen! Kérem ismételje meg a műveletet!
+szamla ceg_nev A számlázási címből a cégnév (magánszemély esetén, személynév) 
+[szamla][ceg_nev] változó értéke, lehet min. 4 és max. 50 karakter, 
+valamint nem tartalmazhat néhány speciális (\' " \ < > ? $ ;) karaktert!
+szamla cim_telepules A számlázási címből a településnév [szamla][cim_telepules] változó 
+értéke, lehet min. 2 és max. 40 karakter, valamint nem tartalmazhat 
+néhány speciális (\' " \ < > ? $ ;) karaktert!
+szamla cim_iranyito A számlázási címből az irányítószám [szamla][cim_iranyito] változó 
+értéke kizárólag 4 szám karaktert tartalmazhat!
+szamla cim_kozterulet A számlázási címből a közterület (típusa, házszám, lépcsőház, emelet,  
+ajtó, stb.) [szamla][cim_kozterulet] változó értéke, lehet min. 4 és max. 
+60 karakter, valamint nem tartalmazhat néhány speciális (\' " \ < > ? 
+$ ;) karaktert!
+A [modositas] válasz paraméterei:
+kulcs uzenet
+keres index Érvénytelenül indexelt kérés!
+keres Érvénytelen kérés!
+39. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+kulcs uzenet
+modositas Módosítás esetén, a módosítani kívánt fuvarlevél 24 karakteres 
+fuvarlevélszámát kell megadni!
+modositas A megadott küldeményszámszám nem létezik!
+modositas A megadott szállítólevél nem módosítható! A módoítást kérje az 
+ügyfélszolgálatunkon: info@pannonxp.hu
+tipus Az adat nem módosítható! A módosításban nem szerepelhet!
+A továbbiakban a hibakezelés megegyezik a [mentes] válasz paramétereivel.
+A [torles] válasz paraméterei:
+kulcs uzenet
+keres index Érvénytelenül indexelt kérés!
+keres Érvénytelen kérés!
+torles Módosítás esetén, a módosítani kívánt fuvarlevél 24 karakteres 
+fuvarlevélszámát kell megadni!
+torles A megadott küldeményszám nem létezik!
+torles A megadott szállítólevél nem törölhető! A törlést kérje az 
+ügyfélszolgálatunkon: info@pannonxp.hu
+A [nyomtatas] válasz paraméterei:
+kulcs uzenet
+cimketipus Lehetséges értékei: "1c101,6x152,4" = címkenyomtatóhoz és 
+101,6x152,4 mm-es etiketthez; "4dbA4" = az A4-es oldalon 4db 
+szállítólevél jelenik meg, ahol egy szállítólevél mérete 105×148mm, 
+valamint az oldal tájolása álló, de nem kötelező létrehozni. 
+Alapértelmezett értéke: "4dbA4";
+cimkesorszam Lehetséges értékei: "1-4"; Meghatározható az A4-es oldalon 4db 
+címke közül a nyomtatás kezdete. A megadott érték hatása csak akkor  
+érvényesül, ha a [cimketipus] = "4dbA4";
+keres index Érvénytelenül indexelt kérés!
+keres Érvénytelen kérés!
+nyomtatas Nyomtatás esetén, a nyomtatni kívánt küldemény 24 karakteres 
+fuvarlevélszámát kell megadni!
+nyomtatas A megadott küldeményszám nem létezik!
+nyomtatas A megadott szállítólevél nem nyomtatható újra!
+A [napizaras] válasz paraméterei:
+kulcs uzenet
+napizaras Nem járult hozzá a személyes adatai kezeléséhez a "true" érték 
+küldésével! A NAPI ZÁRÁS nem végezhető el!
+A [atvetelipontok] válasz paraméterei:
+kulcs uzenet
+atvetelipontok A teljes lista lekérdezéséhez az érték csak ”true” lehet!
+atvetelipontok Sikertelen lekérdezés!
+A [kuldemenyadatok] válasz paraméterei:
+40. oldal
+Pannon XP Kft.
+H-2220 Vecsés, Fő út 1.
+tel: +36/20-77-333-99
+mail: info@pannonxp.huweb: www.pannonxp.hu
+kulcs adat uzenet
+utolso_keres_datum_ido Az utolsó lekérdezés időpontja  
+(YYYY-MM-DD HH:II:SS)Az utolsó kérés óta nem telt el 11 perc!
+kuldemenystatusz_ugyfelkod A beküldött küldeményszám 
+és ügyfélkódA lekérdezés nem hozott eredményt!
+kuldemenyadatok A beküldött küldeményszám Adatlekérdezés esetén, a lekérdezni 
+kívánt fuvarlevél 24 karakteres 
+küldeményszámát kell megadni!
+keres index A [keres]-ben szereplő 
+[kuldemenyadatok] elemeinek 
+a száma.Érvénytelenül indexelt kérés!
+keres A [keres] tartalma. (titkosítva) Érvénytelen kérés!
+A [kuldemenystatusz] válasz paraméterei:
+kulcs adat uzenet
+utolso_keres_datum_ido Az utolsó lekérdezés időpontja  
+(YYYY-MM-DD HH:II:SS)Az utolsó kérés óta nem telt el 11 perc!
+kuldemenystatusz_ugyfelkod A beküldött küldeményszám 
+és ügyfélkódA lekérdezés nem hozott eredményt!
+kuldemenystatusz A beküldött küldeményszám Státuszlekérdezés esetén, a lekérdezni 
+kívánt fuvarlevél 24 karakteres 
+küldeményszámát kell megadni!
+keres index A [keres]-ben szereplő 
+[kuldemenystatusz] elemeinek  
+a száma.Érvénytelenül indexelt kérés!
+keres A [keres] tartalma. (titkosítva) Érvénytelen kérés!
+A [kuldemenytortenet] válasz paraméterei:
+kulcs adat uzenet
+utolso_keres_datum_ido Az utolsó lekérdezés időpontja  
+(YYYY-MM-DD HH:II:SS)Az utolsó kérés óta nem telt el 11 perc!
+kuldemenytortenet_ugyfelkod A beküldött küldeményszám 
+és ügyfélkódA lekérdezés nem hozott eredményt!
+kuldemenytortenet A beküldött küldeményszám Történetlekérdezés esetén, a lekérdezni  
+kívánt fuvarlevél 24 karakteres 
+küldeményszámát kell megadni!
+keres index A [keres]-ben szereplő 
+[kuldemenytortenet] 
+elemeinek a száma.Érvénytelenül indexelt kérés!
+keres A [keres] tartalma. (titkosítva) Érvénytelen kérés!
+41. oldal

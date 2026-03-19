@@ -37,6 +37,7 @@ export default function CheckoutPage() {
     const [isCompany, setIsCompany] = useState(false);
     const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
     const [shippingMethod, setShippingMethod] = useState<'delivery' | 'pickup'>('delivery');
+    const [paymentMethod, setPaymentMethod] = useState<'card' | 'cod'>('card');
     const [clientSecret, setClientSecret] = useState<string | null>(null);
 
     const [shippingCost, setShippingCost] = useState(0);
@@ -60,7 +61,7 @@ export default function CheckoutPage() {
 
     // Fetch PaymentIntent when the form becomes valid OR when the total changes
     useEffect(() => {
-        if (isFormValid() && grandTotal > 0) {
+        if (isFormValid() && grandTotal > 0 && paymentMethod === 'card') {
             const fetchSecret = async () => {
                 try {
                     const res = await createPaymentIntent(grandTotal);
@@ -73,7 +74,7 @@ export default function CheckoutPage() {
         } else {
             setClientSecret(null);
         }
-    }, [formData, isCompany, billingSameAsShipping, shippingMethod, grandTotal, isFormValid]);
+    }, [formData, isCompany, billingSameAsShipping, shippingMethod, paymentMethod, grandTotal, isFormValid]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -239,6 +240,47 @@ export default function CheckoutPage() {
                             </div>
                         </section>
 
+                        {/* Payment Method */}
+                        <section className="bg-card border border-border rounded-2xl p-6 md:p-8">
+                            <h2 className="text-xl font-bold text-foreground mb-6 flex items-center gap-3">
+                                <CreditCard className="w-5 h-5 text-[var(--color-primary)]" />
+                                Fizetési mód
+                            </h2>
+                            <div className="space-y-4">
+                                <div
+                                    onClick={() => setPaymentMethod('card')}
+                                    className={`relative border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${paymentMethod === 'card' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'card' ? "border-[var(--color-primary)]" : "border-muted"}`}>
+                                            {paymentMethod === 'card' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
+                                        </div>
+                                        <div>
+                                            <h4 className="text-foreground font-bold text-sm">Bankkártyás fizetés (Stripe)</h4>
+                                            <p className="text-muted text-xs">Biztonságos online fizetés</p>
+                                        </div>
+                                    </div>
+                                    <CreditCard className="w-5 h-5 text-muted" />
+                                </div>
+
+                                <div
+                                    onClick={() => setPaymentMethod('cod')}
+                                    className={`relative border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${paymentMethod === 'cod' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'cod' ? "border-[var(--color-primary)]" : "border-muted"}`}>
+                                            {paymentMethod === 'cod' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
+                                        </div>
+                                        <div>
+                                            <h4 className="text-foreground font-bold text-sm">Utánvét</h4>
+                                            <p className="text-muted text-xs">Fizetés a futárnál (készpénz vagy kártya)</p>
+                                        </div>
+                                    </div>
+                                    <Truck className="w-5 h-5 text-muted" />
+                                </div>
+                            </div>
+                        </section>
+
                         {/* Billing Info */}
                         <section className="bg-card border border-border rounded-2xl p-4 sm:p-6 md:p-8">
                             <h2 className="text-lg sm:text-xl font-bold text-foreground mb-6 flex items-center gap-3">
@@ -372,27 +414,39 @@ export default function CheckoutPage() {
                             </div>
 
                             {/* Stripe Payment Form */}
-                            {clientSecret ? (
-                                <Elements stripe={stripePromise} options={{ clientSecret }}>
+                            {paymentMethod === 'card' ? (
+                                clientSecret ? (
+                                    <Elements stripe={stripePromise} options={{ clientSecret }}>
+                                        <PaymentForm 
+                                            formData={formData} 
+                                            totalAmount={grandTotal} 
+                                            shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'} 
+                                        />
+                                    </Elements>
+                                ) : (
+                                    <div className="space-y-4">
+                                        <button
+                                            disabled
+                                            className="w-full bg-muted text-gray-500 font-bold py-4 rounded-xl cursor-not-allowed opacity-50 flex items-center justify-center gap-2"
+                                        >
+                                            TÖLTSD KI AZ ADATOKAT A FIZETÉSHEZ
+                                        </button>
+                                        {!isFormValid() && (
+                                            <p className="text-xs text-center text-muted italic">
+                                                Kérjük töltsd ki az összes kötelező szállítási mezőt a fizetés megkezdéséhez.
+                                            </p>
+                                        )}
+                                    </div>
+                                )
+                            ) : (
+                                <div className="space-y-4">
                                     <PaymentForm 
                                         formData={formData} 
                                         totalAmount={grandTotal} 
-                                        shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'} 
+                                        shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'}
+                                        paymentMethodOverride="COD"
+                                        isFormValid={isFormValid()}
                                     />
-                                </Elements>
-                            ) : (
-                                <div className="space-y-4">
-                                    <button
-                                        disabled
-                                        className="w-full bg-muted text-gray-500 font-bold py-4 rounded-xl cursor-not-allowed opacity-50 flex items-center justify-center gap-2"
-                                    >
-                                        TÖLTSD KI AZ ADATOKAT A FIZETÉSHEZ
-                                    </button>
-                                    {!isFormValid() && (
-                                        <p className="text-xs text-center text-muted italic">
-                                            Kérjük töltsd ki az összes kötelező szállítási mezőt a fizetés megkezdéséhez.
-                                        </p>
-                                    )}
                                 </div>
                             )}
 

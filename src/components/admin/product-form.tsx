@@ -523,6 +523,37 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                     </div>
                 </div>
 
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 pt-4 border-t border-gray-100">
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Súly (kg) *</label>
+                        <div className="relative">
+                            <input name="weight" type="number" step="0.01" required defaultValue={initialData?.weight || ""} placeholder="pl. 2.5" className="w-full bg-orange-50/50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold" />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">kg</div>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Hosszúság (cm) *</label>
+                        <div className="relative">
+                            <input name="length" type="number" required defaultValue={initialData?.length || ""} placeholder="pl. 40" className="w-full bg-orange-50/50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold" />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">cm</div>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Szélesség (cm) *</label>
+                        <div className="relative">
+                            <input name="width" type="number" required defaultValue={initialData?.width || ""} placeholder="pl. 30" className="w-full bg-orange-50/50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold" />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">cm</div>
+                        </div>
+                    </div>
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Magasság (cm) *</label>
+                        <div className="relative">
+                            <input name="height" type="number" required defaultValue={initialData?.height || ""} placeholder="pl. 20" className="w-full bg-orange-50/50 border border-orange-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-bold" />
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">cm</div>
+                        </div>
+                    </div>
+                </div>
+
                 <div className="pt-4 space-y-4">
                     <div className="bg-blue-50/50 p-6 rounded-2xl border border-blue-100/50">
                         <div className="flex items-center gap-3 mb-4">

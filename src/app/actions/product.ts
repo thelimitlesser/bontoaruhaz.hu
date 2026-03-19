@@ -41,8 +41,9 @@ export async function createProduct(formData: FormData) {
     };
 
     // basic validation
-    if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice)) {
-        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj)");
+    if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice) || 
+        !rawFormData.weight || !rawFormData.height || !rawFormData.width || !rawFormData.length) {
+        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj, Súly, Méretek)");
     }
 
     // 1. Get current user and ensure they exist in Prisma
@@ -159,11 +160,11 @@ export async function createProduct(formData: FormData) {
             condition: rawFormData.condition || "USED",
             stock: rawFormData.stock || 1,
             partner: { connect: { id: partner.id } },
-            categoryId: rawFormData.categoryId || null,
-            subcategoryId: rawFormData.subcategoryId || null,
-            partItemId: rawFormData.partItemId || null,
-            brandId: rawFormData.brandId || null,
-            modelId: rawFormData.modelId || null,
+            PartCategory: rawFormData.categoryId ? { connect: { id: rawFormData.categoryId } } : undefined,
+            PartSubcategory: rawFormData.subcategoryId ? { connect: { id: rawFormData.subcategoryId } } : undefined,
+            PartItem: rawFormData.partItemId ? { connect: { id: rawFormData.partItemId } } : undefined,
+            VehicleBrand: rawFormData.brandId ? { connect: { id: rawFormData.brandId } } : undefined,
+            VehicleModel: rawFormData.modelId ? { connect: { id: rawFormData.modelId } } : undefined,
             yearFrom: rawFormData.yearFrom,
             yearTo: rawFormData.yearTo,
             tecdocKTypes: formData.get('tecdocKTypes') as string || "",
@@ -218,8 +219,9 @@ export async function updateProduct(id: string, formData: FormData) {
         shippingPrice: formData.get('shippingPrice') ? parseInt(formData.get('shippingPrice') as string) : null,
     };
 
-    if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice)) {
-        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj)");
+    if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice) ||
+        !rawFormData.weight || !rawFormData.height || !rawFormData.width || !rawFormData.length) {
+        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj, Súly, Méretek)");
     }
 
     // Handle New Image Uploads
@@ -289,11 +291,11 @@ export async function updateProduct(id: string, formData: FormData) {
             oemNumbers: rawFormData.oemNumbers || "",
             condition: rawFormData.condition || "USED",
             stock: rawFormData.stock || 1,
-            categoryId: rawFormData.categoryId || null,
-            subcategoryId: rawFormData.subcategoryId || null,
-            partItemId: rawFormData.partItemId || null,
-            brandId: rawFormData.brandId || null,
-            modelId: rawFormData.modelId || null,
+            PartCategory: rawFormData.categoryId ? { connect: { id: rawFormData.categoryId } } : { disconnect: true },
+            PartSubcategory: rawFormData.subcategoryId ? { connect: { id: rawFormData.subcategoryId } } : { disconnect: true },
+            PartItem: rawFormData.partItemId ? { connect: { id: rawFormData.partItemId } } : { disconnect: true },
+            VehicleBrand: rawFormData.brandId ? { connect: { id: rawFormData.brandId } } : { disconnect: true },
+            VehicleModel: rawFormData.modelId ? { connect: { id: rawFormData.modelId } } : { disconnect: true },
             yearFrom: rawFormData.yearFrom,
             yearTo: rawFormData.yearTo,
             tecdocKTypes: formData.get('tecdocKTypes') as string || "",
