@@ -4,7 +4,7 @@ import crypto from "crypto";
 // Pannon XP API Credentials (TEST)
 const PXP_CONFIG = {
     ugyfelkod: process.env.PXP_UGYFELKOD || "KSTA",
-    technikai_felhasznalo: process.env.PXP_USER || "UgFxa0n4fxGnzfeU",
+    technikai_felhasznalo: process.env.PXP_USER || "UgFxaOn4fxGnzfeU",
     jelszo: process.env.PXP_PASSWORD || "a8Q374fgx8nQgnf4",
     cserekulcs: process.env.PXP_CSEREKULCS || "XfoqXnfoq3fqyeWc",
 };
@@ -91,37 +91,35 @@ export async function createPxpShipment(order: any) {
         // as PHP's json_encode often produces this for associative arrays, 
         // and PXP's documentation shows this format in responses.
         const shipmentRequest = {
-            mentes: {
-                "0": {
-                    tipus: 0, // 0 = Csomagfeladás
-                    cimzett: {
-                        nev: shippingAddr.name.slice(0, 30),
-                        telefon: formatPxpPhone(shippingAddr.phone).slice(0, 20),
-                        emailcim: shippingAddr.email.slice(0, 50),
-                        ceg_nev: (shippingAddr.companyName || shippingAddr.name).slice(0, 50),
-                        cim_telepules: shippingAddr.city.slice(0, 40),
-                        cim_iranyito: shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4),
-                        cim_kozterulet: shippingAddr.address.slice(0, 60),
-                        cim_megjegyzes: `Order #${order.id.slice(-6)}`.slice(0, 100)
-                    },
-                    szolgaltatas: "24H",
-                    biztositas: false,
-                    aruertek: 0,
-                    sms: true,
-                    csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
-                        acc[idx.toString()] = {
-                            db: Number(Math.min(item.quantity, 99)),
-                            suly: Number((item.part.weight || 2).toFixed(2)), // API allows max 2 decimals
-                            hosszusag: Number(Math.round(item.part.length || 30)),
-                            szelesseg: Number(Math.round(item.part.width || 20)),
-                            magassag: Number(Math.round(item.part.height || 10)),
-                            tipus: (item.part.weight > 40 || item.part.length > 200) ? "raklap" : "doboz"
-                        };
-                        return acc;
-                    }, {}),
-                    utanvet: isPaid ? 0 : Number(Math.round(order.totalAmount)),
-                    okmany: false
-                }
+            "0": {
+                tipus: 0, // 0 = Csomagfeladás
+                cimzett: {
+                    nev: shippingAddr.name.slice(0, 30),
+                    telefon: formatPxpPhone(shippingAddr.phone).slice(0, 20),
+                    emailcim: shippingAddr.email.slice(0, 50),
+                    ceg_nev: (shippingAddr.companyName || shippingAddr.name).slice(0, 50),
+                    cim_telepules: shippingAddr.city.slice(0, 40),
+                    cim_iranyito: shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4),
+                    cim_kozterulet: shippingAddr.address.slice(0, 60),
+                    cim_megjegyzes: `Order #${order.id.slice(-6)}`.slice(0, 100)
+                },
+                szolgaltatas: "24H",
+                biztositas: false,
+                aruertek: 0,
+                sms: true,
+                csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
+                    acc[idx.toString()] = {
+                        db: Number(Math.min(item.quantity, 99)),
+                        suly: Number((item.part.weight || 2).toFixed(2)), // API allows max 2 decimals
+                        hosszusag: Number(Math.round(item.part.length || 30)),
+                        szelesseg: Number(Math.round(item.part.width || 20)),
+                        magassag: Number(Math.round(item.part.height || 10)),
+                        tipus: (item.part.weight > 40 || item.part.length > 200) ? "raklap" : "doboz"
+                    };
+                    return acc;
+                }, {}),
+                utanvet: isPaid ? 0 : Number(Math.round(order.totalAmount)),
+                okmany: false
             }
         };
 
@@ -135,6 +133,7 @@ export async function createPxpShipment(order: any) {
 
         if (isTest) {
             console.log("PXP REQUEST DATA (unescaped):", JSON.stringify(shipmentRequest, null, 2));
+            try { require('fs').writeFileSync('/tmp/pxp-request.json', JSON.stringify(shipmentRequest, null, 2)); } catch(e){}
         }
 
         const response = await fetch(`${baseUrl}/mentes/`, {
