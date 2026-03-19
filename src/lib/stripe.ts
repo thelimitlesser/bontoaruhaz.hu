@@ -1,9 +1,18 @@
 import Stripe from 'stripe';
 
-if (!process.env.STRIPE_SECRET_KEY) {
-  console.warn('STRIPE_SECRET_KEY is missing from environment variables');
-}
+let stripeInstance: Stripe | null = null;
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2025-01-27' as any, // Use latest stable
-});
+export const stripe = (() => {
+  if (stripeInstance) return stripeInstance;
+  
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) {
+    // Return a proxy or just null and check in actions
+    return null;
+  }
+  
+  stripeInstance = new Stripe(key, {
+    apiVersion: '2025-01-27' as any,
+  });
+  return stripeInstance;
+})() as Stripe; // Casting for TS, but we should check for null in usage.

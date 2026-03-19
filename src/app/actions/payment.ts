@@ -7,6 +7,11 @@ export async function createPaymentIntent(amount: number) {
         throw new Error("Érvénytelen összeg");
     }
 
+    // Existing check for stripe
+    if (!stripe) {
+        throw new Error("Stripe beállítások hiányoznak a szerveren. Kérjük add meg a STRIPE_SECRET_KEY-t a Vercelen!");
+    }
+
     try {
         const paymentIntent = await stripe.paymentIntents.create({
             amount: Math.round(amount), // Stripe expects amount in smallest currency unit (cents/filler), but for HUF it is the actual amount

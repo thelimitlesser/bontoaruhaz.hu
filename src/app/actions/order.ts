@@ -84,8 +84,8 @@ export async function createOrder(data: {
         console.error("Error decrementing stock or clearing reservations after order:", error);
     }
 
-    // Send "Order Received" email
-    await sendOrderReceivedEmail(order, customerData.email);
+    // Send "Order Received" email (non-blocking)
+    sendOrderReceivedEmail(order, customerData.email).catch(err => console.error("Email send error:", err));
 
     revalidatePath('/admin/orders');
     return order;
@@ -102,6 +102,7 @@ export async function approveOrder(orderId: string) {
     try {
         // 1. Capture Stripe Payment if it exists
         if (order.stripePaymentIntentId) {
+            if (!stripe) throw new Error("Stripe beállítások hiányoznak. Nem sikerült a fizetés véglegesítése.");
             await stripe.paymentIntents.capture(order.stripePaymentIntentId);
         }
 
