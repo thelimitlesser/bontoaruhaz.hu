@@ -105,19 +105,22 @@ export async function createPxpShipment(order: any) {
                         cim_megjegyzes: `Order #${order.id.slice(-6)}`.slice(0, 100)
                     },
                     szolgaltatas: "24H",
+                    biztositas: false,
+                    aruertek: 0,
                     sms: true,
                     csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
                         acc[idx.toString()] = {
-                            db: Math.min(item.quantity, 99),
-                            suly: item.part.weight || 2,
-                            hosszusag: Math.round(item.part.length || 30),
-                            szelesseg: Math.round(item.part.width || 20),
-                            magassag: Math.round(item.part.height || 10),
+                            db: Number(Math.min(item.quantity, 99)),
+                            suly: Number((item.part.weight || 2).toFixed(2)), // API allows max 2 decimals
+                            hosszusag: Number(Math.round(item.part.length || 30)),
+                            szelesseg: Number(Math.round(item.part.width || 20)),
+                            magassag: Number(Math.round(item.part.height || 10)),
                             tipus: (item.part.weight > 40 || item.part.length > 200) ? "raklap" : "doboz"
                         };
                         return acc;
                     }, {}),
-                    utanvet: isPaid ? 0 : Math.round(order.totalAmount)
+                    utanvet: isPaid ? 0 : Number(Math.round(order.totalAmount)),
+                    okmany: false
                 }
             }
         };
