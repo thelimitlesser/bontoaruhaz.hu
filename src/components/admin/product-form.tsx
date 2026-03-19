@@ -283,9 +283,14 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
             ? `Eladó gyári ${brandName} ${modelName} ${partName} ${years}.`
             : "";
 
-        const footer = `\n\nA hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!\nHivatkozási szám: (${autoRef})`;
+        const footerText = `A hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!\nHivatkozási szám: (${autoRef})`;
 
-        const finalDescription = `${header}${manualDescription ? `\n\n${manualDescription}` : ""}${footer}`;
+        const finalDescriptionParts = [];
+        if (header.trim()) finalDescriptionParts.push(header.trim());
+        if (manualDescription.trim()) finalDescriptionParts.push(manualDescription.trim());
+        finalDescriptionParts.push(footerText);
+
+        const finalDescription = finalDescriptionParts.join('\n\n');
         formData.set('description', finalDescription);
         formData.set('name', productName); // Ensure generated name is sent
 
@@ -553,33 +558,46 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
 
                 <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium text-gray-700">Egyedi Leírás (középső szöveg)</label>
+                        <label className="text-sm font-medium text-gray-700">Teljes Leírás (Fejléc + Egyedi + Lábjegyzet)</label>
                         <span className="text-[10px] text-[var(--color-primary)] font-bold uppercase tracking-wider">Helyesírás-ellenőrző aktív</span>
                     </div>
-                    <textarea
-                        ref={descriptionRef}
-                        id="manualDescription"
-                        name="manualDescription" rows={6}
-                        defaultValue={manualDescription}
-                        onBlur={(e) => setManualDescription(e.target.value)}
-                        placeholder="Írd ide az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
-                        spellCheck={true}
-                        autoCorrect="on"
-                        autoComplete="on"
-                        autoCapitalize="sentences"
-                        className="w-full bg-white border-2 border-gray-300 rounded-xl px-4 py-4 focus:border-blue-500 text-gray-900 transition-all resize-none shadow-sm text-lg leading-relaxed outline-none" ></textarea>
+                    
+                    <div className="w-full bg-white border-2 border-gray-300 rounded-xl focus-within:border-[var(--color-primary)] focus-within:ring-4 focus-within:ring-[var(--color-primary)]/10 overflow-hidden shadow-sm transition-all flex flex-col">
+                        
+                        {/* Auto Header Component */}
+                        <div className={`p-4 border-b transition-colors ${selectedBrand && selectedModel && selectedPartItemObj ? 'bg-orange-50/50 border-orange-100 text-gray-800' : 'bg-gray-50 border-gray-100 text-gray-400 italic'}`}>
+                            {selectedBrand && selectedModel && selectedPartItemObj 
+                                ? <span className="font-medium">{`Eladó gyári ${brands.find(b => b.id === selectedBrand)?.name} ${getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name} ${selectedPartItemObj?.name} ${yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : ""}.`}</span>
+                                : "[Automatikus fejléc (Márka, Modell, Alkatrész kiválasztása után jelenik meg)]"
+                            }
+                        </div>
 
-                    <div className="mt-4 p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg">
-                        <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Véglegesített Leírás betekintő:</h4>
-                        <div className="text-xs text-gray-600 whitespace-pre-wrap leading-relaxed italic">
-                            {(selectedBrand && selectedModel && selectedPartItemObj) ? `Eladó gyári ${brands.find(b => b.id === selectedBrand)?.name} ${getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name} ${selectedPartItemObj?.name} ${yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : ""}.` : "[Automatikus leírás fejléc...]"}
-                            {"\n\n"}
-                            {manualDescription || "[Köztes egyedi szöveg helye...]"}
-                            {"\n\n"}
+                        {/* Editable Manual Description */}
+                        <textarea
+                            ref={descriptionRef}
+                            id="manualDescription"
+                            name="manualDescription" 
+                            rows={5}
+                            defaultValue={manualDescription}
+                            onBlur={(e) => setManualDescription(e.target.value)}
+                            placeholder="Ide írhatod az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
+                            spellCheck={true}
+                            autoCorrect="on"
+                            autoComplete="on"
+                            autoCapitalize="sentences"
+                            className="w-full border-none px-4 py-4 focus:outline-none focus:ring-0 text-gray-900 resize-none text-lg leading-relaxed bg-white" 
+                        ></textarea>
+
+                        {/* Auto Footer Component */}
+                        <div className="bg-gray-50 text-gray-500 px-4 py-3 border-t border-gray-100 text-sm whitespace-pre-wrap">
                             A hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!{"\n"}
-                            Hivatkozási szám: ({autoRef})
+                            Hivatkozási szám: <span className="font-bold text-gray-700">({autoRef || "..."})</span>
                         </div>
                     </div>
+                    
+                    <p className="text-xs text-gray-500 mt-1">
+                        A szürke hátterű részeket a rendszer automatikusan generálja és menti a leírásba. Csak a fehér, középső részt tudod szerkeszteni.
+                    </p>
                 </div>
 
 
