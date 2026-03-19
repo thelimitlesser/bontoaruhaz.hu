@@ -490,18 +490,18 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                         <label className="text-sm font-medium text-gray-700">Egyedi Leírás (középső szöveg)</label>
                         <span className="text-[10px] text-[var(--color-primary)] font-bold uppercase tracking-wider">Helyesírás-ellenőrző aktív</span>
                     </div>
-                    <div
-                        id="manualDescription-editor"
-                        contentEditable
-                        suppressContentEditableWarning
-                        onInput={(e) => setManualDescription(e.currentTarget.innerText)}
-                        className="w-full bg-white border-2 border-gray-200 rounded-xl px-4 py-4 focus:border-orange-500 text-gray-900 transition-all min-h-[160px] outline-none shadow-sm text-lg leading-relaxed whitespace-pre-wrap"
+                    <textarea
+                        ref={descriptionRef}
+                        id="manualDescription"
+                        name="manualDescription" rows={6}
+                        defaultValue={manualDescription}
+                        onBlur={(e) => setManualDescription(e.target.value)}
+                        placeholder="Írd ide az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
                         spellCheck={true}
-                        lang="hu"
-                    >
-                        {manualDescription}
-                    </div>
-                    <input type="hidden" name="manualDescription" value={manualDescription} />
+                        autoCorrect="on"
+                        autoComplete="on"
+                        autoCapitalize="sentences"
+                        className="w-full bg-white border-2 border-gray-300 rounded-xl px-4 py-4 focus:border-blue-500 text-gray-900 transition-all resize-none shadow-sm text-lg leading-relaxed outline-none" ></textarea>
 
                     <div className="mt-4 p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg">
                         <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Véglegesített Leírás betekintő:</h4>
