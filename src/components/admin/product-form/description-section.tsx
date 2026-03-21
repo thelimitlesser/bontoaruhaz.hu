@@ -102,6 +102,7 @@ export function DescriptionSection({
                         onBlur={(e) => setManualDescription(e.target.value)}
                         placeholder="Ide írhatod az alkatrész specifikus adatait (pl. szín, állapot, extra infók)..."
                         spellCheck={true}
+                        lang="hu"
                         autoCorrect="on"
                         autoComplete="on"
                         autoCapitalize="sentences"
