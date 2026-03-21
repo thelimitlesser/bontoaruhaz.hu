@@ -104,15 +104,15 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                     <>
                         <button
                             onClick={handlePrev}
-                            className="absolute left-0 top-1/2 -translate-y-1/2 p-4 md:p-6 text-foreground/50 hover:text-[var(--color-primary)] transition-all duration-300 hover:scale-125 z-10 active:scale-90 group"
+                            className="absolute left-0 top-1/2 -translate-y-1/2 p-4 md:p-6 text-white transition-all duration-300 hover:scale-125 z-10 active:scale-90 group"
                         >
-                            <ChevronLeft className="w-8 h-8 md:w-10 md:h-10 drop-shadow-md group-hover:-translate-x-1 transition-transform" />
+                            <ChevronLeft className="w-8 h-8 md:w-10 md:h-10 drop-shadow-[0_0_2px_rgba(0,0,0,1)] group-hover:-translate-x-1 transition-transform" />
                         </button>
                         <button
                             onClick={handleNext}
-                            className="absolute right-0 top-1/2 -translate-y-1/2 p-4 md:p-6 text-foreground/50 hover:text-[var(--color-primary)] transition-all duration-300 hover:scale-125 z-10 active:scale-90 group"
+                            className="absolute right-0 top-1/2 -translate-y-1/2 p-4 md:p-6 text-white transition-all duration-300 hover:scale-125 z-10 active:scale-90 group"
                         >
-                            <ChevronRight className="w-8 h-8 md:w-10 md:h-10 drop-shadow-md group-hover:translate-x-1 transition-transform" />
+                            <ChevronRight className="w-8 h-8 md:w-10 md:h-10 drop-shadow-[0_0_2px_rgba(0,0,0,1)] group-hover:translate-x-1 transition-transform" />
                         </button>
                     </>
                 )}
@@ -178,22 +178,22 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                         {images.length > 1 && (
                             <>
                                 <button
-                                    className="fixed left-0 md:left-4 top-1/2 -translate-y-1/2 p-6 md:p-10 text-white/40 hover:text-white transition-all z-[110] group active:scale-90"
+                                    className="fixed left-0 md:left-4 top-1/2 -translate-y-1/2 p-6 md:p-10 text-white transition-all z-[110] group active:scale-90"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handlePrev(e);
                                     }}
                                 >
-                                    <ChevronLeft className="w-12 h-12 md:w-16 md:h-16 drop-shadow-2xl group-hover:-translate-x-2 transition-transform" />
+                                    <ChevronLeft className="w-12 h-12 md:w-16 md:h-16 drop-shadow-[0_0_3px_rgba(0,0,0,1)] group-hover:-translate-x-2 transition-transform" />
                                 </button>
                                 <button
-                                    className="fixed right-0 md:right-4 top-1/2 -translate-y-1/2 p-6 md:p-10 text-white/40 hover:text-white transition-all z-[110] group active:scale-90"
+                                    className="fixed right-0 md:right-4 top-1/2 -translate-y-1/2 p-6 md:p-10 text-white transition-all z-[110] group active:scale-90"
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         handleNext(e);
                                     }}
                                 >
-                                    <ChevronRight className="w-12 h-12 md:w-16 md:h-16 drop-shadow-2xl group-hover:translate-x-2 transition-transform" />
+                                    <ChevronRight className="w-12 h-12 md:w-16 md:h-16 drop-shadow-[0_0_3px_rgba(0,0,0,1)] group-hover:translate-x-2 transition-transform" />
                                 </button>
                             </>
                         )}
