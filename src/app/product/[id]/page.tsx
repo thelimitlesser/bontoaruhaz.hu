@@ -293,7 +293,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             <div className="sticky top-32 space-y-6">
 
               {/* Main Buy Box */}
-              <div className="bg-background border-2 border-border rounded-[2rem] p-6 md:p-8 shadow-2xl relative overflow-hidden group">
+              <div className="bg-background border-2 border-border rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden group">
                 {/* Background glow on hover */}
                 <div className="absolute inset-0 bg-gradient-to-br from-[var(--color-primary)]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
@@ -384,22 +384,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         </div>
       </div>
 
-      {/* Sticky Mobile Buy Bar */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border p-4 z-[40] pb-[calc(1rem+env(safe-area-inset-bottom))]">
-        <div className="flex items-center justify-between gap-4 max-w-md mx-auto">
-          <div className="flex flex-col">
-            <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Vételár</span>
-            <div className="flex items-baseline gap-1">
-              <span className="text-xl font-black text-foreground">{product.price.toLocaleString('hu-HU')}</span>
-              <span className="text-xs font-bold text-muted">Ft</span>
-            </div>
-          </div>
-          <div className="flex-1">
-            <AddToCartButton product={product} />
-          </div>
-        </div>
-      </div>
-
+      {/* Sticky Mobile Buy Bar removed as per user request */}
     </div>
   );
 }
