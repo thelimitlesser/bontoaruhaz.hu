@@ -96,7 +96,7 @@ export function Navbar() {
                     <Link href="/" className="-ml-1 sm:-ml-2 lg:-ml-4 flex items-center gap-1 sm:gap-3 text-sm min-[350px]:text-[17px] sm:text-[28px] font-black tracking-tighter text-foreground z-10 group">
                         <div className="relative w-8 h-8 sm:w-16 sm:h-16 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                             <Image
-                                src="/logo_orange.png" alt="Logo" fill priority quality={100} sizes="(max-width: 640px) 32px, 64px" className="object-contain" style={{ filter: "drop-shadow(0px 0px 2px rgba(249,115,22,0.4))" }}
+                                src="/logo_orange.png" alt="Logo" fill priority unoptimized quality={100} sizes="(max-width: 640px) 32px, 64px" className="object-contain" style={{ imageRendering: 'crisp-edges' }}
                             />
                         </div>
                         <span className="group-hover:text-[var(--color-primary)] transition-colors duration-300 whitespace-nowrap">
