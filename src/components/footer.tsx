@@ -29,7 +29,7 @@ export function Footer() {
                             </span>
                         </Link>
                         <p className="text-sm text-background/60 leading-relaxed max-w-xs mx-auto sm:mx-0">
-                            Prémium minőségű bontott autóalkatrészek, megbízható forrásból, garanciával, egyenesen a raktárunkból.
+                            Kiváló minőségű bontott autóalkatrészek, megbízható forrásból, garanciával, egyenesen a raktárunkból.
                         </p>
                     </div>
 

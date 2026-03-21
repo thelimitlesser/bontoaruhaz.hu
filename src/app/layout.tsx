@@ -19,11 +19,11 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://bontoaruhaz.hu"),
-  title: "BONTÓÁRUHÁZ - Prémium Bontott Autóalkatrészek Garanciával",
+  title: "BONTÓÁRUHÁZ - Minőségi Bontott Autóalkatrészek Garanciával",
   description: "Magyarország megbízható autóalkatrész piactere. 15 év tapasztalat, 14 napos pénzvisszafizetési garancia és gyors házhozszállítás.",
   keywords: ["autóalkatrész", "bontott alkatrész", "autóbontó", "alkatrész rendelés", "garanciális alkatrész"],
   openGraph: {
-    title: "BONTÓÁRUHÁZ - Prémium Autóalkatrész Piactér",
+    title: "BONTÓÁRUHÁZ - Megbízható Autóalkatrész Piactér",
     description: "Találd meg a tökéletes alkatrészt másodpercek alatt garanciával.",
     url: "https://bontoaruhaz.hu",
     siteName: "BONTÓÁRUHÁZ",

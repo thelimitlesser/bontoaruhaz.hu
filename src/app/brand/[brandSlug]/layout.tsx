@@ -8,7 +8,7 @@ export async function generateMetadata({ params }: { params: Promise<{ brandSlug
     if (!brand) return { title: 'Márka nem található' }
 
     const title = `Bontott ${brand.name} alkatrészek garanciával - BONTÓÁRUHÁZ`
-    const description = `Prémium minőségű bontott ${brand.name} alkatrészek széles választéka. Gyors szállítás, 14 napos visszavásárlási garancia közvetlenül a raktárunkból.`
+    const description = `Minőségi bontott ${brand.name} alkatrészek széles választéka. Gyors szállítás, 14 napos visszavásárlási garancia közvetlenül a raktárunkból.`
 
     return {
         title,

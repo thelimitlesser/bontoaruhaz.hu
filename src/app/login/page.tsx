@@ -77,7 +77,7 @@ export default function LoginPage() {
                                 {isRegistering ? "Fiók létrehozása" : "Üdvözöljük újra!"}
                             </h1>
                             <p className="text-gray-500 font-medium">
-                                {isRegistering ? "Csatlakozz a prémium autóalkatrész áruházhoz." : "Jelentkezz be a rendeléseid megtekintéséhez."}
+                                {isRegistering ? "Csatlakozz a minőségi autóalkatrész áruházhoz." : "Jelentkezz be a rendeléseid megtekintéséhez."}
                             </p>
                         </div>
 
