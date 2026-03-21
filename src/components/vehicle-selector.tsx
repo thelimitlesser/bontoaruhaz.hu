@@ -224,35 +224,35 @@ export function VehicleSelector() {
 
             {/* Premium Header / Tab Switcher */}
             <div className="flex items-center justify-between p-1.5 bg-gray-100/50 rounded-t-[2.5rem] border-b border-gray-100">
-                <div className="flex w-full overflow-x-auto scrollbar-hide">
+                <div className="flex w-full flex-wrap sm:flex-nowrap p-1 gap-1">
                     <button
                         onClick={() => setActiveTab("manual")}
                         className={clsx(
-                            "flex-1 flex items-center justify-center gap-2 py-3.5 px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
+                            "flex-1 flex items-center justify-center gap-2 py-3 px-2 min-[350px]:px-4 text-[9px] min-[350px]:text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-2xl sm:rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
                             activeTab === "manual" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
                         )}
                     >
-                        <Car className="w-4 h-4" />
+                        <Car className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Márka / Modell
                     </button>
                     <button
                         onClick={() => setActiveTab("code")}
                         className={clsx(
-                            "flex-1 flex items-center justify-center gap-2 py-3.5 px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
+                            "flex-1 flex items-center justify-center gap-2 py-3 px-2 min-[350px]:px-4 text-[9px] min-[350px]:text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-2xl sm:rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
                             activeTab === "code" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
                         )}
                     >
-                        <Hash className="w-4 h-4" />
+                        <Hash className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Cikkszám
                     </button>
                     <button
                         onClick={() => setActiveTab("ai")}
                         className={clsx(
-                            "flex-1 flex items-center justify-center gap-2 py-3.5 px-4 text-[10px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
+                            "flex-1 flex items-center justify-center gap-2 py-3 px-2 min-[350px]:px-4 text-[9px] min-[350px]:text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-2xl sm:rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
                             activeTab === "ai" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
                         )}
                     >
-                        <Zap className="w-4 h-4" />
+                        <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         Okos kereső
                     </button>
                 </div>
@@ -282,7 +282,11 @@ export function VehicleSelector() {
                                     variant="minimal"
                                     placeholder="Modell"
                                     disabled={!selectedBrand}
-                                    options={availableModels.map(m => ({ value: m.id, label: m.name }))}
+                                    options={availableModels.map(m => ({ 
+                                        value: m.id, 
+                                        label: m.name,
+                                        group: m.series || 'Egyéb'
+                                    }))}
                                     value={selectedModel}
                                     onChange={setSelectedModel}
                                 />

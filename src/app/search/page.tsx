@@ -16,15 +16,16 @@ function SearchResultsContent() {
     const query = searchParams.get("query") || "";
     const brand = searchParams.get("brand") || undefined;
     const model = searchParams.get("model") || undefined;
-
-    // New exact-match category params for broad searches
     const category = searchParams.get("cat") || undefined;
     const subcategory = searchParams.get("subcat") || undefined;
     const item = searchParams.get("item") || undefined;
-
     const aiPowered = searchParams.get("ai_powered") === "true";
+    
+    const page = parseInt(searchParams.get("page") || "1");
+    const pageSize = 20;
 
     const [products, setProducts] = useState<any[]>([]);
+    const [totalResults, setTotalResults] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [detectedMeta, setDetectedMeta] = useState<{
         detectedYear?: number;
@@ -46,11 +47,13 @@ function SearchResultsContent() {
                     category: category,
                     subcategory: subcategory,
                     partItem: item,
-                    take: 24
+                    take: pageSize,
+                    skip: (page - 1) * pageSize
                 });
 
                 if (!isStale) {
                     setProducts(results.parts);
+                    setTotalResults(results.total);
                     setDetectedMeta(results.meta);
                 }
             } catch (error) {
@@ -73,7 +76,7 @@ function SearchResultsContent() {
         return () => {
             isStale = true;
         };
-    }, [query, brand, model, category, subcategory, item]);
+    }, [query, brand, model, category, subcategory, item, page]);
 
     return (
         <main className="pt-32 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto">
@@ -361,10 +364,54 @@ function SearchResultsContent() {
                     ))}
                 </div>
             ) : products.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {products.map((product) => (
-                        <ProductCard key={product.id} product={product} />
-                    ))}
+                <div className="space-y-12">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        {products.map((product) => (
+                            <ProductCard key={product.id} product={product} />
+                        ))}
+                    </div>
+
+                    {/* Pagination UI */}
+                    {totalResults > pageSize && (
+                        <div className="flex flex-col items-center gap-4 pt-8 border-t border-gray-100">
+                            <div className="flex items-center gap-2">
+                                {page > 1 && (
+                                    <button
+                                        onClick={() => {
+                                            const params = new URLSearchParams(searchParams.toString());
+                                            params.set("page", (page - 1).toString());
+                                            router.push(`/search?${params.toString()}`);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        className="px-6 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+                                    >
+                                        Előző
+                                    </button>
+                                )}
+                                
+                                <div className="px-6 py-3 bg-gray-900 text-white rounded-xl text-sm font-black shadow-lg">
+                                    {page} / {Math.ceil(totalResults / pageSize)}
+                                </div>
+
+                                {page < Math.ceil(totalResults / pageSize) && (
+                                    <button
+                                        onClick={() => {
+                                            const params = new URLSearchParams(searchParams.toString());
+                                            params.set("page", (page + 1).toString());
+                                            router.push(`/search?${params.toString()}`);
+                                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                                        }}
+                                        className="px-6 py-3 bg-white border border-gray-200 rounded-xl text-sm font-bold hover:bg-gray-50 transition-all active:scale-95 shadow-sm"
+                                    >
+                                        Következő
+                                    </button>
+                                )}
+                            </div>
+                            <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                                Összesen {totalResults} találat • 20 termék oldalanként
+                            </p>
+                        </div>
+                    )}
                 </div>
             ) : (
                 <div className="bg-white border-2 border-dashed border-gray-100 rounded-3xl p-16 text-center max-w-2xl mx-auto">

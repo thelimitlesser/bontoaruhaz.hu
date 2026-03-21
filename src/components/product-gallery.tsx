@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { clsx } from "clsx";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
+import Image from "next/image";
 
 interface ProductGalleryProps {
     images: string[];
@@ -80,18 +81,18 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                     <div className="absolute inset-0 bg-muted animate-pulse" style={{ borderRadius: '46px' }} />
                 )}
 
-                {/* Standard Image Tag for maximum compatibility and instant switching */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                {/* Standard Image Tag replaced with Next.js Image for performance */}
+                <Image
                     key={selectedImage}
                     src={selectedImage}
                     alt={productName}
-                    onLoad={() => setIsLoaded(true)}
+                    onLoadingComplete={() => setIsLoaded(true)}
+                    fill
+                    priority={true}
                     className={clsx(
-                        "w-full h-full object-cover transition-opacity duration-300",
+                        "object-cover transition-opacity duration-300",
                         isLoaded ? "opacity-100" : "opacity-0"
                     )}
-                    style={{ borderRadius: '46px' }}
                 />
 
                 {/* Glass reflection effect */}
@@ -146,81 +147,89 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 </div>
             )}
 
-            {/* Fullscreen Lightbox Modal */}
+            {/* Fullscreen Lightbox Modal (Aligned with Admin Order style) */}
             <AnimatePresence>
                 {isFullscreen && (
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-xl p-4 md:p-8 cursor-zoom-out" onClick={() => setIsFullscreen(false)}
+                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/95 p-4 md:p-10 select-none cursor-default"
+                        onClick={() => setIsFullscreen(false)}
                     >
-                        {/* Close Button */}
-                        <button
-                            className="fixed top-4 right-4 md:top-8 md:right-8 p-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full transition-all z-[120] active:scale-95 shadow-2xl backdrop-blur-md" onClick={(e) => {
-                                e.stopPropagation();
-                                setIsFullscreen(false);
-                            }}
-                            title="Bezárás (Esc)" >
-                            <X className="w-8 h-8 text-white" />
-                        </button>
+                        {/* Top Controls */}
+                        <div className="absolute top-6 left-6 right-6 flex justify-between items-center text-white z-[120]">
+                            <span className="bg-white/10 px-4 py-1.5 rounded-full text-sm font-bold backdrop-blur-md border border-white/10 shadow-xl">
+                                {currentIndex + 1} / {images.length}
+                            </span>
+                            <button
+                                className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all backdrop-blur-md border border-white/10 shadow-xl active:scale-90"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setIsFullscreen(false);
+                                }}
+                                title="Bezárás (Esc)"
+                            >
+                                <X className="w-8 h-8" />
+                            </button>
+                        </div>
 
-                        {/* Navigation Buttons for Fullscreen */}
+                        {/* Navigation Buttons */}
                         {images.length > 1 && (
                             <>
                                 <button
-                                    className="fixed left-4 md:left-12 p-5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full transition-all z-[110] active:scale-95 backdrop-blur-md shadow-xl group" onClick={handlePrev}
+                                    className="fixed left-4 md:left-10 p-5 bg-white/5 hover:bg-white/10 rounded-full text-white transition-all z-[110] border border-white/10 backdrop-blur-sm group active:scale-90"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handlePrev(e);
+                                    }}
                                 >
-                                    <ChevronLeft className="w-10 h-10 text-white group-hover:scale-110 transition-transform" />
+                                    <ChevronLeft className="w-10 h-10 group-hover:-translate-x-1 transition-transform" />
                                 </button>
                                 <button
-                                    className="fixed right-4 md:right-12 p-5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-full transition-all z-[110] active:scale-95 backdrop-blur-md shadow-xl group" onClick={handleNext}
+                                    className="fixed right-4 md:right-10 p-5 bg-white/5 hover:bg-white/10 rounded-full text-white transition-all z-[110] border border-white/10 backdrop-blur-sm group active:scale-90"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleNext(e);
+                                    }}
                                 >
-                                    <ChevronRight className="w-10 h-10 text-white group-hover:scale-110 transition-transform" />
+                                    <ChevronRight className="w-10 h-10 group-hover:translate-x-1 transition-transform" />
                                 </button>
                             </>
                         )}
 
-                        <div
-                            className={clsx("relative w-full h-full flex items-center justify-center transition-all duration-200",
-                                isZoomed ? "overflow-auto block" : "overflow-hidden flex")}
-                            onClick={() => setIsZoomed(!isZoomed)}
-                        >
+                        {/* Main Image Container - Full size, centered */}
+                        <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
                             <motion.img
                                 key={selectedImage}
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                transition={{ type: "spring", damping: 30, stiffness: 400 }}
+                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.9, opacity: 0, y: -20 }}
+                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
                                 src={selectedImage}
                                 alt={productName}
-                                className={clsx("transition-all duration-300 shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-lg",
-                                    isZoomed
-                                        ? "max-w-none w-[150vw] md:w-[120vw] h-auto cursor-zoom-out" : "w-full h-full max-w-[95vw] max-h-[88vh] object-contain cursor-zoom-in")}
+                                className="max-w-full max-h-full object-contain rounded-lg shadow-[0_0_100px_rgba(0,0,0,0.5)]"
                                 onClick={(e) => e.stopPropagation()}
                             />
-
-                            {!isZoomed && (
-                                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 text-white text-xs font-medium pointer-events-none uppercase tracking-widest animate-pulse">
-                                    Kattints a nagyításhoz
-                                </div>
-                            )}
                         </div>
 
-                        {/* Optional: Add thumbnails to the lightbox too for easy switching without closing */}
-                        {images.length > 1 && !isZoomed && (
+                        {/* Thumbnails at bottom for easy switching */}
+                        {images.length > 1 && (
                             <div
-                                className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 p-4 bg-black/50 backdrop-blur-lg rounded-3xl border border-white/10 max-w-[90vw] overflow-x-auto z-[110]" onClick={(e) => e.stopPropagation()}
+                                className="absolute bottom-10 left-0 right-0 flex justify-center gap-3 px-10 overflow-x-auto no-scrollbar py-4 z-[110]"
+                                onClick={(e) => e.stopPropagation()}
                             >
                                 {images.map((img, idx) => (
                                     <button
                                         key={idx}
                                         onClick={() => setSelectedImage(img)}
-                                        className={clsx("relative w-16 h-16 shrink-0 overflow-hidden transition-all duration-300 rounded-xl",
+                                        className={clsx(
+                                            "relative w-16 h-16 shrink-0 overflow-hidden transition-all duration-300 rounded-xl border-2",
                                             selectedImage === img
-                                                ? "ring-2 ring-white scale-110" : "opacity-50 hover:opacity-100")}
+                                                ? "border-[var(--color-primary)] scale-110 shadow-2xl opacity-100"
+                                                : "border-transparent opacity-40 hover:opacity-100"
+                                        )}
                                     >
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
                                         <img src={img} className="object-cover w-full h-full" alt="" />
                                     </button>
                                 ))}

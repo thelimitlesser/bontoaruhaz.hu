@@ -91,12 +91,12 @@ export function Navbar() {
     return (
         <>
             <nav className="fixed top-0 left-0 w-full z-50 border-b border-border bg-background/80 backdrop-blur-xl transition-all font-[family-name:var(--font-geist-sans)] overflow-x-hidden pt-[env(safe-area-inset-top)]">
-                <div className="w-full relative px-3 sm:px-6 h-16 sm:h-20 flex items-center justify-between max-w-7xl mx-auto">
+                <div className="w-full relative px-2 sm:px-6 h-16 sm:h-20 flex items-center justify-between max-w-7xl mx-auto">
                     {/* Logo */}
-                    <Link href="/" className="-ml-1 sm:-ml-2 lg:-ml-4 flex items-center gap-1 sm:gap-3 text-[17px] sm:text-[28px] font-black tracking-tighter text-foreground z-10 group">
-                        <div className="relative w-9 h-9 sm:w-16 sm:h-16 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <Link href="/" className="-ml-1 sm:-ml-2 lg:-ml-4 flex items-center gap-1 sm:gap-3 text-sm min-[350px]:text-[17px] sm:text-[28px] font-black tracking-tighter text-foreground z-10 group">
+                        <div className="relative w-8 h-8 sm:w-16 sm:h-16 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                             <Image
-                                src="/logo_orange.png" alt="Logo" fill priority sizes="(max-width: 640px) 36px, 64px" className="object-contain" style={{ filter: "drop-shadow(0px 0px 5px rgba(249,115,22,0.6))" }}
+                                src="/logo_orange.png" alt="Logo" fill priority sizes="(max-width: 640px) 32px, 64px" className="object-contain" style={{ filter: "drop-shadow(0px 0px 5px rgba(249,115,22,0.6))" }}
                             />
                         </div>
                         <span className="group-hover:text-[var(--color-primary)] transition-colors duration-300 whitespace-nowrap">
@@ -119,37 +119,35 @@ export function Navbar() {
                     </div>
 
                     {/* Actions */}
-                    <div className="flex items-center gap-0.5 sm:gap-4">
+                    <div className="flex items-center gap-0 sm:gap-4">
                         <button
-                            className="relative group p-3 rounded-full hover:bg-foreground/5 transition-colors" onClick={() => setIsCartOpen(true)}
+                            className="relative group p-2 sm:p-3 rounded-full hover:bg-foreground/5 transition-colors" onClick={() => setIsCartOpen(true)}
                             aria-label="Kosár"
                         >
-                            <ShoppingCart className="w-6 h-6 text-muted group-hover:text-foreground transition-colors" />
+                            <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-muted group-hover:text-foreground transition-colors" />
                             {totalItems > 0 && (
-                                <span className="absolute top-1 right-1 w-5 h-5 bg-[var(--color-primary)] rounded-full text-[10px] font-bold flex items-center justify-center text-white shadow-sm">
+                                <span className="absolute top-0.5 right-0.5 w-4 h-4 sm:w-5 sm:h-5 bg-[var(--color-primary)] rounded-full text-[9px] sm:text-[10px] font-bold flex items-center justify-center text-white shadow-sm">
                                     {totalItems}
                                 </span>
                             )}
                         </button>
 
-                        {/* User Profile Tool Toggle */}
                         <div className="relative">
                             <button
-                                className="relative group p-3 rounded-full hover:bg-foreground/5 transition-colors flex items-center justify-center" 
+                                className="relative group p-2 sm:p-3 rounded-full hover:bg-foreground/5 transition-colors flex items-center justify-center" 
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 aria-label="Profil"
                             >
-                                <User className={clsx("w-6 h-6 transition-colors", user ? "text-[var(--color-primary)]" : "text-muted group-hover:text-foreground")} />
+                                <User className={clsx("w-5 h-5 sm:w-6 sm:h-6 transition-colors", user ? "text-[var(--color-primary)]" : "text-muted group-hover:text-foreground")} />
                             </button>
                         </div>
 
-                        {/* Mobile Menu Toggle */}
                         <button
-                            className="md:hidden text-foreground hover:text-[var(--color-primary)] p-3 -mr-2 rounded-full transition-colors" 
+                            className="md:hidden text-foreground hover:text-[var(--color-primary)] p-2 sm:p-3 -mr-1 rounded-full transition-colors" 
                             onClick={() => setIsOpen(!isOpen)}
                             aria-label="Menü"
                         >
-                            {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                            {isOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
                         </button>
                     </div>
                 </div>
@@ -173,7 +171,7 @@ export function Navbar() {
                             animate={{ x: 0 }}
                             exit={{ x: "100%" }}
                             transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                            className="fixed right-0 top-0 bottom-0 w-full sm:w-[400px] bg-background/90 backdrop-blur-2xl border-l border-border z-[70] flex flex-col shadow-2xl overflow-hidden" >
+                            className="fixed right-0 top-0 bottom-0 h-screen h-[100dvh] w-full sm:w-[400px] bg-background/90 backdrop-blur-2xl border-l border-border z-[70] flex flex-col shadow-2xl overflow-hidden" >
                             <div className="h-20 flex items-center justify-between px-6 border-b border-border bg-background/20 backdrop-blur-md">
                                 <span className="font-bold text-lg uppercase tracking-widest text-foreground">Profil</span>
                                 <button
@@ -254,7 +252,7 @@ export function Navbar() {
                         animate={{ x: 0 }}
                         exit={{ x: "100%" }}
                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                        className="fixed right-0 top-0 bottom-0 w-[300px] bg-background/60 backdrop-blur-2xl border-l border-border z-[70] md:hidden flex flex-col shadow-2xl overflow-hidden" >
+                        className="fixed right-0 top-0 bottom-0 h-screen h-[100dvh] w-[300px] bg-background/60 backdrop-blur-2xl border-l border-border z-[70] md:hidden flex flex-col shadow-2xl overflow-hidden" >
                         {/* Drawer Header */}
                         <div className="h-20 flex items-center justify-between px-6 border-b border-border bg-background/20 backdrop-blur-md">
                             <span className="font-bold text-lg uppercase tracking-widest text-[var(--color-primary)]">Menü</span>

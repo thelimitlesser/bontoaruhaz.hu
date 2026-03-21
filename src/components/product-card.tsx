@@ -78,19 +78,11 @@ export function ProductCard({ product }: { product: Product | any }) {
 
                 {/* Content */}
                 <div className="flex-1 flex flex-col p-4 pt-0">
-                    <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                            <Tag className="w-3 h-3 text-[var(--color-primary)]" />
-                            <span className="text-xs text-muted uppercase tracking-wider">
-                                {isPrisma ? `${product.brandName || product.brandId} ${product.modelName || ''}` : product.brand}
-                            </span>
-                        </div>
-                        {isPrisma && product.partner && (
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground bg-foreground/5 px-2 py-0.5 rounded">
-                                <MapPin className="w-2.5 h-2.5" />
-                                {product.partner.businessName}
-                            </div>
-                        )}
+                    <div className="flex items-center gap-2 mb-2">
+                        <Tag className="w-3 h-3 text-[var(--color-primary)]" />
+                        <span className="text-xs text-muted uppercase tracking-wider">
+                            {isPrisma ? `${product.brandName || product.brandId} ${product.modelName || ''}` : product.brand}
+                        </span>
                     </div>
 
                     <h3 className="text-lg font-bold text-foreground mb-1 leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-2">

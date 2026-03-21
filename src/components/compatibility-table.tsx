@@ -43,7 +43,7 @@ export function CompatibilityTable({ brand, model, yearFrom, yearTo, isUniversal
             </h3>
 
             <div className="glass-panel rounded-2xl overflow-hidden border border-border">
-                <table className="w-full text-left text-sm text-muted">
+                <table className="w-full text-left text-sm">
                     <thead className="bg-foreground/5 text-foreground uppercase tracking-wider text-xs">
                         <tr>
                             <th className="p-4 font-semibold">Márka</th>
@@ -52,12 +52,12 @@ export function CompatibilityTable({ brand, model, yearFrom, yearTo, isUniversal
                             <th className="p-4 font-semibold text-right">Státusz</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-border">
+                    <tbody className="divide-y divide-border text-foreground">
                         {/* Primary Donor Vehicle */}
                         <tr className="hover:bg-foreground/5 transition-colors group">
-                            <td className="p-4 text-foreground font-medium">{brand}</td>
-                            <td className="p-4">{model}</td>
-                            <td className="p-4 hidden sm:table-cell">
+                            <td className="p-4 font-bold">{brand}</td>
+                            <td className="p-4 font-medium">{model}</td>
+                            <td className="p-4 hidden sm:table-cell font-medium">
                                 {yearFrom ||'...'} - {yearTo ||'...'}
                             </td>
                             <td className="p-4 text-right">
@@ -73,9 +73,9 @@ export function CompatibilityTable({ brand, model, yearFrom, yearTo, isUniversal
                             const mName = getModelBySlug(comp.modelId)?.name || comp.modelId;
                             return (
                                 <tr key={idx} className="hover:bg-foreground/5 transition-colors group">
-                                    <td className="p-4 text-foreground font-medium">{bName}</td>
-                                    <td className="p-4">{mName}</td>
-                                    <td className="p-4 hidden sm:table-cell">
+                                    <td className="p-4 font-bold">{bName}</td>
+                                    <td className="p-4 font-medium">{mName}</td>
+                                    <td className="p-4 hidden sm:table-cell font-medium">
                                         {comp.yearFrom ||'...'} - {comp.yearTo ||'...'}
                                     </td>
                                     <td className="p-4 text-right">

@@ -24,6 +24,7 @@ export default async function InventoryPage({
         where.OR = [
             { name: { contains: query, mode: 'insensitive' } },
             { sku: { contains: query, mode: 'insensitive' } },
+            { productCode: { contains: query, mode: 'insensitive' } },
             { oemNumbers: { contains: query, mode: 'insensitive' } },
         ];
     }
@@ -46,20 +47,33 @@ export default async function InventoryPage({
 
     // For models, if a make is selected, provide its models
     const availableModels = make ? getModelsByBrand(make) : [];
-    const modelOptions = availableModels.map(m => ({ value: m.id, label: m.name }));
+    const modelOptions = availableModels.map(m => ({ 
+        value: m.id, 
+        label: m.name,
+        group: m.series || 'Egyéb'
+    }));
 
 
-    // 3. Fetch Parts
-    const parts = await prisma.part.findMany({
-        where,
-        take: 50,
-        orderBy: { createdAt: 'desc' },
-        include: {
-            compatibilities: true
-        }
-    });
+    // 3. Pagination logic
+    const pageSize = 50;
+    const page = parseInt(params.page || "1");
+    const skip = (page - 1) * pageSize;
 
-    const totalParts = await prisma.part.count({ where });
+    // 4. Fetch Parts
+    const [parts, totalParts] = await Promise.all([
+        prisma.part.findMany({
+            where,
+            take: pageSize,
+            skip: skip,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                compatibilities: true
+            }
+        }),
+        prisma.part.count({ where })
+    ]);
+
+    const totalPages = Math.ceil(totalParts / pageSize);
 
     return (
         <div className="space-y-6 text-gray-900">
@@ -68,7 +82,7 @@ export default async function InventoryPage({
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">Készlet & Raktár</h1>
                     <p className="text-gray-500">
-                        {totalParts} alkatrész a rendszerben. Keresés cikkszám, név vagy OEM alapján.
+                        {totalParts} alkatrész a rendszerben. Keresés cikkszám, név vagy referencia alapján.
                     </p>
                 </div>
                 <div className="flex gap-3">
@@ -85,10 +99,41 @@ export default async function InventoryPage({
             {/* Smart Table (Client Component for Actions) */}
             <InventoryTable parts={parts} />
 
-            {/* Pagination Placeholder */}
-            <div className="flex justify-center pt-4">
-                <p className="text-xs text-gray-500">Megjelenítve: {parts.length} / {totalParts}</p>
-            </div>
+            {/* Pagination */}
+            {totalPages > 1 && (
+                <div className="flex flex-col items-center gap-4 pt-4">
+                    <div className="flex items-center gap-2">
+                        {page > 1 && (
+                            <Link 
+                                href={`/admin/inventory?page=${page - 1}${query ? `&q=${query}` : ''}${make ? `&make=${make}` : ''}${model ? `&model=${model}` : ''}`}
+                                className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                            >
+                                Előző
+                            </Link>
+                        )}
+                        <span className="px-4 py-2 text-sm font-bold bg-foreground/5 rounded-lg">
+                            {page} / {totalPages}
+                        </span>
+                        {page < totalPages && (
+                            <Link 
+                                href={`/admin/inventory?page=${page + 1}${query ? `&q=${query}` : ''}${make ? `&make=${make}` : ''}${model ? `&model=${model}` : ''}`}
+                                className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
+                            >
+                                Következő
+                            </Link>
+                        )}
+                    </div>
+                    <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">
+                        Összesen {totalParts} tétel • Oldalanként 50 találat
+                    </p>
+                </div>
+            )}
+            
+            {totalPages <= 1 && (
+                <div className="flex justify-center pt-4">
+                    <p className="text-xs text-gray-500">Megjelenítve: {parts.length} / {totalParts}</p>
+                </div>
+            )}
         </div>
     );
 }

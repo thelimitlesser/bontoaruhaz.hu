@@ -4,6 +4,8 @@ import { ArrowLeft, User, MapPin, Package, CreditCard, Truck } from"lucide-react
 import { OrderStatusUpdater } from"./status-updater";
 import { PaymentStatusUpdater } from"./payment-status-updater";
 import { ApproveOrderButton } from"./approve-button";
+import { OrderItemDetails } from "./order-item-details";
+import { ShipmentTracker } from "./ShipmentTracker";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const { id } = await params;
@@ -72,42 +74,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         <div className="divide-y divide-gray-200 dark:divide-white/10">
                             {order.items.map((item: any) => (
                                 <div key={item.id} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-20 h-20 bg-gray-100 dark:bg-gray-800 rounded-lg flex items-center justify-center text-xs text-gray-400 overflow-hidden border border-gray-200 dark:border-gray-700 font-bold">
-                                            {(() => {
-                                                if (!item.part?.images) return "Nincs kép";
-                                                try {
-                                                    const imgs = JSON.parse(item.part.images);
-                                                    return <img src={imgs[0]} alt={item.part.name} className="w-full h-full object-cover" />;
-                                                } catch (e) {
-                                                    return "Nincs kép";
-                                                }
-                                            })()}
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="font-bold text-gray-900 dark:text-white leading-tight">{item.part?.name || 'Ismeretlen termék'}</p>
-                                            <p className="text-sm font-medium text-[var(--color-primary)]">
-                                                {item.part?.VehicleBrand?.name} {item.part?.VehicleModel?.name}
-                                            </p>
-                                            <div className="flex flex-wrap gap-2 mt-1">
-                                                <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-gray-100 dark:bg-white/10 rounded font-mono text-gray-500 dark:text-gray-400">
-                                                    SKU: {item.part?.sku || 'N/A'}
-                                                </span>
-                                                {item.part?.PartCategory && (
-                                                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded font-bold">
-                                                        {item.part.PartCategory.name}
-                                                    </span>
-                                                )}
-                                                {(item.part?.weight || item.part?.length || item.part?.width || item.part?.height) && (
-                                                    <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-zinc-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 rounded font-bold flex items-center gap-1">
-                                                        <Truck className="w-3 h-3" />
-                                                        {item.part?.weight ? `${item.part.weight}kg` : ''} 
-                                                        {item.part?.length && item.part?.width && item.part?.height ? `${item.part.length}x${item.part.width}x${item.part.height}cm` : ''}
-                                                    </span>
-                                                )}
-                                            </div>
-                                        </div>
-                                    </div>
+                                    <OrderItemDetails item={item} />
+
                                     <div className="sm:text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 border-gray-100 dark:border-white/5 pt-2 sm:pt-0">
                                         <p className="font-black text-lg text-gray-900 dark:text-white">{item.priceAtTime.toLocaleString('hu-HU')} Ft</p>
                                         <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{item.quantity} db</p>
@@ -130,7 +98,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             Vásárló Adatai
                         </h2>
                         <div className="space-y-1">
-                            <p className="text-gray-900 dark:text-white font-bold">{order.user?.fullName ||'Vendég'}</p>
+                            <p className="text-gray-900 dark:text-white font-bold">
+                                {order.user?.fullName || (shipping ? (shipping.name || `${shipping.firstName || ''} ${shipping.lastName || ''}`.trim()) : 'Vendég')}
+                            </p>
                             <p className="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-1">
                                 {order.user?.email}
                             </p>
@@ -159,10 +129,51 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                             <p>{shipping?.street || shipping?.address}</p>
                                         </div>
                                     </div>
+                                    <div className="mt-2 pt-2 border-t border-gray-100 dark:border-white/5 space-y-1">
+                                        <p className="text-xs flex items-center gap-2">
+                                            <span className="font-bold text-gray-400 uppercase tracking-tighter w-12 shrink-0 text-[10px]">Email:</span>
+                                            <span className="text-gray-900 dark:text-white">{order.user?.email || shipping.email || 'N/A'}</span>
+                                        </p>
+                                        <p className="text-xs flex items-center gap-2">
+                                            <span className="font-bold text-gray-400 uppercase tracking-tighter w-12 shrink-0 text-[10px]">Tel:</span>
+                                            <span className="text-gray-900 dark:text-white">{shipping.phone || order.user?.phoneNumber || 'N/A'}</span>
+                                        </p>
+                                    </div>
+                                    <ShipmentTracker 
+                                        orderId={order.id} 
+                                        trackingNumber={order.trackingNumber} 
+                                    />
                                 </div>
                             ) : (
                                 <p className="text-gray-500 italic py-2">Vevő bejön érte a telephelyre.</p>
                             )}
+                            
+                            {/* Shipping Dimensions Summary */}
+                            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 space-y-3">
+                                <h3 className="text-xs font-bold uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                                    <Package className="w-3 h-3" />
+                                    Csomag adatai
+                                </h3>
+                                <div className="space-y-2">
+                                    {order.items.map((item: any, idx: number) => (
+                                        <div key={item.id} className="bg-gray-50 dark:bg-white/5 p-2 rounded-lg border border-gray-100 dark:border-white/5">
+                                            <p className="text-[10px] font-bold text-gray-900 dark:text-white truncate mb-1">
+                                                {idx + 1}. {item.part?.name}
+                                            </p>
+                                            <div className="flex items-center gap-3 text-xs font-mono text-[var(--color-primary)]">
+                                                <span className="flex items-center gap-1">
+                                                    <Truck className="w-3 h-3" />
+                                                    {item.part?.weight || '?'} kg
+                                                </span>
+                                                <span className="text-gray-400">|</span>
+                                                <span>
+                                                    {item.part?.length || '?'}x{item.part?.width || '?'}x{item.part?.height || '?'} cm
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -181,8 +192,15 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                             <p className="text-gray-900 dark:text-white font-bold">{billing.name || (billing.companyName) || 'Nincs név'}</p>
                                             <p>{billing.postalCode} {billing.city}</p>
                                             <p>{billing.address}</p>
+                                            <p className="mt-2 text-xs flex items-center gap-2">
+                                                <span className="font-bold text-gray-400 uppercase tracking-tighter w-12 shrink-0 text-[10px]">Email:</span>
+                                                <span className="text-gray-900 dark:text-white">{billing.email || order.user?.email || 'N/A'}</span>
+                                            </p>
                                             {billing.taxNumber && (
-                                                <p className="mt-2 pt-2 border-t border-gray-100 dark:border-white/5 text-xs">Adószám: <span className="font-bold text-gray-900 dark:text-white">{billing.taxNumber}</span></p>
+                                                <p className="mt-2 pt-2 border-t border-gray-100 dark:border-white/5 text-xs flex items-center gap-2">
+                                                    <span className="font-bold text-gray-400 uppercase tracking-tighter w-12 shrink-0 text-[10px]">Adószám:</span>
+                                                    <span className="text-gray-900 dark:text-white font-bold">{billing.taxNumber}</span>
+                                                </p>
                                             )}
                                         </div>
                                     );

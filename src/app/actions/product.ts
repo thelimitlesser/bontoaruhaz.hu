@@ -10,40 +10,15 @@ import { promises as fs } from "fs";
 import { brands, models, partItems, categories, partsSubcategories as subcategories } from "@/lib/vehicle-data";
 import { partSynonyms } from "@/lib/search-synonyms";
 import { findClosestMatches } from "@/lib/string-similarity";
+import { parseProductFormData } from "@/utils/product-utils";
 
 export async function createProduct(formData: FormData) {
-    const rawFormData = {
-        name: formData.get('name') as string,
-        sku: formData.get('sku') as string,
-        productCode: formData.get('productCode') as string,
-        priceGross: parseInt(formData.get('priceGross') as string),
-        // Calculate net based on 27% VAT default
-        priceNet: Math.round(parseInt(formData.get('priceGross') as string) / 1.27),
-        description: formData.get('description') as string,
-        oemNumbers: formData.get('oemNumbers') as string, // stored as CSV string
-        engineCode: formData.get('engineCode') as string,
-        condition: formData.get('condition') as string,
-        stock: parseInt(formData.get('stock') as string),
-        brandId: formData.get('brandId') as string,
-        modelId: formData.get('modelId') as string,
-        categoryId: formData.get('categoryId') as string,
-        subcategoryId: formData.get('subcategoryId') as string,
-        partItemId: formData.get('partItemId') as string,
-        yearFrom: formData.get('yearFrom') ? parseInt(formData.get('yearFrom') as string) : null,
-        yearTo: formData.get('yearTo') ? parseInt(formData.get('yearTo') as string) : null,
-        isUniversal: formData.get('isUniversal') === 'true',
-        compatibilitiesData: formData.get('compatibilitiesData') as string,
-        weight: formData.get('weight') ? parseFloat(formData.get('weight') as string) : null,
-        height: formData.get('height') ? parseFloat(formData.get('height') as string) : null,
-        width: formData.get('width') ? parseFloat(formData.get('width') as string) : null,
-        length: formData.get('length') ? parseFloat(formData.get('length') as string) : null,
-        shippingPrice: formData.get('shippingPrice') ? parseInt(formData.get('shippingPrice') as string) : null,
-    };
+    const rawFormData = parseProductFormData(formData);
 
     // basic validation
     if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice) || 
-        !rawFormData.weight || !rawFormData.height || !rawFormData.width || !rawFormData.length) {
-        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj, Súly, Méretek)");
+        !rawFormData.weight || !rawFormData.length || !rawFormData.width || !rawFormData.height) {
+        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj, Súly, Hossz, Szélesség, Magasság)");
     }
 
     // 1. Get current user and ensure they exist in Prisma
@@ -191,37 +166,11 @@ export async function createProduct(formData: FormData) {
 }
 
 export async function updateProduct(id: string, formData: FormData) {
-    const rawFormData = {
-        name: formData.get('name') as string,
-        sku: formData.get('sku') as string,
-        productCode: formData.get('productCode') as string,
-        priceGross: parseInt(formData.get('priceGross') as string),
-        priceNet: Math.round(parseInt(formData.get('priceGross') as string) / 1.27),
-        description: formData.get('description') as string,
-        oemNumbers: formData.get('oemNumbers') as string,
-        condition: formData.get('condition') as string,
-        stock: parseInt(formData.get('stock') as string),
-        engineCode: formData.get('engineCode') as string,
-        brandId: formData.get('brandId') as string,
-        modelId: formData.get('modelId') as string,
-        categoryId: formData.get('categoryId') as string,
-        subcategoryId: formData.get('subcategoryId') as string,
-        partItemId: formData.get('partItemId') as string,
-        yearFrom: formData.get('yearFrom') ? parseInt(formData.get('yearFrom') as string) : null,
-        yearTo: formData.get('yearTo') ? parseInt(formData.get('yearTo') as string) : null,
-        isUniversal: formData.get('isUniversal') === 'true',
-        compatibilitiesData: formData.get('compatibilitiesData') as string,
-        existingImages: formData.get('existingImages') as string || "",
-        weight: formData.get('weight') ? parseFloat(formData.get('weight') as string) : null,
-        height: formData.get('height') ? parseFloat(formData.get('height') as string) : null,
-        width: formData.get('width') ? parseFloat(formData.get('width') as string) : null,
-        length: formData.get('length') ? parseFloat(formData.get('length') as string) : null,
-        shippingPrice: formData.get('shippingPrice') ? parseInt(formData.get('shippingPrice') as string) : null,
-    };
+    const rawFormData = parseProductFormData(formData);
 
     if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice) ||
-        !rawFormData.weight || !rawFormData.height || !rawFormData.width || !rawFormData.length) {
-        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj, Súly, Méretek)");
+        !rawFormData.weight || !rawFormData.length || !rawFormData.width || !rawFormData.height) {
+        throw new Error("Hiányzó kötelező mezők! (Név, Cikkszám, Ár, Szállítási díj, Súly, Hossz, Szélesség, Magasság)");
     }
 
     // Handle New Image Uploads
@@ -409,9 +358,10 @@ export async function getSearchProducts(params: {
     maxPrice?: number;
     query?: string;
     take?: number;
+    skip?: number;
 }) {
     let { query, year: searchYear } = params;
-    const { brand, model, category, subcategory, partItem, minPrice, maxPrice, take } = params;
+    const { brand, model, category, subcategory, partItem, minPrice, maxPrice, take = 20, skip = 0 } = params;
 
     // Smart year detection from query (e.g. "Audi A6 2018")
     if (query && !searchYear) {
@@ -565,17 +515,21 @@ export async function getSearchProducts(params: {
     // Always filter out 0 stock products for public queries
     where.stock = { gt: 0 };
 
-    const parts = await prisma.part.findMany({
-        where,
-        take: take || undefined,
-        orderBy: { createdAt: 'desc' },
-        include: {
-            partner: true,
-            reservations: {
-                where: { expiresAt: { gt: new Date() } }
+    const [parts, total] = await Promise.all([
+        prisma.part.findMany({
+            where,
+            take: take,
+            skip: skip,
+            orderBy: { createdAt: 'desc' },
+            include: {
+                partner: true,
+                reservations: {
+                    where: { expiresAt: { gt: new Date() } }
+                }
             }
-        }
-    });
+        }),
+        prisma.part.count({ where })
+    ]);
 
     // Enhance results with human-readable model names from our vehicle-data
     const enhancedParts = parts.map(part => {
@@ -632,6 +586,7 @@ export async function getSearchProducts(params: {
 
     return {
         parts: enhancedParts,
+        total,
         meta: {
             detectedYear: searchYear,
             detectedBrand: matchingBrands[0]?.name,

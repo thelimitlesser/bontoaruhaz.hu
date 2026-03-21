@@ -87,7 +87,17 @@ model Part {
   partner         PartnerProfile      @relation(fields: [partnerId], references: [id])
   PartSubcategory PartSubcategory?    @relation(fields: [subcategoryId], references: [id])
   compatibilities PartCompatibility[]
+  events          PartEvent[]
   reservations    Reservation[]
+
+  @@index([sku])
+  @@index([productCode])
+  @@index([brandId])
+  @@index([modelId])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([partItemId])
+  @@index([createdAt])
 }
 
 model Order {

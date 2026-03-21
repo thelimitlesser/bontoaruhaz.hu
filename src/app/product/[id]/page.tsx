@@ -44,7 +44,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const subcategorySlug = subcategoryObj?.slug || dbPart.subcategoryId;
   const partItemSlug = partItemObj?.slug || dbPart.partItemId;
 
-  const conditionMap: Record<string, "Új" | "Használt" | "Felújított"> = { "NEW": "Új", "USED": "Használt", "REFURBISHED": "Felújított" };
+  const normalizedCondition = (dbPart.condition || "USED").toUpperCase();
+  const conditionMap: Record<string, string> = { 
+    "NEW": "Új", 
+    "USED": "Használt", 
+    "REFURBISHED": "Felújított",
+    "ÚJ": "Új",
+    "HASZNÁLT": "Használt",
+    "FELÚJÍTOTT": "Felújított"
+  };
 
   const images = (dbPart.images || "").split(",").filter(img => img.length > 0);
   const mainImage = images.length > 0 ? images[0] : "/placeholder.png";
@@ -55,7 +63,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     price: dbPart.priceGross,
     currency: dbPart.currency,
     image: mainImage,
-    condition: conditionMap[dbPart.condition] || "Ismeretlen",
+    condition: (conditionMap[normalizedCondition] || "Ismeretlen") as any,
     brand: brandName,
     model: modelName,
     sku: dbPart.sku,
@@ -102,7 +110,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   };
 
   return (
-    <div className="min-h-screen pb-24 px-4 md:px-8 relative z-0 bg-background overflow-x-hidden w-full max-w-[100vw]" style={{ paddingTop: '100px' }}>
+    <div className="min-h-screen pb-24 px-4 md:px-8 relative bg-background overflow-x-hidden w-full max-w-[100vw]" style={{ paddingTop: '100px' }}>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -238,32 +246,24 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                       <Info className="w-5 h-5 text-[var(--color-primary)]" />
                       Termékleírás
                     </h3>
-                    <div className="text-muted leading-relaxed max-w-none prose">
-                      {/* Automated Header */}
-                    <p className="font-bold mb-4 text-foreground uppercase tracking-tight">
-                      ELADÓ {product.condition.toLowerCase()} {brandName} {modelName} {dbPart.name}
-                    </p>
-
-                    {/* Custom Body Text */}
-                    {dbPart.description && dbPart.description.split('\\n').map((line, i) => (
-                      <p key={i} className="mb-2">{line}</p>
+                    <div className="text-foreground leading-relaxed max-w-none prose prose-p:text-foreground">
+                    {/* First line is the header, make it bold and stand out */}
+                    {dbPart.description && dbPart.description.split('\n').map((line, i) => (
+                      <p 
+                        key={i} 
+                        className={i === 0 ? "font-bold mb-6 text-lg uppercase tracking-tight" : "mb-2 text-foreground"}
+                      >
+                        {line.replace(/\\n/g, '\n')}
+                      </p>
                     ))}
 
-                    {/* Automated Footer */}
+                    {/* Meta-info icons below the text */}
                     <div className="mt-8 pt-6 border-t border-border space-y-4 text-sm italic">
                       <div className="flex items-center gap-3">
                         <div className="p-2 bg-foreground/[0.03] rounded-lg">
                           <Truck className="w-4 h-4 text-[var(--color-primary)]" />
                         </div>
-                        <p className="text-muted">Szállítási idő: <span className="font-bold text-foreground">2-3 munkanap.</span></p>
-                      </div>
-                      <div className="flex items-start gap-3">
-                        <div className="p-2 bg-foreground/[0.03] rounded-lg shrink-0">
-                          <AlertCircle className="w-4 h-4 text-[var(--color-primary)]" />
-                        </div>
-                        <p className="text-muted leading-snug">
-                          Ha bármi kérdése van az alkatrésszel kapcsolatban, kérjük hivatkozzon a termék hivatkozási számára: <span className="font-bold text-foreground">{dbPart.productCode || "-"}</span>
-                        </p>
+                        <p className="text-foreground">Szállítási idő: <span className="font-black">1-3 munkanap.</span></p>
                       </div>
                     </div>
                     </div>
@@ -309,42 +309,10 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                     </div>
                   </div>
 
-                  {/* Shipping Info Block */}
-                  {product.shippingPrice && (
-                    <div className="bg-[var(--color-primary)]/5 border border-[var(--color-primary)]/10 p-4 rounded-xl flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-[var(--color-primary)]/10 rounded-lg text-[var(--color-primary)]">
-                          <Truck className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <div className="text-[10px] text-muted uppercase font-bold tracking-wider">Várható szállítási díj</div>
-                          <div className="text-lg font-black text-foreground">{product.shippingPrice.toLocaleString('hu-HU')} Ft</div>
-                        </div>
-                      </div>
-                      <div className="text-right hidden sm:block text-[10px] text-muted italic">
-                        Pannon XP futárszolgálattal
-                      </div>
-                    </div>
-                  )}
 
-                  {/* Dimensions Badge (Optional Tooltip/Info) */}
-                  {(product.weight || (product.length && product.width && product.height)) && (
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {product.weight && (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-md text-[10px] font-bold text-gray-600">
-                          <Scale className="w-3 h-3" />
-                          {product.weight} kg
-                        </div>
-                      )}
-                      {product.length && product.width && product.height && (
-                        <div className="flex items-center gap-1.5 px-2.5 py-1 bg-gray-100 rounded-md text-[10px] font-bold text-gray-600">
-                          <Box className="w-3 h-3" />
-                          {product.length}×{product.width}×{product.height} cm
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  <div className="mt-2 text-xs sm:text-sm text-emerald-600 font-medium flex items-center gap-2">
+
+
+                  <div className="mt-2 text-xs sm:text-sm text-emerald-600 font-bold flex items-center gap-2">
                     <Truck className="w-4 h-4" />
                     Raktárról azonnal szállítjuk
                   </div>
@@ -373,10 +341,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
                   <div className="flex flex-col gap-3">
                     <AddToCartButton product={product} />
-                    <Link href="/checkout" className="w-full h-16 bg-slate-900 border-2 border-slate-900 hover:bg-slate-800 text-white font-bold text-base xl:text-lg rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-[0.98] shadow-lg shadow-slate-900/20">
-                      PÉNZTÁRHOZ
-                    </Link>
-
+                    
                     {/* Guarantee Badge moved here */}
                     <div className="mt-2 flex items-center justify-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-500/10 py-3 rounded-xl border border-emerald-500/20">
                       <ShieldCheck className="w-5 h-5" /> 14 Nap Pénzvisszafizetési Garancia
@@ -415,6 +380,22 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                 +36 30 123 4567
               </a>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Sticky Mobile Buy Bar */}
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-background/80 backdrop-blur-xl border-t border-border p-4 z-[40] pb-[calc(1rem+env(safe-area-inset-bottom))]">
+        <div className="flex items-center justify-between gap-4 max-w-md mx-auto">
+          <div className="flex flex-col">
+            <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Vételár</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-xl font-black text-foreground">{product.price.toLocaleString('hu-HU')}</span>
+              <span className="text-xs font-bold text-muted">Ft</span>
+            </div>
+          </div>
+          <div className="flex-1">
+            <AddToCartButton product={product} />
           </div>
         </div>
       </div>

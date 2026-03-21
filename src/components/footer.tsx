@@ -35,12 +35,14 @@ export function Footer() {
 
                     {/* Quick Links */}
                     <div className="flex flex-col items-center sm:items-start space-y-1">
-                        <h4 className="text-background font-bold uppercase tracking-wider text-sm mb-4">Információk</h4>
-                        <Link href="/about" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Rólunk</Link>
-                        <Link href="/faq" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Gyakori Kérdések</Link>
-                        <Link href="/warranty" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Garancia és Visszaküldés</Link>
-                        <Link href="/terms" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Általános Szerződési Feltételek</Link>
-                        <Link href="/privacy" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 -ml-2 rounded-lg">Adatvédelmi Tájékoztató</Link>
+                        <h4 className="text-background font-bold uppercase tracking-wider text-sm mb-4 text-center sm:text-left">Információk</h4>
+                        <div className="flex flex-col items-center sm:items-start w-full">
+                            <Link href="/about" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Rólunk</Link>
+                            <Link href="/faq" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Gyakori Kérdések</Link>
+                            <Link href="/warranty" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Garancia és Visszaküldés</Link>
+                            <Link href="/terms" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Általános Szerződési Feltételek</Link>
+                            <Link href="/privacy" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Adatvédelmi Tájékoztató</Link>
+                        </div>
                     </div>
 
                     {/* Contact */}

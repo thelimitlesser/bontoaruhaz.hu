@@ -1,5 +1,6 @@
 "use client";
 
+import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Search } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useTransition } from "react";
@@ -10,7 +11,7 @@ export function InventoryFilters({
     models
 }: {
     makes: { value: string; label: string }[];
-    models: { value: string; label: string }[];
+    models: { value: string; label: string; group?: string }[];
 }) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -60,36 +61,37 @@ export function InventoryFilters({
     }, [query, selectedMake, selectedModel, router, searchParams]);
 
     return (
-        <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-xl flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
+        <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center">
+            <div className="flex-1 relative w-full">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Keresés... (Pl. Generátor, 03L903023F, Audi A4)" className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-12 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 placeholder-gray-500 font-medium transition-colors" />
+                    placeholder="Keresés... (Pl. Generátor, 03L903023F, Audi A4)" 
+                    className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-12 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 placeholder-gray-500 font-medium transition-colors" />
             </div>
-            <div className="flex gap-4">
-                <select
-                    value={selectedMake}
-                    onChange={(e) => {
-                        setSelectedMake(e.target.value);
-                        setSelectedModel(""); // Reset model when make changes
-                    }}
-                    className="bg-white border border-gray-200 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[var(--color-primary)] w-40" >
-                    <option value="">Minden Márka</option>
-                    {makes.map(make => (
-                        <option key={make.value} value={make.value}>{make.label}</option>
-                    ))}
-                </select>
-                <select
-                    value={selectedModel}
-                    onChange={(e) => setSelectedModel(e.target.value)}
-                    className="bg-white border border-gray-200 rounded-lg px-4 py-3 text-gray-700 focus:outline-none focus:border-[var(--color-primary)] w-40" >
-                    <option value="">Minden Modell</option>
-                    {models.map(model => (
-                        <option key={model.value} value={model.value}>{model.label}</option>
-                    ))}
-                </select>
+            
+            <div className="flex gap-4 w-full md:w-auto">
+                <div className="min-w-[180px] flex-1 md:flex-none">
+                    <SearchableSelect
+                        placeholder="Minden Márka"
+                        options={makes}
+                        value={selectedMake}
+                        onChange={(val) => {
+                            setSelectedMake(val);
+                            setSelectedModel("");
+                        }}
+                    />
+                </div>
+                <div className="min-w-[180px] flex-1 md:flex-none">
+                    <SearchableSelect
+                        placeholder="Minden Modell"
+                        disabled={!selectedMake}
+                        options={models}
+                        value={selectedModel}
+                        onChange={setSelectedModel}
+                    />
+                </div>
             </div>
         </div>
     );

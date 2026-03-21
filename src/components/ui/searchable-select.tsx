@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Search, Check } from "lucide-react";
+import { ChevronDown, Search, Check, X } from "lucide-react";
 import clsx from "clsx";
 
 interface Option {
@@ -82,43 +82,66 @@ export function SearchableSelect({
             {name && <input type="hidden" name={name} value={value} />}
             {label && <label className="block text-xs text-muted mb-1 ml-1">{label}</label>}
 
-            <button
-                type="button" onClick={() => !disabled && setIsOpen(!isOpen)}
-                disabled={disabled}
-                className={clsx(
-                    "w-full text-left flex items-center transition-all outline-none",
-                    variant === "minimal" ? "justify-center" : "rounded-lg px-4 py-3 border justify-between",
-                    // Base styles by variant
-                    variant === "minimal" 
-                        ? "bg-transparent border-none px-2 py-3" 
-                        : theme === "dark" 
-                            ? "bg-foreground/5 border-border" 
-                            : "bg-gray-50 border-gray-200",
-                    // State styles
-                    disabled 
-                        ? "opacity-50 cursor-not-allowed text-muted" 
-                        : "hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)]",
-                    // Text colors by theme
-                    !disabled && (theme === "dark" ? "text-foreground" : "text-gray-900"),
-                    // Active state
-                    isOpen && variant !== "minimal" && "border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]"
+            <div className="relative group/select">
+                <button
+                    type="button" onClick={() => !disabled && setIsOpen(!isOpen)}
+                    disabled={disabled}
+                    className={clsx(
+                        "w-full text-left flex items-center transition-all outline-none",
+                        variant === "minimal" ? "justify-center" : "rounded-lg px-4 py-3 border justify-between",
+                        // Base styles by variant
+                        variant === "minimal" 
+                            ? "bg-transparent border-none px-2 py-3" 
+                            : theme === "dark" 
+                                ? "bg-foreground/5 border-border" 
+                                : "bg-gray-50 border-gray-200",
+                        // State styles
+                        disabled 
+                            ? "opacity-50 cursor-not-allowed text-muted" 
+                            : "hover:border-[var(--color-primary)]/50 focus:border-[var(--color-primary)]",
+                        // Text colors by theme
+                        !disabled && (theme === "dark" ? "text-foreground" : "text-gray-900"),
+                        // Active state
+                        isOpen && variant !== "minimal" && "border-[var(--color-primary)] ring-1 ring-[var(--color-primary)]"
+                    )}
+                >
+                    <div className={clsx("flex items-center gap-2 min-w-0 px-2", variant === "minimal" ? "justify-center w-full" : "")}>
+                        <span className={clsx("truncate font-medium transition-colors",
+                            variant === "minimal" && "text-center flex-1",
+                            !selectedOption
+                                ? (theme === "dark" ? "text-muted" : "text-gray-400")
+                                : "text-[var(--color-primary)]"
+                        )}>
+                            {selectedOption ? selectedOption.label : placeholder}
+                        </span>
+                        {!selectedOption || isOpen ? (
+                            <ChevronDown className={clsx("w-3.5 h-3.5 shrink-0 transition-transform",
+                                isOpen && "rotate-180",
+                                selectedOption ? "text-[var(--color-primary)]/70" : (theme === "dark" ? "text-muted" : "text-gray-400")
+                            )} />
+                        ) : (
+                            <div className="w-3.5 h-3.5" /> // Spacer for X
+                        )}
+                    </div>
+                </button>
+
+                {/* Clear Button (X) */}
+                {selectedOption && !isOpen && !disabled && (
+                    <button
+                        type="button"
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            onChange("");
+                        }}
+                        className={clsx(
+                            "absolute right-3 top-1/2 -translate-y-1/2 p-1 rounded-md hover:bg-foreground/10 transition-colors z-10",
+                            theme === "dark" ? "text-muted hover:text-foreground" : "text-gray-400 hover:text-gray-600"
+                        )}
+                    >
+                        <X className="w-3.5 h-3.5" />
+                    </button>
                 )}
-            >
-                <div className={clsx("flex items-center gap-2 min-w-0 px-2", variant === "minimal" ? "justify-center w-full" : "")}>
-                    <span className={clsx("truncate font-medium transition-colors",
-                        variant === "minimal" && "text-center flex-1",
-                        !selectedOption
-                            ? (theme === "dark" ? "text-muted" : "text-gray-400")
-                            : "text-[var(--color-primary)]"
-                    )}>
-                        {selectedOption ? selectedOption.label : placeholder}
-                    </span>
-                    <ChevronDown className={clsx("w-3.5 h-3.5 shrink-0 transition-transform",
-                        isOpen && "rotate-180",
-                        selectedOption ? "text-[var(--color-primary)]/70" : (theme === "dark" ? "text-muted" : "text-gray-400")
-                    )} />
-                </div>
-            </button>
+            </div>
 
             {/* Dropdown Menu */}
             {isOpen && (
@@ -142,6 +165,25 @@ export function SearchableSelect({
 
                     {/* Options List */}
                     <div className={clsx("min-h-[185px] max-h-[185px] overflow-y-auto scrollbar-thin scrollbar-track-transparent rounded-b-xl flex flex-col", theme === "dark" ? "scrollbar-thumb-foreground/20" : "scrollbar-thumb-gray-200")}>
+                        
+                        {/* "ALL" / "TOTAL" clear option at the top */}
+                        {!searchQuery && (
+                            <button
+                                type="button"
+                                className={clsx("w-full text-left px-5 py-3 text-sm font-bold border-b transition-colors shrink-0",
+                                    !value 
+                                        ? theme === "dark" ? "bg-[var(--color-primary)]/10 text-[var(--color-primary)]" : "bg-[var(--color-primary)]/10 text-[var(--color-primary)]"
+                                        : theme === "dark" ? "text-muted hover:bg-foreground/5 hover:text-foreground" : "text-gray-500 hover:bg-gray-50 hover:text-gray-900",
+                                    theme === "dark" ? "border-border" : "border-gray-100"
+                                )}
+                                onClick={() => {
+                                    onChange("");
+                                    setIsOpen(false);
+                                }}
+                            >
+                                {placeholder === "Modell" ? "Minden Modell" : placeholder === "Márka" ? "Minden Márka" : "Összes / Alaphelyzet"}
+                            </button>
+                        )}
                         {filteredOptions.length === 0 ? (
                             <div className={clsx("px-4 py-8 text-center text-sm", theme === "dark" ? "text-muted" : "text-gray-500")}>
                                 Nincs találat.

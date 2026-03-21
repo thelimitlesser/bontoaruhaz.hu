@@ -171,3 +171,61 @@ export async function createPxpShipment(order: any) {
         };
     }
 }
+
+// Query Pannon XP Shipment Status
+export async function getShipmentStatus(trackingNumber: string) {
+    const isTest = process.env.PXP_MODE !== 'production';
+    const baseUrl = isTest ? 'https://mypxp-test.pannonxp.hu/api/v3' : 'https://mypxp.pannonxp.hu/api/v3';
+
+    const ugyfelkod = (process.env.PXP_UGYFELKOD || PXP_CONFIG.ugyfelkod).trim();
+    const techUser = (process.env.PXP_USER || PXP_CONFIG.technikai_felhasznalo).trim();
+    const password = (process.env.PXP_PASSWORD || PXP_CONFIG.jelszo).trim();
+    const cserekulcs = (process.env.PXP_CSEREKULCS || PXP_CONFIG.cserekulcs).trim();
+
+    try {
+        const queryRequest: any = {
+            "0": {
+                kuldemenyszam: trackingNumber
+            }
+        };
+
+        const encryptedRequest = encryptData(queryRequest, cserekulcs);
+
+        const body = new URLSearchParams();
+        body.append('ugyfelkod', ugyfelkod);
+        body.append('technikai_felhasznalo', techUser);
+        body.append('jelszo', hashPassword(password));
+        body.append('keres', encryptedRequest);
+
+        const response = await fetch(`${baseUrl}/lekerdezes/`, {
+            method: 'POST',
+            body: body,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+
+        const result = await response.json();
+
+        if (result.kapcsolat?.statusz === 'OK' && result.lekerdezes?.["0"]) {
+            const data = result.lekerdezes["0"];
+            // PXP Status codes (typical): 
+            // - 1: Felvéve
+            // - 4: Kiszállítás alatt
+            // - 5: Kézbesítve
+            // - 6: Sikertelen kézbesítés
+            return {
+                success: true,
+                statusId: data.statusz,
+                statusText: data.statusz_szöveges,
+                isDelivered: data.statusz === 5,
+                isPaid: (data.statusz === 5 && data.utanvet_beszedve === 1) || data.statusz === 5, // Custom logic: if delivered, usually paid soon
+                deliveredAt: data.kezbesites_idopontja,
+                raw: data
+            };
+        }
+        
+        return { success: false, error: result.kapcsolat?.uzenet || "Sikertelen lekérdezés" };
+    } catch (error: any) {
+        console.error("PXP Tracking Error:", error);
+        return { success: false, error: error.message };
+    }
+}
