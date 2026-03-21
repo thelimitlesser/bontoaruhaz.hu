@@ -21,7 +21,7 @@ export function Footer() {
                         <Link href="/" className="inline-flex items-center gap-2 text-xl sm:text-2xl font-black tracking-tighter text-background group mx-auto sm:mx-0">
                             <div className="relative w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                                 <img
-                                    src="/logo_orange.png" alt="Logo" className="w-full h-full object-contain" style={{ filter: "drop-shadow(0px 0px 5px rgba(249,115,22,0.6))" }}
+                                    src="/logo_orange.png" alt="Logo" className="w-full h-full object-contain" style={{ filter: "drop-shadow(0px 0px 2px rgba(249,115,22,0.4))" }}
                                 />
                             </div>
                             <span className="whitespace-nowrap">

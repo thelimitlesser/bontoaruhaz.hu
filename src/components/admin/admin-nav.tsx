@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { LayoutDashboard, Package, ShoppingCart, Users, RotateCcw, Menu, X, ChevronRight, Database } from "lucide-react";
 
@@ -50,7 +51,9 @@ export function AdminSidebar({ user }: AdminNavProps) {
             {/* Mobile Header */}
             <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-[100] flex items-center justify-between px-4 shadow-sm">
                 <Link href="/" className="flex items-center gap-2">
-                    <img src="/logo_orange.png" alt="Logo" className="w-8 h-8 object-contain" />
+                    <div className="relative w-8 h-8">
+                        <Image src="/logo_orange.png" alt="Logo" fill quality={100} className="object-contain" />
+                    </div>
                     <span className="font-black text-lg tracking-tighter">
                         <span className="text-[var(--color-primary)]">BONTÓ</span>ÁRUHÁZ
                     </span>
@@ -77,7 +80,7 @@ export function AdminSidebar({ user }: AdminNavProps) {
                 <div className="p-6 h-20 flex items-center justify-between border-b border-gray-50">
                     <Link href="/" className="flex items-center gap-2 group" onClick={closeMenu}>
                         <div className="relative w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                            <img src="/logo_orange.png" alt="Logo" className="w-full h-full object-contain" />
+                            <Image src="/logo_orange.png" alt="Logo" fill quality={100} className="object-contain" />
                         </div>
                         <span className="text-xl font-black tracking-tighter text-gray-900 group-hover:text-[var(--color-primary)] transition-colors">
                             <span className="text-[var(--color-primary)]">BONTÓ</span>ÁRUHÁZ
