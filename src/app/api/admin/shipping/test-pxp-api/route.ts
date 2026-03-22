@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import crypto from "crypto";
-import { checkRequiredFields, formatPhoneNumber } from "@/lib/shipping/pannon-xp";
 
 const PXP_CONFIG = {
     ugyfelkod: "KSTA",
@@ -43,7 +42,15 @@ export async function GET() {
             ? JSON.parse(order.shippingAddress) 
             : order.shippingAddress;
         
-        const customerPhone = pxpAddress.phone ? formatPhoneNumber(pxpAddress.phone) : '06300000000';
+        function formatPhoneNumberLocal(phone: string): string {
+            if (!phone) return "06300000000";
+            let p = phone.replace(/\s+/g, '').replace(/-/g, '');
+            if (p.startsWith('+36')) p = p.replace('+36', '06');
+            if (p.startsWith('36')) p = '06' + p.substring(2);
+            return p;
+        }
+        
+        const customerPhone = pxpAddress.phone ? formatPhoneNumberLocal(pxpAddress.phone) : '06300000000';
         const billingData = typeof order.billingAddress === 'string' 
             ? JSON.parse(order.billingAddress) 
             : order.billingAddress;
