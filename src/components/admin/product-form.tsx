@@ -41,6 +41,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
     const [yearFrom, setYearFrom] = useState(initialData?.yearFrom?.toString() || "");
     const [yearTo, setYearTo] = useState(initialData?.yearTo?.toString() || "");
     const [condition, setCondition] = useState(initialData?.condition || "used");
+    const [engineCode, setEngineCode] = useState(initialData?.engineCode || "");
     
     // Pricing & Dimensions states (to fix data loss and naming mismatch)
     const [priceGross, setPriceGross] = useState(initialData?.priceGross?.toString() || "");
@@ -219,6 +220,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
             formData.set('productCode', autoRef);
             formData.set('sku', sku);
             formData.set('condition', condition);
+            formData.set('engineCode', engineCode);
             
             if (width) formData.set('width', width);
             if (height) formData.set('height', height);
@@ -267,6 +269,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                 sku={sku} setSku={setSku} isCheckingSku={isCheckingSku}
                 duplicateWarnings={duplicateWarnings} autoRef={autoRef} setAutoRef={setAutoRef}
                 condition={condition} setCondition={setCondition}
+                engineCode={engineCode} setEngineCode={setEngineCode}
                 initialData={initialData}
                 errors={validationErrors}
             />

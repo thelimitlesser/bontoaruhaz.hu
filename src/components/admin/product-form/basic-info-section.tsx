@@ -20,6 +20,8 @@ interface BasicInfoSectionProps {
     setAutoRef: (val: string) => void;
     condition: string;
     setCondition: (val: string) => void;
+    engineCode: string;
+    setEngineCode: (val: string) => void;
     initialData?: any;
     errors?: string[];
 }
@@ -30,6 +32,7 @@ export function BasicInfoSection({
     sku, setSku, isCheckingSku, duplicateWarnings,
     autoRef, setAutoRef, 
     condition, setCondition,
+    engineCode, setEngineCode,
     initialData, errors = []
 }: BasicInfoSectionProps) {
     
@@ -141,7 +144,13 @@ export function BasicInfoSection({
 
                 <div className="space-y-2">
                     <label className="text-sm font-medium text-gray-700">Motorkód</label>
-                    <input name="engineCode" type="text" placeholder="pl. ASZ" className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" />
+                    <input 
+                        name="engineCode" type="text" 
+                        value={engineCode} 
+                        onChange={(e) => setEngineCode(e.target.value)}
+                        placeholder="pl. ASZ" 
+                        className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors font-mono uppercase" 
+                    />
                 </div>
 
                 <div className="space-y-2">
