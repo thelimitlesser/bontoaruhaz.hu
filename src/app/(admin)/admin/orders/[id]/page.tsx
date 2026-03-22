@@ -229,7 +229,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                         target="_blank"
                                         className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
                                     >
-                                        <ExternalLink className="w-3.5 h-3.5" /> LETÖLTÉS
+                                        <ExternalLink className="w-3.5 h-3.5" /> NYOMTATÁS
                                     </a>
                                 )}
                             </div>
