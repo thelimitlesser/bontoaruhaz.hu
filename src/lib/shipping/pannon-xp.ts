@@ -229,3 +229,54 @@ export async function getShipmentStatus(trackingNumber: string) {
         return { success: false, error: error.message };
     }
 }
+
+// Download/Print Pannon XP Shipping Label
+export async function getPxpLabelPdf(trackingNumber: string) {
+    const isTest = process.env.PXP_MODE !== 'production';
+    const baseUrl = isTest ? 'https://mypxp-test.pannonxp.hu/api/v3' : 'https://mypxp.pannonxp.hu/api/v3';
+
+    const ugyfelkod = (process.env.PXP_UGYFELKOD || PXP_CONFIG.ugyfelkod).trim();
+    const techUser = (process.env.PXP_USER || PXP_CONFIG.technikai_felhasznalo).trim();
+    const password = (process.env.PXP_PASSWORD || PXP_CONFIG.jelszo).trim();
+    const cserekulcs = (process.env.PXP_CSEREKULCS || PXP_CONFIG.cserekulcs).trim();
+
+    try {
+        const printRequest: any = {
+            cimketipus: "1c101,6x152,4", // Default label size
+            cimkek: {
+                "0": {
+                    nyomtatas: trackingNumber
+                }
+            }
+        };
+
+        const encryptedRequest = encryptData(printRequest, cserekulcs);
+
+        const body = new URLSearchParams();
+        body.append('ugyfelkod', ugyfelkod);
+        body.append('technikai_felhasznalo', techUser);
+        body.append('jelszo', hashPassword(password));
+        body.append('keres', encryptedRequest);
+
+        const response = await fetch(`${baseUrl}/nyomtatas/`, {
+            method: 'POST',
+            body: body,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+
+        const result = await response.json();
+
+        if (result.kapcsolat?.statusz === 'OK' && result.pdf) {
+            return {
+                success: true,
+                pdfBase64: result.pdf,
+                trackingNumber
+            };
+        }
+        
+        return { success: false, error: result.kapcsolat?.uzenet || result.ervenytelen_adat?.["0"]?.uzenet || "Sikertelen címke letöltés" };
+    } catch (error: any) {
+        console.error("PXP Label Print Error:", error);
+        return { success: false, error: error.message };
+    }
+}

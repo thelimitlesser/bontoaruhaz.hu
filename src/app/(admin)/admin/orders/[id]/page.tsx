@@ -224,9 +224,13 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     </div>
                                 </div>
                                 {order.trackingNumber && (
-                                    <div className="px-2 py-1 bg-blue-500/10 text-blue-600 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
-                                        <Check className="w-3 h-3" /> KÉSZ
-                                    </div>
+                                    <a 
+                                        href={`/api/admin/shipping/label/${order.trackingNumber}`}
+                                        target="_blank"
+                                        className="px-3 py-1.5 bg-blue-500 hover:bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
+                                    >
+                                        <ExternalLink className="w-3.5 h-3.5" /> LETÖLTÉS
+                                    </a>
                                 )}
                             </div>
                         </div>
