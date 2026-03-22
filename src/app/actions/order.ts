@@ -175,7 +175,7 @@ export async function approveOrder(orderId: string) {
         return { success: true };
     } catch (error: any) {
         console.error("CRITICAL ERROR in approveOrder:", error);
-        throw error;
+        return { success: false, error: error.message || "Szerverhiba történt a jóváhagyás során." };
     }
 }
 

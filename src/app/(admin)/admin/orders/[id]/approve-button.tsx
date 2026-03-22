@@ -29,6 +29,8 @@ export function ApproveOrderButton({ orderId, status }: ApproveOrderButtonProps)
             const result = await approveOrder(orderId);
             if (result.success) {
                 router.refresh();
+            } else {
+                setError(result.error || "Ismeretlen hiba történt a jóváhagyás során.");
             }
         } catch (err: any) {
             console.error("Hiba a jóváhagyás során:", err);
