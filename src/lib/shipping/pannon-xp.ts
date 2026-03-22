@@ -210,8 +210,12 @@ export async function trackShipment(trackingNumber: string) {
 
         const response = await fetch(`${baseUrl}/lekerdezes/`, {
             method: 'POST',
-            body: body,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            body: body.toString(),
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'BontoaruhazXP/1.0',
+                'Accept': 'application/json'
+            }
         });
 
         const result = await response.json();
@@ -271,8 +275,12 @@ export async function getPxpLabelPdf(trackingNumber: string) {
 
         const response = await fetch(`${baseUrl}/nyomtatas/`, {
             method: 'POST',
-            body: body,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            body: body.toString(),
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'BontoaruhazXP/1.0',
+                'Accept': 'application/json'
+            }
         });
 
         const result = await response.json();
@@ -317,8 +325,12 @@ export async function performPxpManifest() {
 
         const response = await fetch(`${baseUrl}/napizaras/`, {
             method: 'POST',
-            body: body,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            body: body.toString(),
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'BontoaruhazXP/1.0',
+                'Accept': 'application/json'
+            }
         });
 
         const result = await response.json();
@@ -370,8 +382,12 @@ export async function cancelPxpShipment(trackingNumber: string) {
 
         const response = await fetch(`${baseUrl}/torles/`, {
             method: 'POST',
-            body: body,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+            body: body.toString(),
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'BontoaruhazXP/1.0',
+                'Accept': 'application/json'
+            }
         });
 
         const result = await response.json();
