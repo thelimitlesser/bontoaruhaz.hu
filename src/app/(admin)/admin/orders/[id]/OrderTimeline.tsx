@@ -65,10 +65,10 @@ export function OrderTimeline({ status, paymentStatus, paymentMethod, invoiceId,
     ];
 
     return (
-        <div className="w-full py-6">
-            <div className="relative flex items-center justify-between">
+        <div className="w-full py-6 overflow-x-auto scrollbar-hide">
+            <div className="relative flex items-center justify-between px-16 min-w-[600px]">
                 {/* Background Line */}
-                <div className="absolute left-0 top-1/2 h-0.5 w-full -translate-y-1/2 bg-gray-200 dark:bg-white/10" />
+                <div className="absolute left-16 right-16 top-1/2 h-0.5 -translate-y-1/2 bg-gray-200 dark:bg-white/10" />
 
                 {/* Steps */}
                 {steps.map((step, idx) => {
