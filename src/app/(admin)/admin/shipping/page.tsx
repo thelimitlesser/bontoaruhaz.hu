@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Truck, Package, CheckCircle2, AlertCircle, FileText, Printer, ArrowRight, Loader2 } from "lucide-react";
-import { closePxpDay } from "@/app/actions/shipping";
+import { Truck, Package, CheckCircle2, AlertCircle, FileText, Printer, ArrowRight, Loader2, Download } from "lucide-react";
+import { closePxpDay, getManifestHistory, getManifestPdf } from "@/app/actions/shipping";
 import Link from "next/link";
 
 interface ShippingOrder {
@@ -16,6 +16,7 @@ interface ShippingOrder {
 
 export default function ShippingPage() {
     const [orders, setOrders] = useState<ShippingOrder[]>([]);
+    const [manifests, setManifests] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [isClosing, setIsClosing] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -31,6 +32,11 @@ export default function ShippingPage() {
             // Filter only those with tracking number
             const readyOrders = data.filter((o: any) => o.trackingNumber);
             setOrders(readyOrders);
+
+            const manifestRes = await getManifestHistory();
+            if (manifestRes.success) {
+                setManifests(manifestRes.manifests);
+            }
         } catch (error) {
             console.error("Order fetch error:", error);
         } finally {
@@ -68,6 +74,24 @@ export default function ShippingPage() {
             setMessage({ type: 'error', text: error.message });
         } finally {
             setIsClosing(false);
+        }
+    };
+
+    const handleDownloadManifest = async (id: string, dateStr: string) => {
+        try {
+            const res = await getManifestPdf(id);
+            if (res.success && res.pdfBase64) {
+                const link = document.createElement('a');
+                link.href = `data:application/pdf;base64,${res.pdfBase64}`;
+                link.download = `PXP_Gyujtolista_${new Date(dateStr).toISOString().split('T')[0]}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                setMessage({ type: 'error', text: res.error || "Nem sikerült letölteni a PDF-et." });
+            }
+        } catch (error: any) {
+             setMessage({ type: 'error', text: error.message });
         }
     };
 
@@ -193,7 +217,27 @@ export default function ShippingPage() {
                             <FileText className="w-4 h-4 text-blue-500" />
                             Utolsó gyűjtőlisták
                         </h3>
-                        <p className="text-xs text-gray-500 text-center py-4 italic">Jelenleg nincs korábbi zárási adat.</p>
+                        {manifests.length === 0 ? (
+                            <p className="text-xs text-gray-500 text-center py-4 italic">Jelenleg nincs korábbi zárási adat.</p>
+                        ) : (
+                            <div className="space-y-3">
+                                {manifests.map((m) => (
+                                    <div key={m.id} className="flex items-center justify-between p-3 rounded-2xl border border-gray-100 bg-gray-50 hover:bg-gray-100 transition-colors">
+                                        <div>
+                                            <div className="text-sm font-bold text-gray-900">{new Date(m.createdAt).toLocaleDateString('hu-HU', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</div>
+                                            <div className="text-xs text-gray-500">{m.itemCount} csomag</div>
+                                        </div>
+                                        <button 
+                                            onClick={() => handleDownloadManifest(m.id, m.createdAt)}
+                                            className="p-2 bg-white rounded-lg shadow-sm border border-gray-200 text-blue-600 hover:bg-blue-50 transition-colors"
+                                            title="PDF Lekérése"
+                                        >
+                                            <Download className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

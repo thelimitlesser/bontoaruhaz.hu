@@ -21,6 +21,14 @@ export async function closePxpDay() {
                 });
             }
 
+            // Save manifest to database
+            await prisma.pxpManifest.create({
+                data: {
+                    itemCount: result.manifestedIds?.length || 0,
+                    pdfBase64: result.pdfBase64
+                }
+            });
+
             revalidatePath('/admin/shipping');
             revalidatePath('/admin/orders');
 
@@ -69,6 +77,39 @@ export async function trackAndSyncShipment(orderId: string, trackingNumber: stri
         return { success: false, error: result.error || "Nem sikerült lekérni a státuszt." };
     } catch (error: any) {
         console.error("Track & Sync Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function getManifestHistory() {
+    try {
+        const manifests = await prisma.pxpManifest.findMany({
+            orderBy: { createdAt: 'desc' },
+            take: 30, // Last 30 manifests
+            select: {
+                id: true,
+                createdAt: true,
+                itemCount: true
+            }
+        });
+        return { success: true, manifests };
+    } catch (error: any) {
+        console.error("Error fetching manifests:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function getManifestPdf(id: string) {
+    try {
+        const manifest = await prisma.pxpManifest.findUnique({
+            where: { id },
+            select: { pdfBase64: true, createdAt: true }
+        });
+        if (manifest) {
+            return { success: true, pdfBase64: manifest.pdfBase64, date: manifest.createdAt };
+        }
+        return { success: false, error: "Nincs ilyen napi zárás" };
+    } catch (error: any) {
         return { success: false, error: error.message };
     }
 }
