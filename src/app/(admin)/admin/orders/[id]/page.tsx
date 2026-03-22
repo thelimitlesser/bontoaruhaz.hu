@@ -6,6 +6,8 @@ import { PaymentStatusUpdater } from"./payment-status-updater";
 import { ApproveOrderButton } from"./approve-button";
 import { OrderItemDetails } from "./order-item-details";
 import { ShipmentTracker } from "./ShipmentTracker";
+import { OrderTimeline } from "./OrderTimeline";
+import { FileText, ClipboardCheck, ExternalLink, Check } from "lucide-react";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const { id } = await params;
@@ -56,6 +58,17 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 <div className="md:ml-auto">
                     <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
                 </div>
+            </div>
+
+            <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-2xl p-6 shadow-sm overflow-hidden mb-6">
+                <OrderTimeline 
+                    status={order.status} 
+                    paymentStatus={order.paymentStatus} 
+                    paymentMethod={order.paymentMethod}
+                    invoiceId={order.invoiceId}
+                    trackingNumber={order.trackingNumber}
+                    createdAt={order.createdAt}
+                />
             </div>
 
             <div className="mb-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
@@ -173,6 +186,48 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                         </div>
                                     ))}
                                 </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm space-y-4">
+                        <h2 className="font-bold border-b border-gray-200 dark:border-white/10 pb-2 flex items-center gap-2 text-gray-900 dark:text-white">
+                            <FileText className="w-4 h-4 text-[var(--color-primary)]" />
+                            Adminisztráció és Dokumentumok
+                        </h2>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-lg ${order.invoiceId ? 'bg-emerald-100 text-emerald-600' : 'bg-gray-100 text-gray-400'}`}>
+                                        <FileText className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-gray-900 dark:text-white">E-Számla (Számlázz.hu)</p>
+                                        <p className="text-[10px] text-gray-500">{order.invoiceId ? `Sorszám: ${order.invoiceId}` : 'Még nincs generálva'}</p>
+                                    </div>
+                                </div>
+                                {order.invoiceId && (
+                                    <div className="px-2 py-1 bg-emerald-500/10 text-emerald-600 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                                        <Check className="w-3 h-3" /> KÉSZ
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex items-center justify-between p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
+                                <div className="flex items-center gap-3">
+                                    <div className={`p-2 rounded-lg ${order.trackingNumber ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-400'}`}>
+                                        <Truck className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <p className="text-xs font-bold text-gray-900 dark:text-white">Szállítási Címke (PXP)</p>
+                                        <p className="text-[10px] text-gray-500">{order.trackingNumber ? `Csomagszám: ${order.trackingNumber}` : 'Még nincs generálva'}</p>
+                                    </div>
+                                </div>
+                                {order.trackingNumber && (
+                                    <div className="px-2 py-1 bg-blue-500/10 text-blue-600 rounded-md text-[10px] font-black uppercase tracking-widest flex items-center gap-1">
+                                        <Check className="w-3 h-3" /> KÉSZ
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

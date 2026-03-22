@@ -88,15 +88,6 @@ model Part {
   PartSubcategory PartSubcategory?    @relation(fields: [subcategoryId], references: [id])
   compatibilities PartCompatibility[]
   reservations    Reservation[]
-
-  @@index([sku])
-  @@index([productCode])
-  @@index([brandId])
-  @@index([modelId])
-  @@index([categoryId])
-  @@index([subcategoryId])
-  @@index([partItemId])
-  @@index([createdAt])
 }
 
 model Order {
@@ -110,9 +101,9 @@ model Order {
   paymentMethod         String      @default("CARD")
   paymentStatus         String      @default("PENDING")
   shippingMethod        String      @default("DELIVERY")
-  stripePaymentIntentId String?     // ID for Stripe Authorization/PaymentIntent
-  trackingNumber        String?     // Pannon XP tracking number
-  invoiceId             String?     // Számlázz.hu invoice ID/Number
+  invoiceId             String?
+  stripePaymentIntentId String?
+  trackingNumber        String?
   user                  User?       @relation(fields: [userId], references: [id])
   items                 OrderItem[]
 }
@@ -218,13 +209,14 @@ model VehicleModel {
   PartCompatibility PartCompatibility[]
   VehicleBrand      VehicleBrand        @relation(fields: [brandId], references: [id])
 }
+
 model Reservation {
   id        String   @id @default(uuid())
   partId    String
   sessionId String
-  quantity  Int      @default(1)
   expiresAt DateTime
   createdAt DateTime @default(now())
+  quantity  Int      @default(1)
   part      Part     @relation(fields: [partId], references: [id], onDelete: Cascade)
 
   @@unique([partId, sessionId])
