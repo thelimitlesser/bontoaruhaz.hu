@@ -118,9 +118,21 @@ export async function trackAndSyncShipment(orderId: string, trackingNumber: stri
             }
 
             if (newStatus) {
+                const order = await prisma.order.findUnique({
+                    where: { id: orderId },
+                    select: { paymentMethod: true, paymentStatus: true }
+                });
+
+                const dataToUpdate: any = { status: newStatus };
+
+                // Ha utánvétes és kézbesítették, akkor a futár átvette a pénzt -> Fizetve
+                if (newStatus === 'DELIVERED' && order?.paymentMethod === 'COD' && order?.paymentStatus !== 'PAID') {
+                    dataToUpdate.paymentStatus = 'PAID';
+                }
+
                 await prisma.order.update({
                     where: { id: orderId },
-                    data: { status: newStatus }
+                    data: dataToUpdate
                 });
             }
 

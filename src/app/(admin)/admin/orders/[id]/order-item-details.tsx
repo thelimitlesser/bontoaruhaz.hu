@@ -175,11 +175,6 @@ export function OrderItemDetails({ item }: OrderItemDetailsProps) {
                     <span className="text-xs uppercase tracking-wider px-2 py-1 bg-orange-50 dark:bg-orange-500/10 rounded font-black text-orange-700 dark:text-orange-400 border border-orange-200 dark:border-orange-500/20 shadow-sm">
                         REF: {item.part?.productCode || 'N/A'}
                     </span>
-                    {item.part?.PartCategory && (
-                        <span className="text-xs dark:text-[10px] uppercase tracking-wider px-2 py-1 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 rounded font-bold border border-blue-100 dark:border-blue-500/20">
-                            {item.part.PartCategory.name}
-                        </span>
-                    )}
                 </div>
 
                 {/* Description Toggle */}

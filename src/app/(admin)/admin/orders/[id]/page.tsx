@@ -92,8 +92,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     <OrderItemDetails item={item} />
 
                                     <div className="sm:text-right flex sm:flex-col items-center sm:items-end justify-between sm:justify-center border-t sm:border-t-0 border-gray-100 dark:border-white/5 pt-2 sm:pt-0">
-                                        <p className="font-black text-lg text-gray-900 dark:text-white">{item.priceAtTime.toLocaleString('hu-HU')} Ft</p>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{item.quantity} db</p>
+                                        <p className="font-black text-lg text-gray-900 dark:text-white whitespace-nowrap">{item.priceAtTime.toLocaleString('hu-HU')} Ft</p>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium whitespace-nowrap">{item.quantity} db</p>
                                     </div>
                                 </div>
                             ))}
