@@ -1,7 +1,7 @@
 #!/bin/bash
 cd "$(dirname "$0")"
 echo "---------------------------------------------------"
-echo "   AutoNexus Fejlesztői Szerver Indítása..."
+echo "   Bontóáruház Fejlesztői Szerver Indítása..."
 echo "---------------------------------------------------"
 echo ""
 echo "Mappa: $(pwd)"

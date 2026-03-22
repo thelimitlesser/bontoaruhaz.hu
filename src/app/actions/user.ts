@@ -130,7 +130,7 @@ export async function ensureUserExists() {
         if (!existingUser) {
             const adminEmails = process.env.ADMIN_EMAILS ?
                 process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
-                ['petierdelyi2005@gmail.com', 'admin@autonexus.com'];
+                ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu'];
 
             const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
 
@@ -186,7 +186,7 @@ export async function syncAndGetUserRole() {
         if (!dbUser) {
             const adminEmails = process.env.ADMIN_EMAILS ?
                 process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
-                ['petierdelyi2005@gmail.com', 'admin@autonexus.com'];
+                ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu'];
 
             const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
 

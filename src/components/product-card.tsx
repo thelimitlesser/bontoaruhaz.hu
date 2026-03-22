@@ -39,7 +39,7 @@ export function ProductCard({ product }: { product: Product | any }) {
         ? (product.images ? product.images.split(',') : [])
         : [product.image];
 
-    const mainImage = imageList[0] || 'https://placehold.co/600x400/1a1a1a/cccccc?text=AutoNexus';
+    const mainImage = imageList[0] || 'https://placehold.co/600x400/1a1a1a/cccccc?text=Bontóáruház';
     const displayBrand = isPrisma ? product.brandId : product.brand;
 
     return (

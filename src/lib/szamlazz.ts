@@ -25,7 +25,7 @@ export async function createInvoiceForOrder(order: any, customerData: any) {
                 accountNumber: '11700000-00000000-00000000' // Placeholder, update in .env
             },
             email: {
-                replyToAddress: 'info@autonexus.hu'
+                replyToAddress: 'info@bontoaruhaz.hu'
             }
         });
 
@@ -62,7 +62,7 @@ export async function createInvoiceForOrder(order: any, customerData: any) {
         }
 
         const invoice = new szamlazz.Invoice({
-            paymentMethod: szamlazz.PaymentMethod.Bankcard, // Default to card
+            paymentMethod: order.paymentMethod === 'CARD' ? szamlazz.PaymentMethod.Bankcard : szamlazz.PaymentMethod.CashOnDelivery,
             currency: szamlazz.Currency.HUF,
             language: szamlazz.Language.Hungarian,
             seller,

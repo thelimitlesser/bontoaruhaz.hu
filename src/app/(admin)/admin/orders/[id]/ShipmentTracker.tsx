@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Search, Loader2, CheckCircle2, Truck, AlertCircle } from "lucide-react";
+import { Search, Loader2, CheckCircle2, Truck, AlertCircle, ExternalLink } from "lucide-react";
 import { trackAndSyncShipment } from "@/app/actions/shipping";
 import { useRouter } from "next/navigation";
 
@@ -57,7 +57,18 @@ export function ShipmentTracker({ orderId, trackingNumber }: ShipmentTrackerProp
             <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-col">
                     <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Csomagszám</span>
-                    <span className="text-sm font-mono font-bold text-gray-900 dark:text-white">{trackingNumber}</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono font-bold text-gray-900 dark:text-white">{trackingNumber}</span>
+                        <a 
+                            href={`https://mypxp.pannonxp.hu/kereses?v=${trackingNumber}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded text-blue-500 transition-colors"
+                            title="Megnyitás a PannonXP oldalán"
+                        >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                    </div>
                 </div>
                 <button
                     onClick={handleTrack}
@@ -65,7 +76,7 @@ export function ShipmentTracker({ orderId, trackingNumber }: ShipmentTrackerProp
                     className="flex items-center gap-2 px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-white/5 dark:hover:bg-white/10 rounded-lg text-xs font-bold transition-all border border-gray-200 dark:border-white/10"
                 >
                     {isLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
-                    Csomag Követése
+                    Frissítés
                 </button>
             </div>
 

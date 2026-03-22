@@ -22,9 +22,11 @@ export async function sendOrderReceivedEmail(order: any, customerEmail: string) 
         </tr>
     `).join('');
 
+    console.log(`PREPARING "Order Received" email for ${customerEmail}, order #${order.id}`);
+
     try {
-        await resend.emails.send({
-            from: 'AutoNexus <no-reply@autonexus.hu>',
+        const result = await resend.emails.send({
+            from: 'Bontóáruház <no-reply@bontoaruhaz.hu>',
             to: customerEmail,
             subject: 'Rendelésedet megkaptuk - Ellenőrzés alatt',
             html: `
@@ -35,8 +37,9 @@ export async function sendOrderReceivedEmail(order: any, customerEmail: string) 
                     </div>
                     
                     <p>Kedves Vásárlónk!</p>
-                    <p>Sikeresen fogadtuk a rendelésedet! Jelenleg munkatársaink <strong>ellenőrzik a kiválasztott termékek minőségét és a készletet</strong>.</p>
-                    <p>Amint mindent rendben találtunk, jóváhagyjuk a vásárlást és indítjuk a kiszállítást!</p>
+                    <p>Köszönjük, hogy a Bontóáruházat választottad! Rendelésedet rendszerünk sikeresen rögzítette.</p>
+                    <p>Mivel számunkra kiemelten fontos a minőség, munkatársaink jelenleg <strong>manuálisan ellenőrzik a választott alkatrész(ek) állapotát és a készletet</strong>. Ez a folyamat biztosítja, hogy pontosan azt kapd, amit rendeltél.</p>
+                    <p>Amint az ellenőrzés lezárult, e-mailben értesítünk a rendelés jóváhagyásáról és a kiszállítás elindításáról.</p>
                     
                     <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; border-left: 4px solid #f97316; margin: 25px 0;">
                         <h3 style="margin-top: 0; color: #9a3412; font-size: 14px; text-transform: uppercase;">Fizetési információk:</h3>
@@ -69,14 +72,15 @@ export async function sendOrderReceivedEmail(order: any, customerEmail: string) 
                     </div>
 
                     <p style="font-size: 13px; color: #64748b; margin-top: 40px; text-align: center;">
-                        Köszönjük, hogy az AutoNexus-t választottad!<br>
+                        Köszönjük, hogy a Bontóáruházat választottad!<br>
                         Hamarosan keresünk a jóváhagyással.
                     </p>
                 </div>
             `
         });
+        console.log(`SUCCESS: "Order Received" email sent to ${customerEmail}. Resend ID: ${result.data?.id}`);
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('CRITICAL: Error sending "Order Received" email:', error);
     }
 }
 
@@ -90,9 +94,9 @@ export async function sendOrderConfirmedEmail(order: any, customerEmail: string,
 
     try {
         await resend.emails.send({
-            from: 'AutoNexus <no-reply@autonexus.hu>',
+            from: 'Bontóáruház <no-reply@bontoaruhaz.hu>',
             to: customerEmail,
-            subject: 'Rendelésedet jóváhagytuk! - AutoNexus',
+            subject: 'Rendelésedet jóváhagytuk! - Bontóáruház',
             html: `
                 <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; color: #334155;">
                     <div style="text-align: center; margin-bottom: 30px;">
@@ -115,13 +119,19 @@ export async function sendOrderConfirmedEmail(order: any, customerEmail: string,
                     <div style="margin: 30px 0; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px;">
                         <h4 style="margin-top: 0; color: #64748b; font-size: 12px; text-transform: uppercase;">Szállítási információk:</h4>
                         <p style="margin-bottom: 5px;"><strong>Szállító:</strong> PannonXP</p>
-                        ${order.trackingNumber ? `<p style="margin-bottom: 5px;"><strong>Követési kód:</strong> ${order.trackingNumber}</p>` : ''}
-                        <p style="margin-bottom: 0;"><strong>Várható érkezés:</strong> 1-2 munkanap</p>
+                        ${order.trackingNumber ? `
+                            <p style="margin-bottom: 10px;"><strong>Követési kód:</strong> ${order.trackingNumber}</p>
+                            <a href="https://mypxp.pannonxp.hu/kereses?v=${order.trackingNumber}" 
+                               style="display: inline-block; background-color: #f59e0b; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;">
+                               Csomag Nyomonkövetése
+                            </a>
+                        ` : ''}
+                        <p style="margin-top: 10px; margin-bottom: 0;"><strong>Várható érkezés:</strong> 1-2 munkanap</p>
                     </div>
 
                     <p style="text-align: center; margin-top: 40px; color: #64748b; font-size: 13px;">
                         Köszönjük a bizalmadat!<br>
-                        AutoNexus Csapata
+                        Bontóáruház Csapata
                     </p>
                 </div>
             `

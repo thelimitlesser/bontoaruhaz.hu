@@ -33,14 +33,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Initialize session and load cart
     useEffect(() => {
         setIsMounted(true);
-        let currentSessionId = localStorage.getItem("autonexus-session-id");
+        let currentSessionId = localStorage.getItem("bontoaruhaz-session-id");
         if (!currentSessionId) {
             currentSessionId = crypto.randomUUID();
-            localStorage.setItem("autonexus-session-id", currentSessionId);
+            localStorage.setItem("bontoaruhaz-session-id", currentSessionId);
         }
         setSessionId(currentSessionId);
 
-        const savedCart = localStorage.getItem("autonexus-cart");
+        const savedCart = localStorage.getItem("bontoaruhaz-cart");
         if (savedCart) {
             try {
                 const parsed = JSON.parse(savedCart);
@@ -65,7 +65,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     // Save to LocalStorage on change
     useEffect(() => {
         if (isMounted) {
-            localStorage.setItem("autonexus-cart", JSON.stringify(items));
+            localStorage.setItem("bontoaruhaz-cart", JSON.stringify(items));
         }
     }, [items, isMounted]);
 

@@ -88,9 +88,19 @@ export async function createPxpShipment(order: any) {
         const isCOD = order.paymentMethod === 'COD';
         const utanvetAmount = isCOD ? Number(Math.round(order.totalAmount)) : 0;
         
-        // Prepare the shipment data - Using object with string keys for "numeric" indexes
-        // as PHP's json_encode often produces this for associative arrays, 
-        // and PXP's documentation shows this format in responses.
+        // Address validation
+        const hasHouseNumber = /\d/.test(shippingAddr.address);
+        const isValidPostalCode = /^\d{4}$/.test(shippingAddr.postalCode.toString().replace(/\D/g, ''));
+        
+        if (!hasHouseNumber || !isValidPostalCode) {
+            return {
+                success: false,
+                error: !isValidPostalCode ? "Hiba: Az irányítószám 4 számjegy kell legyen!" : "Hiba: A címből hiányzik a házszám!",
+                trackingNumber: `PXP-VAL-ERR-${Date.now()}`
+            };
+        }
+
+        // Prepare the shipment data
         const shipmentRequest: any = {
             "0": {
                 tipus: 0, // 0 = Csomagfeladás
@@ -105,6 +115,7 @@ export async function createPxpShipment(order: any) {
                     cim_megjegyzes: `Order #${order.id.slice(-6)}`.slice(0, 100)
                 },
                 szolgaltatas: "24H",
+                sms: true, // Bekapcsolva a PXP SMS értesítő
                 csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
                     acc[idx.toString()] = {
                         db: Number(Math.min(item.quantity, 99)),
