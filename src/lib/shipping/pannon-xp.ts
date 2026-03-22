@@ -173,7 +173,7 @@ export async function createPxpShipment(order: any) {
 }
 
 // Query Pannon XP Shipment Status
-export async function getShipmentStatus(trackingNumber: string) {
+export async function trackShipment(trackingNumber: string) {
     const isTest = process.env.PXP_MODE !== 'production';
     const baseUrl = isTest ? 'https://mypxp-test.pannonxp.hu/api/v3' : 'https://mypxp.pannonxp.hu/api/v3';
 
@@ -277,6 +277,55 @@ export async function getPxpLabelPdf(trackingNumber: string) {
         return { success: false, error: result.kapcsolat?.uzenet || result.ervenytelen_adat?.["0"]?.uzenet || "Sikertelen címke letöltés" };
     } catch (error: any) {
         console.error("PXP Label Print Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Perform Daily Manifest (Napi Zárás)
+export async function performPxpManifest() {
+    const isTest = process.env.PXP_MODE !== 'production';
+    const baseUrl = isTest ? 'https://mypxp-test.pannonxp.hu/api/v3' : 'https://mypxp.pannonxp.hu/api/v3';
+
+    const ugyfelkod = (process.env.PXP_UGYFELKOD || PXP_CONFIG.ugyfelkod).trim();
+    const techUser = (process.env.PXP_USER || PXP_CONFIG.technikai_felhasznalo).trim();
+    const password = (process.env.PXP_PASSWORD || PXP_CONFIG.jelszo).trim();
+    const cserekulcs = (process.env.PXP_CSEREKULCS || PXP_CONFIG.cserekulcs).trim();
+
+    try {
+        const manifestRequest = {
+            napizaras: true // This closes all "printed but not closed" shipments
+        };
+
+        const encryptedRequest = encryptData(manifestRequest, cserekulcs);
+
+        const body = new URLSearchParams();
+        body.append('ugyfelkod', ugyfelkod);
+        body.append('technikai_felhasznalo', techUser);
+        body.append('jelszo', hashPassword(password));
+        body.append('keres', encryptedRequest);
+
+        const response = await fetch(`${baseUrl}/napizaras/`, {
+            method: 'POST',
+            body: body,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+
+        const result = await response.json();
+
+        if (result.kapcsolat?.statusz === 'OK' && result.pdf) {
+            return {
+                success: true,
+                pdfBase64: result.pdf,
+                manifestedIds: result.napizaras ? Object.values(result.napizaras).map((n: any) => n.kuldemenyszam) : []
+            };
+        }
+
+        return { 
+            success: false, 
+            error: result.kapcsolat?.uzenet || result.ervenytelen_adat?.uzenet || "Sikertelen napi zárás" 
+        };
+    } catch (error: any) {
+        console.error("PXP Manifest Error:", error);
         return { success: false, error: error.message };
     }
 }

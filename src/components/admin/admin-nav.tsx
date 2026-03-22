@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Package, ShoppingCart, Users, RotateCcw, Menu, X, ChevronRight, Database } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingCart, Users, RotateCcw, Menu, X, ChevronRight, Database, Truck } from "lucide-react";
 
 interface NavLinkProps {
     href: string;
@@ -99,6 +99,7 @@ export function AdminSidebar({ user }: AdminNavProps) {
                     <NavLink href="/admin" icon={<LayoutDashboard />} label="Áttekintés" onClick={closeMenu} />
                     <NavLink href="/admin/inventory" icon={<Package />} label="Készlet & Raktár" onClick={closeMenu} />
                     <NavLink href="/admin/orders" icon={<ShoppingCart />} label="Rendelések" onClick={closeMenu} />
+                    <NavLink href="/admin/shipping" icon={<Truck />} label="Szállítás (PXP)" onClick={closeMenu} />
                     <NavLink href="/admin/returns" icon={<RotateCcw />} label="Visszáru (RMA)" onClick={closeMenu} />
 
                     <div className="pt-6 pb-2 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-4">
