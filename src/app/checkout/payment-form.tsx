@@ -45,7 +45,7 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod }: PaymentFor
         setMessage(null);
 
         // Pre-payment reservation validation
-        const sessionId = localStorage.getItem("autonexus-session-id");
+        const sessionId = localStorage.getItem("bontoaruhaz-session-id");
         if (sessionId) {
             const partIds = items.map(item => item.id);
             const isValid = await validateCartReservations(partIds, sessionId);
@@ -129,7 +129,7 @@ function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid }: 
         setMessage(null);
 
         // Pre-payment reservation validation
-        const sessionId = localStorage.getItem("autonexus-session-id");
+        const sessionId = localStorage.getItem("bontoaruhaz-session-id");
         if (sessionId) {
             const partIds = items.map(item => item.id);
             const isValid = await validateCartReservations(partIds, sessionId);
