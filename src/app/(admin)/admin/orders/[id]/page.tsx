@@ -103,9 +103,60 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             <span className="text-3xl font-black text-gray-900 dark:text-white">{order.totalAmount.toLocaleString('hu-HU')} Ft</span>
                         </div>
                     </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Billing Info Moved Left */}
+                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm space-y-4">
+                            <h2 className="font-bold border-b border-gray-200 dark:border-white/10 pb-2 flex items-center gap-2 text-gray-900 dark:text-white">
+                                <CreditCard className="w-4 h-4 text-[var(--color-primary)]" />
+                                Számlázási Adatok
+                            </h2>
+                            <div className="text-sm space-y-1">
+                                {(() => {
+                                    try {
+                                        const billing = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+                                        if (!billing) return <p className="text-gray-500 italic">Nincs számlázási adat.</p>;
+                                        return (
+                                            <div className="space-y-1 text-gray-600 dark:text-gray-300 font-medium">
+                                                <p className="text-gray-900 dark:text-white font-bold">{billing.name || (billing.companyName) || 'Nincs név'}</p>
+                                                <p>{billing.postalCode} {billing.city}</p>
+                                                <p>{billing.address}</p>
+                                                <p className="mt-2 text-xs flex items-center gap-2">
+                                                    <span className="font-bold text-gray-400 uppercase tracking-tighter w-12 shrink-0 text-[10px]">Email:</span>
+                                                    <span className="text-gray-900 dark:text-white">{billing.email || order.user?.email || 'N/A'}</span>
+                                                </p>
+                                                {billing.taxNumber && (
+                                                    <p className="mt-2 pt-2 border-t border-gray-100 dark:border-white/5 text-xs flex items-center gap-2">
+                                                        <span className="font-bold text-gray-400 uppercase tracking-tighter w-12 shrink-0 text-[10px]">Adószám:</span>
+                                                        <span className="text-gray-900 dark:text-white font-bold">{billing.taxNumber}</span>
+                                                    </p>
+                                                )}
+                                            </div>
+                                        );
+                                    } catch (e) {
+                                        return <p className="text-red-500 text-xs italic">Hiba az adatok beolvasásakor.</p>;
+                                    }
+                                })()}
+                            </div>
+                        </div>
+
+                        {/* Payment Method Moved Left */}
+                        <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm space-y-4">
+                            <h2 className="font-bold border-b border-gray-200 dark:border-white/10 pb-2 flex items-center gap-2 text-gray-900 dark:text-white">
+                                <CreditCard className="w-4 h-4 text-[var(--color-primary)]" />
+                                Fizetési Mód
+                            </h2>
+                            <div className="text-sm">
+                                <p className="font-bold text-gray-900 dark:text-white mb-2">{isCOD ? (isPickup ?'Helyszíni fizetés' :'Utánvét') :'Online Bankkártya'}</p>
+                                <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${order.paymentStatus ==='PAID' ?'bg-green-100 text-green-700' :'bg-yellow-100 text-yellow-700'}`}>
+                                    {order.paymentStatus ==='PAID' ?'💰 Sikeresen kifizetve' :'⏳ Fizetésre vár'}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Right Column: Customer Info */}
+                {/* Right Column: Customer Info & Shipping (Reduced height items) */}
                 <div className="space-y-6">
                     <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm space-y-4">
                         <h2 className="font-bold border-b border-gray-200 dark:border-white/10 pb-2 flex items-center gap-2 text-gray-900 dark:text-white">
@@ -234,53 +285,6 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                         <ExternalLink className="w-4 h-4" /> NYOMTATÁS
                                     </a>
                                 )}
-                            </div>
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm space-y-4">
-                        <h2 className="font-bold border-b border-gray-200 dark:border-white/10 pb-2 flex items-center gap-2 text-gray-900 dark:text-white">
-                            <CreditCard className="w-4 h-4 text-[var(--color-primary)]" />
-                            Számlázási Adatok
-                        </h2>
-                        <div className="text-sm space-y-1">
-                            {(() => {
-                                try {
-                                    const billing = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
-                                    if (!billing) return <p className="text-gray-500 italic">Nincs számlázási adat.</p>;
-                                    return (
-                                        <div className="space-y-1 text-gray-600 dark:text-gray-300 font-medium">
-                                            <p className="text-gray-900 dark:text-white font-bold">{billing.name || (billing.companyName) || 'Nincs név'}</p>
-                                            <p>{billing.postalCode} {billing.city}</p>
-                                            <p>{billing.address}</p>
-                                            <p className="mt-2 text-xs flex items-center gap-2">
-                                                <span className="font-bold text-gray-400 uppercase tracking-tighter w-12 shrink-0 text-[10px]">Email:</span>
-                                                <span className="text-gray-900 dark:text-white">{billing.email || order.user?.email || 'N/A'}</span>
-                                            </p>
-                                            {billing.taxNumber && (
-                                                <p className="mt-2 pt-2 border-t border-gray-100 dark:border-white/5 text-xs flex items-center gap-2">
-                                                    <span className="font-bold text-gray-400 uppercase tracking-tighter w-12 shrink-0 text-[10px]">Adószám:</span>
-                                                    <span className="text-gray-900 dark:text-white font-bold">{billing.taxNumber}</span>
-                                                </p>
-                                            )}
-                                        </div>
-                                    );
-                                } catch (e) {
-                                    return <p className="text-red-500 text-xs italic">Hiba az adatok beolvasásakor.</p>;
-                                }
-                            })()}
-                        </div>
-                    </div>
-
-                    <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm space-y-4">
-                        <h2 className="font-bold border-b border-gray-200 dark:border-white/10 pb-2 flex items-center gap-2 text-gray-900 dark:text-white">
-                            <CreditCard className="w-4 h-4 text-[var(--color-primary)]" />
-                            Fizetési Mód
-                        </h2>
-                        <div className="text-sm">
-                            <p className="font-bold text-gray-900 dark:text-white mb-2">{isCOD ? (isPickup ?'Helyszíni fizetés' :'Utánvét') :'Online Bankkártya'}</p>
-                            <div className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${order.paymentStatus ==='PAID' ?'bg-green-100 text-green-700' :'bg-yellow-100 text-yellow-700'}`}>
-                                {order.paymentStatus ==='PAID' ?'💰 Sikeresen kifizetve' :'⏳ Fizetésre vár'}
                             </div>
                         </div>
                     </div>
