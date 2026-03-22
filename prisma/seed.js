@@ -12,7 +12,7 @@ async function main() {
     // await prisma.storageLocation.deleteMany();
 
     // 1. Create Admin
-    const adminEmail = 'admin@autonexus.com';
+    const adminEmail = 'admin@bontoaruhaz.hu';
     const adminUser = await prisma.user.upsert({
         where: { email: adminEmail },
         update: {},

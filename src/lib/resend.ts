@@ -4,7 +4,7 @@ const resendSecret = process.env.RESEND_API_KEY;
 
 export const resend = resendSecret ? new Resend(resendSecret) : null;
 
-export const ADMIN_EMAIL = process.env.ADMIN_EMAILS?.split(',')[0] || 'admin@autonexus.hu';
+export const ADMIN_EMAIL = process.env.ADMIN_EMAILS?.split(',')[0] || 'admin@bontoaruhaz.hu';
 
 export async function sendOrderReceivedEmail(order: any, customerEmail: string) {
     if (!resend) {
