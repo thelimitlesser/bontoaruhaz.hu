@@ -30,16 +30,55 @@ export async function GET() {
             return Buffer.concat([buf1, buf2]).toString('base64');
         }
 
-        const payloadData = {
-            hivatkozas: "TESTAPI",
-            cimzett_nev: "Erdélyi Péter",
-            cimzett_irsz: "1234",
-            cimzett_helys: "Budapest",
-            cimzett_utca: "Teszt utca 1.",
-            cimzett_telefon: "06301234567",
-            cimzett_email: "test@test.com",
-            utanvet_osszeg: 0,
-            csomag: [{ tipus: 'doboz', darab: 1, suly: 5 }]
+        const { prisma } = require("@/lib/prisma");
+        const order = await prisma.order.findFirst({
+            where: { status: 'PENDING' },
+            include: { items: { include: { part: true } } },
+            orderBy: { createdAt: 'desc' }
+        });
+
+        if (!order) return NextResponse.json({ error: "No pending orders found" });
+
+        const pxpAddress = typeof order.shippingAddress === 'string' 
+            ? JSON.parse(order.shippingAddress) 
+            : order.shippingAddress;
+        
+        const customerPhone = pxpAddress.phone ? formatPhoneNumber(pxpAddress.phone) : '06300000000';
+        const billingData = typeof order.billingAddress === 'string' 
+            ? JSON.parse(order.billingAddress) 
+            : order.billingAddress;
+        const customerEmail = billingData?.email || 'vevo@email.com';
+
+        let maxPackageWeight = "10";
+        let hasRaklap = false;
+        
+        if (order.items && order.items.length > 0) {
+            let totalWeightValue = 0;
+            order.items.forEach((item: any) => {
+                totalWeightValue += (item.part?.weight || 2) * item.quantity;
+                if (item.part?.weight >= 40 || ['komplett-motor', 'valto'].includes(item.part?.subcategorySlug)) {
+                    hasRaklap = true;
+                }
+            });
+            maxPackageWeight = Math.max(0.1, totalWeightValue).toString();
+        }
+
+        const payloadData: any = {
+            hivatkozas: order.id.toString(),
+            cimzett_nev: pxpAddress.name || "Vendég",
+            cimzett_irsz: pxpAddress.zipCode,
+            cimzett_helys: pxpAddress.city,
+            cimzett_utca: pxpAddress.street,
+            cimzett_telefon: customerPhone,
+            cimzett_email: customerEmail,
+            utanvet_osszeg: order.paymentMethod === 'COD' ? order.totalAmount : 0,
+            csomag: [
+                {
+                    tipus: hasRaklap ? 'raklap' : 'doboz',
+                    darab: 1,
+                    suly: maxPackageWeight
+                }
+            ]
         };
 
         const pxpData = { "0": payloadData };
