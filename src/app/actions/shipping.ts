@@ -1,8 +1,62 @@
 'use server';
 
-import { performPxpManifest, trackShipment } from "@/lib/shipping/pannon-xp";
+import { performPxpManifest, trackShipment, cancelPxpShipment } from "@/lib/shipping/pannon-xp";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
+
+export async function cancelOrder(orderId: string) {
+    try {
+        // 1. Fetch order details to get tracking number and items
+        const order = await prisma.order.findUnique({
+            where: { id: orderId },
+            include: { items: true }
+        });
+
+        if (!order) {
+            return { success: false, error: "Rendelés nem található." };
+        }
+
+        if (order.status === 'CANCELLED') {
+            return { success: false, error: "A rendelés már le van mondva." };
+        }
+
+        // 2. If it has a PXP tracking number, cancel the shipment in PXP system
+        if (order.trackingNumber) {
+            const pxpResult = await cancelPxpShipment(order.trackingNumber);
+            if (!pxpResult.success) {
+                console.warn(`PXP Cancellation warning for order ${orderId}: ${pxpResult.error}`);
+                // We proceed anyway with local cancellation, but log it
+            }
+        }
+
+        // 3. Return items to stock
+        for (const item of order.items) {
+            if (item.partId) {
+                await prisma.part.update({
+                    where: { id: item.partId },
+                    data: {
+                        stock: { increment: item.quantity }
+                    }
+                });
+            }
+        }
+
+        // 4. Update order status to CANCELLED
+        await prisma.order.update({
+            where: { id: orderId },
+            data: { status: 'CANCELLED' }
+        });
+
+        revalidatePath(`/admin/orders/${orderId}`);
+        revalidatePath('/admin/orders');
+        revalidatePath('/admin/shipping');
+
+        return { success: true };
+    } catch (error: any) {
+        console.error("Cancel Order Error:", error);
+        return { success: false, error: error.message };
+    }
+}
 
 export async function closePxpDay() {
     try {

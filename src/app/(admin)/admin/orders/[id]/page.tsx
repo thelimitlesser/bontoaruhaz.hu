@@ -8,6 +8,7 @@ import { OrderItemDetails } from "./order-item-details";
 import { ShipmentTracker } from "./ShipmentTracker";
 import { OrderTimeline } from "./OrderTimeline";
 import { FileText, ClipboardCheck, ExternalLink, Check } from "lucide-react";
+import { CancelOrderButton } from "./cancel-button";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const { id } = await params;
@@ -55,7 +56,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         <p className="text-gray-500 dark:text-gray-400">{order.createdAt ? new Date(order.createdAt).toLocaleString('hu-HU') : 'Nincs dátum'}</p>
                     </div>
                 </div>
-                <div className="md:ml-auto">
+                <div className="md:ml-auto flex flex-col md:flex-row items-end md:items-center gap-3">
+                    <CancelOrderButton orderId={order.id} status={order.status} />
                     <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
                 </div>
             </div>
