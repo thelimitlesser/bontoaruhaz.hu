@@ -13,6 +13,20 @@ function hashPassword(password: string): string {
     return crypto.createHash('sha512').update(password).digest('hex').toUpperCase();
 }
 
+export function extractPxpError(result: any): string {
+    if (result.kapcsolat?.uzenet) return result.kapcsolat.uzenet;
+    if (result.ervenytelen_adat) {
+        const invalidData = Array.isArray(result.ervenytelen_adat) ? result.ervenytelen_adat[0] : (result.ervenytelen_adat?.["0"] || result.ervenytelen_adat);
+        if (invalidData) {
+            for (const key of Object.keys(invalidData)) {
+                if (invalidData[key]?.uzenet) return invalidData[key].uzenet;
+            }
+            if (invalidData.uzenet) return invalidData.uzenet;
+        }
+    }
+    return "Ismeretlen API hiba";
+}
+
 function encryptData(data: any, key: string): string {
     const cipher = crypto.createCipheriv('aes-128-ecb', Buffer.from(key.padEnd(16, '\0').slice(0, 16)), null);
     const buf1 = cipher.update(JSON.stringify(data), 'utf8');
@@ -166,10 +180,9 @@ export async function createPxpShipment(order: any) {
             };
         } else {
             console.error("PannonXP API Error Detail:", JSON.stringify(result, null, 2));
-            const errorMsg = result.kapcsolat?.uzenet || result.ervenytelen_adat?.["0"]?.uzenet || "Ismeretlen API hiba";
             return {
                 success: false,
-                error: errorMsg,
+                error: extractPxpError(result),
                 trackingNumber: `PXP-ERR-${Date.now()}`
             };
         }

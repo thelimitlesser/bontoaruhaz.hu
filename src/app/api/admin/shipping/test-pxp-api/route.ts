@@ -42,51 +42,52 @@ export async function GET() {
             ? JSON.parse(order.shippingAddress) 
             : order.shippingAddress;
         
-        function formatPhoneNumberLocal(phone: string): string {
+        const formatPxpPhone = (phone: string) => {
             if (!phone) return "06300000000";
-            let p = phone.replace(/\s+/g, '').replace(/-/g, '');
-            if (p.startsWith('+36')) p = p.replace('+36', '06');
-            if (p.startsWith('36')) p = '06' + p.substring(2);
-            return p;
-        }
-        
-        const customerPhone = pxpAddress.phone ? formatPhoneNumberLocal(pxpAddress.phone) : '06300000000';
-        const billingData = typeof order.billingAddress === 'string' 
-            ? JSON.parse(order.billingAddress) 
-            : order.billingAddress;
-        const customerEmail = billingData?.email || 'vevo@email.com';
-
-        let maxPackageWeight = "10";
-        let hasRaklap = false;
-        
-        if (order.items && order.items.length > 0) {
-            let totalWeightValue = 0;
-            order.items.forEach((item: any) => {
-                totalWeightValue += (item.part?.weight || 2) * item.quantity;
-                if (item.part?.weight >= 40 || ['komplett-motor', 'valto'].includes(item.part?.subcategorySlug)) {
-                    hasRaklap = true;
-                }
-            });
-            maxPackageWeight = Math.max(0.1, totalWeightValue).toString();
-        }
-
-        const payloadData: any = {
-            hivatkozas: order.id.toString(),
-            cimzett_nev: pxpAddress.name || "Vendég",
-            cimzett_irsz: pxpAddress.zipCode,
-            cimzett_helys: pxpAddress.city,
-            cimzett_utca: pxpAddress.street,
-            cimzett_telefon: customerPhone,
-            cimzett_email: customerEmail,
-            utanvet_osszeg: order.paymentMethod === 'COD' ? order.totalAmount : 0,
-            csomag: [
-                {
-                    tipus: hasRaklap ? 'raklap' : 'doboz',
-                    darab: 1,
-                    suly: maxPackageWeight
-                }
-            ]
+            const digits = phone.replace(/\D/g, '');
+            if (digits.startsWith('36')) return `+${digits.slice(0, 2)} ${digits.slice(2)}`;
+            if (digits.startsWith('06')) return `+36 ${digits.slice(2)}`;
+            return `+36 ${digits}`;
         };
+
+        const isCOD = order.paymentMethod === 'COD';
+        const utanvetAmount = isCOD ? Number(Math.round(order.totalAmount)) : 0;
+
+        const shipmentRequest: any = {
+            "0": {
+                tipus: 0,
+                cimzett: {
+                    nev: pxpAddress.name.slice(0, 30),
+                    telefon: formatPxpPhone(pxpAddress.phone).slice(0, 20),
+                    emailcim: (pxpAddress.email || 'vevo@email.com').slice(0, 50),
+                    ceg_nev: (pxpAddress.companyName || pxpAddress.name).slice(0, 50),
+                    cim_telepules: pxpAddress.city.slice(0, 40),
+                    cim_iranyito: pxpAddress.zipCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4),
+                    cim_kozterulet: pxpAddress.street.slice(0, 60),
+                    cim_megjegyzes: `Order #${order.id.slice(-6)}`.slice(0, 100)
+                },
+                szolgaltatas: "24H",
+                sms: true,
+                csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
+                    acc[idx.toString()] = {
+                        db: Number(Math.min(item.quantity, 99)),
+                        suly: Number((item.part.weight || 2).toFixed(2)),
+                        hosszusag: Number(Math.round(item.part.length || 30)),
+                        szelesseg: Number(Math.round(item.part.width || 20)),
+                        magassag: Number(Math.round(item.part.height || 10)),
+                        tipus: (item.part.weight > 40 || item.part.length > 200) ? "raklap" : "doboz"
+                    };
+                    return acc;
+                }, {}),
+                tartalom: "Autóalkatrész",
+                koltsegviselo: "cimzett",
+                maganszemely: true
+            }
+        };
+
+        if (isCOD) {
+            shipmentRequest["0"].utanvet = utanvetAmount;
+        }
 
         const pxpData = { "0": payloadData };
         const encryptedRequest = encryptData(pxpData, cserekulcs);
