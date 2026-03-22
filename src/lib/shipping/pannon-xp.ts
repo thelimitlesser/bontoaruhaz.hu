@@ -131,13 +131,19 @@ export async function createPxpShipment(order: any) {
                 szolgaltatas: "24H",
                 sms: true, // Bekapcsolva a PXP SMS értesítő
                 csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
+                    const dims = [
+                        item.part.length || 30,
+                        item.part.width || 20,
+                        item.part.height || 10
+                    ].sort((a, b) => b - a); // Csökkenő sorrend (L, W, H)
+                    
                     acc[idx.toString()] = {
                         db: Number(Math.min(item.quantity, 99)),
                         suly: Number((item.part.weight || 2).toFixed(2)), // API allows max 2 decimals
-                        hosszusag: Number(Math.round(item.part.length || 30)),
-                        szelesseg: Number(Math.round(item.part.width || 20)),
-                        magassag: Number(Math.round(item.part.height || 10)),
-                        tipus: (item.part.weight > 40 || item.part.length > 200) ? "raklap" : "doboz"
+                        hosszusag: Math.min(420, Math.max(1, Math.round(dims[0]))),
+                        szelesseg: Math.min(150, Math.max(1, Math.round(dims[1]))),
+                        magassag: Math.min(160, Math.max(1, Math.round(dims[2]))),
+                        tipus: (item.part.weight > 40 || dims[0] > 200) ? "raklap" : "doboz"
                     };
                     return acc;
                 }, {}),
