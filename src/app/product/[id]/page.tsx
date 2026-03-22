@@ -233,6 +233,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                       </div>
                     </div>
                   )}
+                  {dbPart.engineCode && (
+                    <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
+                      <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-muted mt-0.5" />
+                      <div>
+                        <div className="text-[10px] text-muted uppercase tracking-wider font-bold">Motorkód</div>
+                        <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">{dbPart.engineCode}</div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
