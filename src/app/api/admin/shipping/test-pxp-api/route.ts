@@ -89,7 +89,7 @@ export async function GET() {
             shipmentRequest["0"].utanvet = utanvetAmount;
         }
 
-        const pxpData = { "0": payloadData };
+        const pxpData = shipmentRequest;
         const encryptedRequest = encryptData(pxpData, cserekulcs);
 
         const body = new URLSearchParams();
