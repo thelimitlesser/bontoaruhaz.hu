@@ -114,6 +114,13 @@ export async function createPxpShipment(order: any) {
             };
         }
 
+        // Extract product details for the label and manifest
+        const productSummaries = order.items.map((i: any) => `${i.part.sku ? `[${i.part.sku}] ` : ''}${i.part.name || 'Alkatrész'}`);
+        const fullSummary = productSummaries.join(' + ');
+        const tartalomText = fullSummary.slice(0, 35) + (fullSummary.length > 35 ? '...' : ''); // Max 40 characters for PXP tartalom
+        const megjegyzesText = `Rendelés #${order.id.slice(-6)} | ${fullSummary}`.slice(0, 100); // Max 100 characters
+        const refText = `R#${order.id.slice(-6)} ${productSummaries.map((i:any)=>i.split(' ')[0].replace(/\[|\]/g, '')).join(' ')}`.slice(0, 30); // Max 30 chars for ref
+
         // Prepare the shipment data
         const shipmentRequest: any = {
             "0": {
@@ -126,7 +133,7 @@ export async function createPxpShipment(order: any) {
                     cim_telepules: shippingAddr.city.slice(0, 40),
                     cim_iranyito: shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4),
                     cim_kozterulet: shippingAddr.address.slice(0, 60),
-                    cim_megjegyzes: `Order #${order.id.slice(-6)}`.slice(0, 100)
+                    cim_megjegyzes: megjegyzesText
                 },
                 szolgaltatas: "24H",
                 sms: true, // Bekapcsolva a PXP SMS értesítő
@@ -147,6 +154,8 @@ export async function createPxpShipment(order: any) {
                     };
                     return acc;
                 }, {}),
+                tartalom: tartalomText,
+                referenciaszam: refText,
                 ...(utanvetAmount > 0 ? { utanvet: utanvetAmount } : {})
             }
         };
