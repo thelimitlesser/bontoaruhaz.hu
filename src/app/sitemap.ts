@@ -1,7 +1,8 @@
 import { MetadataRoute } from 'next'
 import { brands } from '@/lib/vehicle-data'
+import { prisma } from '@/lib/prisma'
 
-export default function sitemap(): MetadataRoute.Sitemap {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://bontoaruhaz.hu'
 
     // Static routes
@@ -32,5 +33,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
             priority: 0.6,
         }))
 
-    return [...staticRoutes, ...brandRoutes]
+    // Product routes from Database
+    let productRoutes: any[] = [];
+    try {
+        const products = await prisma.part.findMany({
+            select: { id: true, createdAt: true },
+            take: 2000 // Increased limit for better coverage
+        });
+        
+        productRoutes = products.map(p => ({
+            url: `${baseUrl}/product/${p.id}`,
+            lastModified: p.createdAt,
+            changeFrequency: 'daily' as const,
+            priority: 0.7,
+        }));
+    } catch (e) {
+        console.error("Sitemap generation error:", e);
+    }
+
+    return [...staticRoutes, ...brandRoutes, ...productRoutes]
 }

@@ -20,6 +20,7 @@ interface SearchableSelectProps {
     name?: string;
     theme?: "dark" | "light";
     variant?: "default" | "minimal";
+    hideAllOption?: boolean;
 }
 
 export function SearchableSelect({
@@ -32,6 +33,7 @@ export function SearchableSelect({
     name,
     theme = "dark",
     variant = "default",
+    hideAllOption = false,
 }: SearchableSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState("");
@@ -167,7 +169,7 @@ export function SearchableSelect({
                     <div className={clsx("min-h-[185px] max-h-[185px] overflow-y-auto scrollbar-thin scrollbar-track-transparent rounded-b-xl flex flex-col", theme === "dark" ? "scrollbar-thumb-foreground/20" : "scrollbar-thumb-gray-200")}>
                         
                         {/* "ALL" / "TOTAL" clear option at the top */}
-                        {!searchQuery && (
+                        {!searchQuery && !hideAllOption && (
                             <button
                                 type="button"
                                 className={clsx("w-full text-left px-5 py-3 text-sm font-bold border-b transition-colors shrink-0",

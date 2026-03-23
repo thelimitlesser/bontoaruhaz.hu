@@ -1,4 +1,5 @@
-import { ArrowLeft, ShoppingCart, ShieldCheck, Truck, HelpCircle, Star, Info, Globe, Calendar, CheckCircle2, Factory, Hash, Settings, Phone, Mail, ChevronRight, Clock, AlertCircle, Share2, Heart, Scale, Box } from "lucide-react";
+import { getRelatedProducts } from "@/app/actions/product";
+import { ArrowLeft, CheckCircle2, ShieldCheck, Truck, Star, Settings, Calendar, Hash, Factory, Info, Phone, HelpCircle, Globe, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductGallery } from "@/components/product-gallery";
@@ -7,6 +8,43 @@ import { AddToCartButton } from "@/components/add-to-cart-button";
 import { prisma } from "@/lib/prisma";
 import { getBrandById, getModelById, getCategoryById, getSubcategoryById, getPartItemById, getBrandBySlug, getModelBySlug, categories, partsSubcategories, partItems } from "@/lib/vehicle-data";
 import { Product } from "@/lib/mock-data";
+
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<import("next").Metadata> {
+  const { id } = await params;
+  const dbPart = await prisma.part.findUnique({ where: { id } });
+
+  if (!dbPart) return { title: "Termék nem található" };
+
+  const brandObj = dbPart.brandId ? getBrandById(dbPart.brandId) : null;
+  const modelObj = dbPart.modelId ? getModelById(dbPart.modelId) : null;
+  const brandName = brandObj?.name || dbPart.brandId || "";
+  const modelName = modelObj?.name || dbPart.modelId || "";
+  
+  const title = `[Bontott] ${brandName} ${modelName} ${dbPart.name} | Bontóáruház`;
+  const description = dbPart.description 
+    ? dbPart.description.slice(0, 155) + "..." 
+    : `Minőségi bontott ${brandName} ${modelName} ${dbPart.name} alkatrész garanciával és gyors kiszállítással a Bontóáruházban.`;
+
+  const images = (dbPart.images || "").split(",").filter(img => img.length > 0);
+  const mainImage = images.length > 0 ? images[0] : "https://bontoaruhaz.hu/logo_orange.png";
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: [mainImage],
+      type: 'article',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [mainImage],
+    }
+  };
+}
 
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -24,6 +62,8 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   if (!dbPart) {
     notFound();
   }
+
+  const relatedProducts = await getRelatedProducts(dbPart.id, dbPart.modelId, dbPart.brandId, 4);
 
   const brandObj = dbPart.brandId ? getBrandById(dbPart.brandId) : null;
   const modelObj = dbPart.modelId ? getModelById(dbPart.modelId) : null;
@@ -365,6 +405,86 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
         </div>
 
       </div>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <div className="max-w-7xl mx-auto mt-20 mb-12 border-t border-border pt-16">
+          <div className="flex items-end justify-between mb-10 px-2 md:px-0">
+            <div className="space-y-2">
+              <span className="text-[var(--color-primary)] font-black text-xs uppercase tracking-[0.2em]">Másodpercek alatt megtalálod</span>
+              <h2 className="text-3xl md:text-4xl font-black text-foreground uppercase tracking-tight italic">
+                TOVÁBBI <span className="text-[var(--color-primary)]">{product.brand} {product.model}</span> ALKATRÉSZEK
+              </h2>
+            </div>
+            <Link 
+              href={`/brand/${brandSlug}/${modelSlug}`}
+              className="hidden sm:flex items-center gap-2 text-sm font-bold text-muted hover:text-[var(--color-primary)] transition-colors group"
+            >
+              Összes megtekintése
+              <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {relatedProducts.map((p) => (
+              <Link
+                key={p.id}
+                href={`/product/${p.id}`}
+                className="group bg-background border border-border rounded-[2rem] overflow-hidden hover:border-[var(--color-primary)] hover:shadow-2xl hover:shadow-[var(--color-primary)]/10 transition-all duration-300 flex flex-col active:scale-[0.98]"
+              >
+                {/* Image Container */}
+                <div className="relative aspect-square overflow-hidden bg-muted">
+                  <img
+                    src={p.images?.split(',')[0] || "/logo_orange.png"}
+                    alt={p.name}
+                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
+                </div>
+
+                {/* Content */}
+                <div className="p-6 flex flex-col flex-1 space-y-3">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-1 bg-foreground/5 text-[10px] font-black uppercase tracking-wider rounded-md text-muted">
+                      {p.brandName}
+                    </span>
+                    <span className="px-2 py-1 bg-foreground/5 text-[10px] font-black uppercase tracking-wider rounded-md text-muted">
+                      {p.modelName}
+                    </span>
+                  </div>
+                  
+                  <h3 className="font-bold text-base leading-tight text-foreground group-hover:text-[var(--color-primary)] transition-colors line-clamp-2 min-h-[3rem]">
+                    {p.name}
+                  </h3>
+
+                  <div className="pt-4 mt-auto flex items-center justify-between border-t border-border/50">
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-xl font-black text-foreground">
+                        {p.priceGross.toLocaleString('hu-HU')}
+                      </span>
+                      <span className="text-xs font-bold text-muted">FT</span>
+                    </div>
+                    <div className="w-8 h-8 rounded-full bg-foreground/[0.03] flex items-center justify-center group-hover:bg-[var(--color-primary)]/10 transition-colors">
+                      <ChevronRight className="w-4 h-4 text-muted group-hover:text-[var(--color-primary)] transition-colors" />
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+
+          {/* Mobile view 'view all' link */}
+          <div className="mt-8 flex justify-center sm:hidden">
+            <Link 
+              href={`/brand/${brandSlug}/${modelSlug}`}
+              className="flex items-center gap-2 text-sm font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-6 py-3 rounded-xl active:scale-95 transition-all"
+            >
+              Összes megtekintése
+              <ChevronRight className="w-4 h-4" />
+            </Link>
+          </div>
+        </div>
+      )}
 
       {/* New Full-Width Inquiry Section - Refined Compact Version */}
       <div className="mt-8 mb-12">

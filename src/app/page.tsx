@@ -2,9 +2,12 @@ import { ArrowRight, Search } from "lucide-react";
 import { VehicleSelector } from "@/components/vehicle-selector";
 import { HeroBackground } from "@/components/hero-background";
 import { BrandSelector } from "@/components/brand-selector";
+import { getBrandsAction, getActivePartOptionsAction } from "@/app/actions/vehicle";
 
+export default async function Home() {
+  const activeBrands = await getBrandsAction();
+  const initialPartOptions = await getActivePartOptionsAction();
 
-export default function Home() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen px-2 sm:p-20 font-[family-name:var(--font-geist-sans)] overflow-x-hidden w-full">
 
@@ -35,7 +38,7 @@ export default function Home() {
 
             {/* MAIN SEARCH WIDGET */}
             <div className="w-full text-left transform translate-y-0 sm:translate-y-4 px-1 sm:px-0">
-              <VehicleSelector />
+              <VehicleSelector initialBrands={activeBrands} initialPartOptions={initialPartOptions} />
             </div>
 
             {/* 14-Day Guarantee Card */}
@@ -54,8 +57,8 @@ export default function Home() {
         </section>
 
         {/* BRAND SELECTOR SECTION - Secondary method */}
-        <div className="w-full px-2 sm:px-0">
-          <BrandSelector />
+        <div id="markak" className="w-full px-2 sm:px-0 scroll-mt-32">
+          <BrandSelector brands={activeBrands} />
         </div>
 
       </main>

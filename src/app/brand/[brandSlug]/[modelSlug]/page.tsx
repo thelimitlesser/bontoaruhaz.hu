@@ -1,21 +1,48 @@
-"use client";
-import { useState, useEffect, use } from"react";
-import Link from"next/link";
-import { notFound } from"next/navigation";
-import { getBrandBySlug, getModelBySlug, categories } from"@/lib/vehicle-data";
-import { ArrowRight, Search, PackageSearch } from"lucide-react";
-import { Navbar } from"@/components/navbar";
-import { getCategoryProductCounts } from"@/app/actions/product";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { prisma } from "@/lib/prisma";
+import { getActiveCategoriesForModelAction } from "@/app/actions/vehicle";
+import { categories as staticCategories } from "@/lib/vehicle-data";
+import { ArrowRight, Search } from "lucide-react";
+import { Navbar } from "@/components/navbar";
+import { Metadata } from "next";
 
-export default function ModelCategoryPage({ params }: { params: Promise<{ brandSlug: string; modelSlug: string }> }) {
-    const { brandSlug, modelSlug } = use(params);
+export async function generateMetadata({ params }: { params: Promise<{ brandSlug: string; modelSlug: string }> }): Promise<Metadata> {
+    const { brandSlug, modelSlug } = await params;
+    const brand = await prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } });
+    const model = await prisma.vehicleModel.findFirst({ where: { slug: modelSlug, brandId: brand?.id } });
 
-    const brand = getBrandBySlug(brandSlug);
-    const model = getModelBySlug(modelSlug);
+    if (!brand || !model) return { title: "Modell nem található" };
+
+    const title = `Bontott ${brand.name} ${model.name} alkatrészek kategóriák szerint | Bontóáruház`;
+    const description = `Válogass kategóriák szerint a bontott ${brand.name} ${model.name} alkatrészek között. Karosszéria, motor, futómű és minden egyéb egy helyen.`;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            images: [brand.logo],
+        }
+    };
+}
+
+export default async function ModelCategoryPage({ params }: { params: Promise<{ brandSlug: string; modelSlug: string }> }) {
+    const { brandSlug, modelSlug } = await params;
+
+    const brand = await prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } });
+    const model = await prisma.vehicleModel.findFirst({ where: { slug: modelSlug, brandId: brand?.id } });
 
     if (!brand || !model) {
         notFound();
     }
+
+    const activeCategories = await getActiveCategoriesForModelAction(brand.id, model.id);
+    const activeCategoryIds = activeCategories.map(c => c.id);
+
+    // Filter static categories to keep icons and ordering
+    const filteredCategories = staticCategories.filter(cat => activeCategoryIds.includes(cat.id));
 
     const jsonLd = {
         "@context": "https://schema.org",
@@ -25,8 +52,8 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
         "url": `https://bontoaruhaz.hu/brand/${brand.slug}/${model.slug}`,
         "mainEntity": {
             "@type": "ItemList",
-            "numberOfItems": categories.length,
-            "itemListElement": categories.map((cat, index) => ({
+            "numberOfItems": filteredCategories.length,
+            "itemListElement": filteredCategories.map((cat, index) => ({
                 "@type": "ListItem",
                 "position": index + 1,
                 "name": `${cat.name} alkatrészek`,
@@ -69,7 +96,7 @@ export default function ModelCategoryPage({ params }: { params: Promise<{ brandS
 
                 {/* Category Grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                    {categories.map((cat) => {
+                    {filteredCategories.map((cat) => {
                         const Icon = cat.icon;
 
                         return (

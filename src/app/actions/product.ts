@@ -521,10 +521,22 @@ export async function getSearchProducts(params: {
             take: take,
             skip: skip,
             orderBy: { createdAt: 'desc' },
-            include: {
-                partner: true,
+            select: {
+                id: true,
+                name: true,
+                priceGross: true,
+                images: true,
+                sku: true,
+                brandId: true,
+                modelId: true,
+                stock: true,
+                engineCode: true,
+                productCode: true,
+                condition: true,
+                isUniversal: true,
                 reservations: {
-                    where: { expiresAt: { gt: new Date() } }
+                    where: { expiresAt: { gt: new Date() } },
+                    select: { id: true }
                 }
             }
         }),
@@ -663,103 +675,6 @@ export async function updatePartStock(id: string, newStock: number) {
 
     revalidatePath('/admin/inventory');
 }
-export async function getSearchSuggestions(query: string) {
-    if (!query || query.length < 2) {
-        return { brands: [], models: [], categories: [], products: [] };
-    }
-
-    const queryLower = query.toLowerCase();
-
-    // 1. Filter Brands
-    const matchingBrands = brands
-        .filter(b => !b.hidden && b.name.toLowerCase().includes(queryLower))
-        .slice(0, 3);
-
-    // 2. Filter Models
-    const matchingModels = models
-        .filter(m => {
-            const mName = m.name.toLowerCase();
-            const mSeries = m.series?.toLowerCase() || '';
-            const cleanName = mName.replace(/[()]/g, '');
-            return cleanName.includes(queryLower) || mSeries.includes(queryLower);
-        })
-        .slice(0, 3);
-
-    // 3. Filter Categories & Subcategories
-    const matchingCategories = categories
-        .filter(c => c.name.toLowerCase().includes(queryLower) || (c.keywords && c.keywords.some(k => k.toLowerCase().includes(queryLower))))
-        .slice(0, 2);
-
-    const matchingSubcats = subcategories
-        .filter(s => s.name.toLowerCase().includes(queryLower) || (s.keywords && s.keywords.some(k => k.toLowerCase().includes(queryLower))))
-        .slice(0, 2);
-
-    // 4. Fetch top products
-    let products: any[] = [];
-    try {
-        products = await prisma.part.findMany({
-            where: {
-                stock: { gt: 0 },
-                OR: [
-                    { name: { contains: query, mode: 'insensitive' } },
-                    { sku: { contains: query, mode: 'insensitive' } },
-                    { engineCode: { contains: query, mode: 'insensitive' } },
-                ]
-            },
-            take: 4,
-            select: {
-                id: true,
-                name: true,
-                priceGross: true,
-                images: true,
-                sku: true
-            }
-        });
-    } catch (e) {
-        // Fallback without engineCode if Prisma client is not in sync
-        products = await prisma.part.findMany({
-            where: {
-                stock: { gt: 0 },
-                OR: [
-                    { name: { contains: query, mode: 'insensitive' } },
-                    { sku: { contains: query, mode: 'insensitive' } },
-                ]
-            },
-            take: 4,
-            select: {
-                id: true,
-                name: true,
-                priceGross: true,
-                images: true,
-                sku: true
-            }
-        });
-    }
-
-    return {
-        brands: matchingBrands.map(b => ({ id: b.id, name: b.name })),
-        models: matchingModels.map(m => {
-            const brand = brands.find(b => b.id === m.brandId);
-            return {
-                id: m.id,
-                name: m.name,
-                brandId: m.brandId,
-                brandName: brand?.name || ''
-            };
-        }),
-        categories: [
-            ...matchingCategories.map(c => ({ id: c.id, name: c.name, type: 'category' })),
-            ...matchingSubcats.map(s => ({ id: s.id, name: s.name, type: 'subcategory' }))
-        ],
-        products: products.map(p => ({
-            id: p.id,
-            name: p.name,
-            priceGross: p.priceGross,
-            images: p.images,
-            cikkszam: p.sku
-        }))
-    };
-}
 
 /**
  * Checks if parts with the given SKU already exist in the database.
@@ -789,5 +704,92 @@ export async function checkDuplicateSku(sku: string, excludeId?: string) {
     } catch (error) {
         console.error("Error checking duplicate SKU:", error);
         return [];
+    }
+}
+
+export async function getRelatedProducts(currentProductId: string, modelId: string | null, brandId: string | null, take: number = 4) {
+    try {
+        const products = await prisma.part.findMany({
+            where: {
+                id: { not: currentProductId },
+                stock: { gt: 0 },
+                OR: [
+                    { modelId: modelId },
+                    { brandId: brandId },
+                    { isUniversal: true }
+                ]
+            },
+            take: take,
+            orderBy: {
+                createdAt: 'desc'
+            },
+            select: {
+                id: true,
+                name: true,
+                priceGross: true,
+                images: true,
+                sku: true,
+                brandId: true,
+                modelId: true
+            }
+        });
+
+        // Add brand/model names from vehicle-data
+        return products.map(p => ({
+            ...p,
+            brandName: brands.find(b => b.id === p.brandId)?.name || p.brandId,
+            modelName: models.find(m => m.id === p.modelId)?.name || p.modelId
+        }));
+    } catch (error) {
+        console.error("Error fetching related products:", error);
+        return [];
+    }
+}
+
+/**
+ * Checks if a search query matches exactly one product by SKU or Product Code.
+ * Returns the product ID if a single unique match is found, or if there is 
+ * an exact SKU/Product Code match despite other partial matches.
+ */
+export async function getDirectMatchAction(query: string) {
+    if (!query || query.trim().length < 3) return null;
+
+    const cleanQuery = query.trim();
+
+    try {
+        const parts = await prisma.part.findMany({
+            where: {
+                stock: { gt: 0 },
+                OR: [
+                    { sku: { equals: cleanQuery, mode: 'insensitive' } },
+                    { productCode: { equals: cleanQuery, mode: 'insensitive' } },
+                    { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } }
+                ]
+            },
+            select: { id: true, sku: true, productCode: true },
+            take: 5 // Take a few to check for exactness
+        });
+
+        if (parts.length === 0) return null;
+
+        // 1. Look for exact SKU or Product Code match (highest priority)
+        const strictMatch = parts.find(p => 
+            (p.sku && p.sku.toLowerCase() === cleanQuery.toLowerCase()) || 
+            (p.productCode && p.productCode.toLowerCase() === cleanQuery.toLowerCase())
+        );
+
+        if (strictMatch) {
+            return strictMatch.id;
+        }
+
+        // 2. If exactly one result found (even if partial/OEM contains), redirect
+        if (parts.length === 1) {
+            return parts[0].id;
+        }
+
+        return null;
+    } catch (error) {
+        console.error("Direct match check error:", error);
+        return null;
     }
 }

@@ -426,7 +426,7 @@ function SearchResultsContent() {
                         <Link href="/" className="px-8 py-4 bg-gray-900 text-white font-black rounded-2xl hover:bg-black transition-all uppercase tracking-wider text-sm">
                             Vissza a főoldalra
                         </Link>
-                        <Link href="/brand" className="px-8 py-4 bg-[var(--color-primary)] text-white font-black rounded-2xl hover:opacity-90 transition-all uppercase tracking-wider text-sm shadow-lg shadow-[var(--color-primary)]/20">
+                        <Link href="/#markak" className="px-8 py-4 bg-[var(--color-primary)] text-white font-black rounded-2xl hover:opacity-90 transition-all uppercase tracking-wider text-sm shadow-lg shadow-[var(--color-primary)]/20">
                             Márkák böngészése
                         </Link>
                     </div>

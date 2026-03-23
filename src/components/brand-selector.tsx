@@ -1,10 +1,11 @@
-"use client";
-
 import Link from "next/link";
-import { brands } from "@/lib/vehicle-data";
 import { ArrowRight, Car } from "lucide-react";
 
-export function BrandSelector() {
+interface BrandSelectorProps {
+    brands: any[];
+}
+
+export function BrandSelector({ brands }: BrandSelectorProps) {
     return (
         <section className="w-full py-20 px-4 md:px-8 relative z-10">
             <div className="max-w-7xl mx-auto">

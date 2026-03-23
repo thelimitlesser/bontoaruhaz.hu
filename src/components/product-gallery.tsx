@@ -230,7 +230,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                                 : "border-transparent opacity-40 hover:opacity-100"
                                         )}
                                     >
-                                        <img src={img} className="object-cover w-full h-full" alt="" />
+                                        <img src={img} className="object-cover w-full h-full" alt={`${productName} - ${idx + 1}. kép`} />
                                     </button>
                                 ))}
                             </div>

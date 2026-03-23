@@ -9,9 +9,8 @@ import {
     getModelBySlug,
     getCategoryBySlug,
     getProducts,
-    getSubcategoriesByCategory,
-    getPartItemsBySubcategory
 } from "@/lib/vehicle-data";
+import { getActiveSubcategoriesForModelAction, getActivePartItemsForModelAction } from "@/app/actions/vehicle";
 import { subcategories as allSubcategories, partItems as allPartItems } from "@/lib/parts-data";
 import { Filter } from "lucide-react";
 import { Navbar } from "@/components/navbar";
@@ -34,16 +33,44 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
         notFound();
     }
 
-    const subcategories = getSubcategoriesByCategory(category.id).sort((a, b) => a.name.localeCompare(b.name, 'hu'));
-    const currentSubcategory = subcatSlug ? subcategories.find(s => s.slug === subcatSlug) : null;
-
-    // Level 3 items for the selected subcategory
-    const partItems = currentSubcategory ? getPartItemsBySubcategory(currentSubcategory.id).sort((a, b) => a.name.localeCompare(b.name, 'hu')) : [];
-    const currentPartItem = partItemSlug ? partItems.find(p => p.slug === partItemSlug) : null;
-
     const [realProducts, setRealProducts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [yearFilter, setYearFilter] = useState<string>("");
+    
+    // Active filters state
+    const [activeSubcategories, setActiveSubcategories] = useState<any[]>([]);
+    const [activePartItems, setActivePartItems] = useState<any[]>([]);
+
+    // Fetch active subcategories
+    useEffect(() => {
+        const fetchSubcats = async () => {
+            if (category?.id) {
+                const subcats = await getActiveSubcategoriesForModelAction(brand.id, model.id, category.id);
+                setActiveSubcategories(subcats);
+            }
+        };
+        fetchSubcats();
+    }, [brand.id, model.id, category?.id]);
+
+    // Fetch active part items when subcategory changes
+    useEffect(() => {
+        const fetchItems = async () => {
+            if (subcatSlug) {
+                // Find subcategory ID from slug
+                const subcat = activeSubcategories.find(s => s.slug === subcatSlug);
+                if (subcat) {
+                    const items = await getActivePartItemsForModelAction(brand.id, model.id, subcat.id);
+                    setActivePartItems(items);
+                }
+            } else {
+                setActivePartItems([]);
+            }
+        };
+        fetchItems();
+    }, [brand.id, model.id, subcatSlug, activeSubcategories]);
+
+    const currentSubcategory = subcatSlug ? activeSubcategories.find(s => s.slug === subcatSlug) : null;
+    const currentPartItem = partItemSlug ? activePartItems.find(p => p.slug === partItemSlug) : null;
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -136,7 +163,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                         >
                             Összes
                         </Link>
-                        {subcategories.map((subcat) => (
+                        {activeSubcategories.sort((a, b) => a.name.localeCompare(b.name, 'hu')).map((subcat) => (
                             <Link
                                 key={subcat.id}
                                 href={`?subcat=${subcat.slug}`}
@@ -154,7 +181,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                         <h3 className="text-xs font-bold text-[var(--color-primary)] uppercase tracking-widest mb-3">
                             {currentSubcategory.name} - Részletes szűrés
                         </h3>
-                        {partItems.length > 0 ? (
+                        {activePartItems.length > 0 ? (
                             <div className="flex flex-wrap gap-2 pb-2">
                                 <Link
                                     href={`?subcat=${currentSubcategory.slug}`}
@@ -162,7 +189,7 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
                                 >
                                     Bármelyik
                                 </Link>
-                                {partItems.map((item) => (
+                                {activePartItems.sort((a, b) => a.name.localeCompare(b.name, 'hu')).map((item) => (
                                     <Link
                                         key={item.id}
                                         href={`?subcat=${currentSubcategory.slug}&item=${item.slug}`}

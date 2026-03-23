@@ -51,11 +51,75 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const organizationJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "BONTÓÁRUHÁZ",
+    "url": "https://bontoaruhaz.hu",
+    "logo": "https://bontoaruhaz.hu/logo_orange.png",
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+36-70-612-1277",
+      "contactType": "customer service",
+      "areaServed": "HU",
+      "availableLanguage": "Hungarian"
+    },
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Fő út 44.",
+      "addressLocality": "Vecsés",
+      "postalCode": "2220",
+      "addressCountry": "HU"
+    }
+  };
+
+  const storeJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "AutoPartsStore",
+    "name": "BONTÓÁRUHÁZ",
+    "image": "https://bontoaruhaz.hu/logo_orange.png",
+    "@id": "https://bontoaruhaz.hu",
+    "url": "https://bontoaruhaz.hu",
+    "telephone": "+36706121277",
+    "address": {
+      "@type": "PostalAddress",
+      "streetAddress": "Fő út 44.",
+      "addressLocality": "Vecsés",
+      "postalCode": "2220",
+      "addressCountry": "HU"
+    },
+    "geo": {
+      "@type": "GeoCoordinates",
+      "latitude": 47.4116,
+      "longitude": 19.2635
+    },
+    "openingHoursSpecification": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday"
+      ],
+      "opens": "08:00",
+      "closes": "17:00"
+    }
+  };
+
   return (
     <html lang="hu" suppressHydrationWarning>
       <head>
         <link rel="preload" href="/hero-bg.png" as="image" />
         <link rel="preload" href="/grid.svg" as="image" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }}
+        />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
