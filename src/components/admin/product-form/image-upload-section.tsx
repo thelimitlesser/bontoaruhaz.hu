@@ -1,9 +1,10 @@
 "use client";
 
-import { Upload, X as CloseIcon, Loader2, GripVertical, ArrowLeft, ArrowRight } from "lucide-react";
+import { Upload, X as CloseIcon, Loader2, GripVertical, ArrowLeft, ArrowRight, ZoomIn, X } from "lucide-react";
 import { compressImage } from "@/utils/image-utils";
 import clsx from "clsx";
-import { Reorder, useDragControls } from "framer-motion";
+import { Reorder, AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 
 interface ImageUploadSectionProps {
     images: { file?: File; preview: string; isExisting?: boolean }[];
@@ -14,6 +15,7 @@ interface ImageUploadSectionProps {
 }
 
 export function ImageUploadSection({ images, setImages, isCompressing, setIsCompressing, errors = [] }: ImageUploadSectionProps) {
+    const [zoomImage, setZoomImage] = useState<string | null>(null);
     
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -150,6 +152,18 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                             >
                                 <CloseIcon className="w-4 h-4" />
                             </button>
+
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setZoomImage(img.preview);
+                                }}
+                                className="bg-[var(--color-primary)] hover:bg-orange-600 text-white p-1.5 rounded-lg transition-all shadow-lg"
+                                title="Nagyítás"
+                            >
+                                <ZoomIn className="w-4 h-4" />
+                            </button>
                         </div>
                     </Reorder.Item>
                 ))}
@@ -201,6 +215,43 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                 <span>A feltöltött képeket a rendszer automatikusan felbontja, tömöríti (saját gépen), és vízjelezi a szerveren.</span>
                 {isCompressing && <span className="text-[var(--color-primary)] font-bold animate-pulse">⚙️ Képek optimalizálása...</span>}
             </p>
+
+            {/* Zoom Modal / Lightbox */}
+            <AnimatePresence>
+                {zoomImage && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4 md:p-10 cursor-zoom-out"
+                        onClick={() => setZoomImage(null)}
+                    >
+                        {/* Close Button */}
+                        <button
+                            className="absolute top-6 right-6 p-3 bg-white/10 hover:bg-white/20 rounded-full transition-all backdrop-blur-md border border-white/10 text-white active:scale-90"
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setZoomImage(null);
+                            }}
+                        >
+                            <X className="w-8 h-8" />
+                        </button>
+
+                        {/* Image Container */}
+                        <div className="relative w-full h-full flex items-center justify-center">
+                            <motion.img
+                                initial={{ scale: 0.9, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.9, opacity: 0 }}
+                                src={zoomImage}
+                                alt="Zoomed preview"
+                                className="max-w-full max-h-full object-contain rounded-xl shadow-2xl"
+                                onClick={(e) => e.stopPropagation()}
+                            />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
