@@ -425,12 +425,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="flex overflow-x-auto pb-8 gap-4 snap-x snap-mandatory sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 scrollbar-hide px-4 sm:px-0 -mx-4 sm:mx-0">
             {relatedProducts.map((p) => (
               <Link
                 key={p.id}
                 href={`/product/${p.id}`}
-                className="group bg-background border border-border rounded-[2rem] overflow-hidden hover:border-[var(--color-primary)] hover:shadow-2xl hover:shadow-[var(--color-primary)]/10 transition-all duration-300 flex flex-col active:scale-[0.98]"
+                className="group bg-background border border-border rounded-[2rem] overflow-hidden hover:border-[var(--color-primary)] hover:shadow-2xl hover:shadow-[var(--color-primary)]/10 transition-all duration-300 flex flex-col active:scale-[0.98] snap-start min-w-[280px] sm:min-w-0"
               >
                 {/* Image Container */}
                 <div className="relative aspect-square overflow-hidden bg-muted">
