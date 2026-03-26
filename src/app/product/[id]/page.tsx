@@ -1,5 +1,5 @@
 import { getRelatedProducts } from "@/app/actions/product";
-import { ArrowLeft, CheckCircle2, ShieldCheck, Truck, Star, Settings, Calendar, Hash, Factory, Info, Phone, HelpCircle, Globe, ChevronRight } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ShieldCheck, Truck, Star, Settings, Calendar, Hash, Factory, Info, Phone, HelpCircle, Globe, ChevronRight, Box } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ProductGallery } from "@/components/product-gallery";
@@ -279,6 +279,19 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                       <div>
                         <div className="text-[10px] text-muted uppercase tracking-wider font-bold">Motorkód</div>
                         <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">{dbPart.engineCode}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Dimensions Box */}
+                  {(product.length || product.width || product.height) && (
+                    <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
+                      <Box className="w-4 h-4 sm:w-5 sm:h-5 text-muted mt-0.5" />
+                      <div>
+                        <div className="text-[10px] text-muted uppercase tracking-wider font-bold">Méretek (H x SZ x M)</div>
+                        <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">
+                          {product.length || 0}x{product.width || 0}x{product.height || 0} cm
+                        </div>
                       </div>
                     </div>
                   )}

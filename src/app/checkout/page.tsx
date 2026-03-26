@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, CreditCard, Truck, ShieldCheck, Mail, MapPin, User, Minus, Plus } from "lucide-react";
+import { ArrowLeft, CreditCard, Truck, ShieldCheck, Mail, MapPin, User, Minus, Plus, ShoppingBag } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { PaymentForm } from "./payment-form";
 import { createPaymentIntent } from "@/app/actions/payment";
-import { calculateShippingPriceForItems } from "@/lib/shipping/pannon-xp";
+import { calculateShippingPriceForItems } from "@/lib/shipping/pxp-rates";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
@@ -43,38 +43,49 @@ export default function CheckoutPage() {
     const [shippingCost, setShippingCost] = useState(0);
 
     useEffect(() => {
-        if (shippingMethod === 'delivery' && items.length > 0) {
+        if (items.length > 0) {
             setShippingCost(calculateShippingPriceForItems(items));
         } else {
             setShippingCost(0);
         }
-    }, [items, shippingMethod]);
+    }, [items]);
 
-    const grandTotal = totalPrice + shippingCost;
+    const grandTotal = totalPrice + (shippingMethod === 'delivery' ? shippingCost : 0);
+
+    const validateTaxNumber = (tax: string) => /^\d{8}-\d{1}-\d{2}$/.test(tax);
 
     const isFormValid = useCallback(() => {
         const basicValid = formData.lastName && formData.firstName && formData.email && formData.phone && formData.postalCode && formData.city && formData.address;
-        const companyValid = !isCompany || (formData.companyName && formData.taxNumber);
+        const companyValid = !isCompany || (formData.companyName && formData.taxNumber && validateTaxNumber(formData.taxNumber));
         const billingValid = billingSameAsShipping || (formData.billingPostalCode && formData.billingCity && formData.billingAddress);
         return !!(basicValid && companyValid && billingValid);
     }, [formData, isCompany, billingSameAsShipping]);
 
+    const [lastIntentAmount, setLastIntentAmount] = useState(0);
+
     // Fetch PaymentIntent when the form becomes valid OR when the total changes
     useEffect(() => {
         if (isFormValid() && grandTotal > 0 && paymentMethod === 'card') {
+            // Only fetch if amount changed significanty or we don't have a secret
+            if (Math.abs(grandTotal - lastIntentAmount) < 1 && clientSecret) return;
+
             const fetchSecret = async () => {
                 try {
                     const res = await createPaymentIntent(grandTotal);
                     setClientSecret(res.clientSecret);
+                    setLastIntentAmount(grandTotal);
                 } catch (err) {
                     console.error("Failed to fetch client secret:", err);
                 }
             };
-            fetchSecret();
-        } else {
+            
+            const timer = setTimeout(fetchSecret, 500); // Small debounce
+            return () => clearTimeout(timer);
+        } else if (paymentMethod !== 'card') {
             setClientSecret(null);
+            setLastIntentAmount(0);
         }
-    }, [formData, isCompany, billingSameAsShipping, shippingMethod, paymentMethod, grandTotal, isFormValid]);
+    }, [isFormValid, grandTotal, paymentMethod, clientSecret, lastIntentAmount]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -272,11 +283,17 @@ export default function CheckoutPage() {
                                             {paymentMethod === 'cod' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
                                         </div>
                                         <div>
-                                            <h4 className="text-foreground font-bold text-sm">Utánvét</h4>
-                                            <p className="text-muted text-xs">Fizetés a futárnál (készpénz vagy kártya)</p>
+                                            <h4 className="text-foreground font-bold text-sm">
+                                                {shippingMethod === 'pickup' ? "Helyszíni fizetés" : "Utánvét"}
+                                            </h4>
+                                            <p className="text-muted text-xs">
+                                                {shippingMethod === 'pickup' 
+                                                    ? "Fizetés az átvételi ponton (készpénz vagy kártya)" 
+                                                    : "Fizetés a futárnál (készpénz vagy kártya)"}
+                                            </p>
                                         </div>
                                     </div>
-                                    <Truck className="w-5 h-5 text-muted" />
+                                    {shippingMethod === 'pickup' ? <ShoppingBag className="w-5 h-5 text-muted" /> : <Truck className="w-5 h-5 text-muted" />}
                                 </div>
                             </div>
                         </section>
@@ -313,7 +330,10 @@ export default function CheckoutPage() {
                                             <input
                                                 type="text" name="taxNumber" value={formData.taxNumber}
                                                 onChange={handleChange}
-                                                className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)]" placeholder="12345678-2-42" />
+                                                className={`w-full bg-muted/5 border rounded-lg px-4 py-3 text-foreground focus:outline-none transition-colors ${formData.taxNumber && !validateTaxNumber(formData.taxNumber) ? 'border-red-500 focus:border-red-500' : 'border-border focus:border-[var(--color-primary)]'}`} placeholder="12345678-2-42" />
+                                            {formData.taxNumber && !validateTaxNumber(formData.taxNumber) && (
+                                                <p className="text-[10px] text-red-500 font-bold mt-1 ml-1 animate-in fade-in slide-in-from-top-1">Helytelen formátum! (Példa: 12345678-2-42)</p>
+                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -431,7 +451,7 @@ export default function CheckoutPage() {
                                 </div>
                                 <div className="flex items-center justify-between text-muted text-sm">
                                     <span>{shippingMethod === 'delivery' ? "Szállítás (Pannon XP)" : "Személyes átvétel"}</span>
-                                    <span>{shippingCost === 0 ? "Ingyenes" : `${shippingCost.toLocaleString('hu-HU')} Ft`}</span>
+                                <span>{shippingMethod === 'delivery' ? (shippingCost === 0 ? "Ingyenes" : `${shippingCost.toLocaleString('hu-HU')} Ft`) : "Ingyenes"}</span>
                                 </div>
                                 <div className="flex items-center justify-between text-foreground text-xl font-black pt-4 border-t border-border">
                                     <span>Végösszeg</span>
@@ -447,6 +467,8 @@ export default function CheckoutPage() {
                                             formData={formData} 
                                             totalAmount={grandTotal} 
                                             shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'} 
+                                            isCompany={isCompany}
+                                            billingSameAsShipping={billingSameAsShipping}
                                         />
                                     </Elements>
                                 ) : (
@@ -472,6 +494,8 @@ export default function CheckoutPage() {
                                         shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'}
                                         paymentMethodOverride="COD"
                                         isFormValid={isFormValid()}
+                                        isCompany={isCompany}
+                                        billingSameAsShipping={billingSameAsShipping}
                                     />
                                 </div>
                             )}

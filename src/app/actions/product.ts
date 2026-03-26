@@ -149,6 +149,7 @@ export async function createProduct(formData: FormData) {
             height: rawFormData.height,
             width: rawFormData.width,
             length: rawFormData.length,
+            packageType: rawFormData.packageType,
             shippingPrice: rawFormData.shippingPrice,
             compatibilities: {
                 create: parsedCompatibilities.map((c: any) => ({
@@ -254,6 +255,7 @@ export async function updateProduct(id: string, formData: FormData) {
             height: rawFormData.height,
             width: rawFormData.width,
             length: rawFormData.length,
+            packageType: rawFormData.packageType,
             shippingPrice: rawFormData.shippingPrice,
             compatibilities: {
                 deleteMany: {},

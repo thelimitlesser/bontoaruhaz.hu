@@ -1,12 +1,13 @@
 'use server';
 
-import { performPxpManifest, trackShipment, cancelPxpShipment } from "@/lib/shipping/pannon-xp";
+import { performPxpManifest, trackShipment, cancelPxpShipment, getBulkPxpLabels } from "@/lib/shipping/pannon-xp";
 import { prisma } from "@/lib/prisma";
+import { stripe } from "@/lib/stripe";
 import { revalidatePath } from "next/cache";
 
 export async function cancelOrder(orderId: string) {
     try {
-        // 1. Fetch order details to get tracking number and items
+        // 1. Fetch order details to get tracking number, items, and stripe intent
         const order = await prisma.order.findUnique({
             where: { id: orderId },
             include: { items: true }
@@ -20,16 +21,31 @@ export async function cancelOrder(orderId: string) {
             return { success: false, error: "A rendelés már le van mondva." };
         }
 
-        // 2. If it has a PXP tracking number, cancel the shipment in PXP system
+        // 2. If it has an uncaptured Stripe payment, cancel it
+        if (order.stripePaymentIntentId && order.paymentMethod === 'CARD' && order.paymentStatus !== 'PAID') {
+            try {
+                if (stripe) {
+                    const intent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
+                    if (intent.status === 'requires_capture') {
+                        console.log("Cancelling uncaptured Stripe payment:", order.stripePaymentIntentId);
+                        await stripe.paymentIntents.cancel(order.stripePaymentIntentId);
+                    }
+                }
+            } catch (err: any) {
+                console.error("Stripe cancellation error:", err);
+                // We proceed anyway, but log the error
+            }
+        }
+
+        // 3. If it has a PXP tracking number, cancel the shipment
         if (order.trackingNumber) {
             const pxpResult = await cancelPxpShipment(order.trackingNumber);
             if (!pxpResult.success) {
                 console.warn(`PXP Cancellation warning for order ${orderId}: ${pxpResult.error}`);
-                // We proceed anyway with local cancellation, but log it
             }
         }
 
-        // 3. Return items to stock
+        // 4. Return items to stock
         for (const item of order.items) {
             if (item.partId) {
                 await prisma.part.update({
@@ -41,7 +57,7 @@ export async function cancelOrder(orderId: string) {
             }
         }
 
-        // 4. Update order status to CANCELLED
+        // 5. Update order status to CANCELLED
         await prisma.order.update({
             where: { id: orderId },
             data: { status: 'CANCELLED' }
@@ -60,25 +76,37 @@ export async function cancelOrder(orderId: string) {
 
 export async function closePxpDay() {
     try {
-        const result = await performPxpManifest();
+        const ordersToManifest = await prisma.order.findMany({
+            where: {
+                status: 'PROCESSING',
+                trackingNumber: { not: null }
+            },
+            select: { trackingNumber: true }
+        });
+        const trackingNumbers = ordersToManifest.map(o => o.trackingNumber as string);
+        console.log("Orders attempting to manifest:", trackingNumbers);
+
+        const result = await performPxpManifest(trackingNumbers);
 
         if (result.success && result.pdfBase64) {
             // Update order status for manifested orders
-            if (result.manifestedIds && result.manifestedIds.length > 0) {
-                await prisma.order.updateMany({
+            // Use trackingNumbers that were explicitly sent, as PXP TEST might return mocked IDs
+            if (trackingNumbers.length > 0) {
+                const updateRes = await prisma.order.updateMany({
                     where: {
-                        trackingNumber: { in: result.manifestedIds }
+                        trackingNumber: { in: trackingNumbers }
                     },
                     data: {
-                        status: 'SHIPPED' // Or a specific 'MANIFESTED' status if we had one
+                        status: 'SHIPPED'
                     }
                 });
+                console.log(`Manifested status update: ${updateRes.count} orders set to SHIPPED`);
             }
 
             // Save manifest to database
             await prisma.pxpManifest.create({
                 data: {
-                    itemCount: result.manifestedIds?.length || 0,
+                    itemCount: trackingNumbers.length,
                     pdfBase64: result.pdfBase64
                 }
             });
@@ -89,7 +117,7 @@ export async function closePxpDay() {
             return {
                 success: true,
                 pdfBase64: result.pdfBase64,
-                count: result.manifestedIds?.length || 0
+                count: trackingNumbers.length
             };
         }
 
@@ -100,40 +128,59 @@ export async function closePxpDay() {
     }
 }
 
+export async function getBulkShippingLabels(trackingNumbers: string[]) {
+    try {
+        const result = await getBulkPxpLabels(trackingNumbers);
+        return result;
+    } catch (error: any) {
+        console.error("Action Error (getBulkShippingLabels):", error);
+        return { success: false, error: error.message };
+    }
+}
+
 export async function trackAndSyncShipment(orderId: string, trackingNumber: string) {
     try {
         const result = await trackShipment(trackingNumber);
 
-        if (result.success && result.statusText) {
+        if (result.success) {
             let newStatus: any = undefined;
+            const statusId = (result as any).statusId;
             
-            // Map PXP status text/code to our internal OrderStatus
-            const statusText = result.statusText.toLowerCase();
-            if (statusText.includes('kiszállítva') || statusText.includes('átvéve')) {
+            // Map PXP numeric status codes to our internal OrderStatus
+            // 5 = Kézbesítve (Delivered)
+            // 8 = Törölve/Visszáru (Cancelled/Returned)
+            if (statusId === 5) {
                 newStatus = 'DELIVERED';
-            } else if (statusText.includes('törölve')) {
+            } else if (statusId === 8) {
                 newStatus = 'CANCELLED';
-            } else {
+            } else if (statusId >= 1) {
                 newStatus = 'SHIPPED';
             }
 
             if (newStatus) {
                 const order = await prisma.order.findUnique({
                     where: { id: orderId },
-                    select: { paymentMethod: true, paymentStatus: true }
+                    select: { paymentMethod: true, paymentStatus: true, status: true }
                 });
 
-                const dataToUpdate: any = { status: newStatus };
+                const dataToUpdate: any = {};
+                
+                // Only update status if it's different and meaningful
+                if (newStatus !== order?.status) {
+                    dataToUpdate.status = newStatus;
+                }
 
                 // Ha utánvétes és kézbesítették, akkor a futár átvette a pénzt -> Fizetve
                 if (newStatus === 'DELIVERED' && order?.paymentMethod === 'COD' && order?.paymentStatus !== 'PAID') {
                     dataToUpdate.paymentStatus = 'PAID';
                 }
 
-                await prisma.order.update({
-                    where: { id: orderId },
-                    data: dataToUpdate
-                });
+                if (Object.keys(dataToUpdate).length > 0) {
+                    await prisma.order.update({
+                        where: { id: orderId },
+                        data: dataToUpdate
+                    });
+                }
             }
 
             revalidatePath(`/admin/orders/${orderId}`);
@@ -143,6 +190,51 @@ export async function trackAndSyncShipment(orderId: string, trackingNumber: stri
         return { success: false, error: result.error || "Nem sikerült lekérni a státuszt." };
     } catch (error: any) {
         console.error("Track & Sync Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function bulkSyncPxpStatuses() {
+    try {
+        // Find all orders that are SHIPPED (or PROCESSING with a tracking number)
+        const ordersToSync = await prisma.order.findMany({
+            where: {
+                status: { in: ['SHIPPED', 'PROCESSING'] },
+                trackingNumber: { not: null }
+            },
+            select: { id: true, trackingNumber: true }
+        });
+
+        console.log(`Bulk syncing ${ordersToSync.length} orders with PXP...`);
+        let updatedCount = 0;
+
+        for (const order of ordersToSync) {
+            if (order.trackingNumber) {
+                const res = await trackAndSyncShipment(order.id, order.trackingNumber);
+                if (res.success) updatedCount++;
+            }
+        }
+
+        // Log the sync
+        await prisma.pxpSyncLog.create({
+            data: { itemCount: updatedCount }
+        });
+
+        revalidatePath('/admin/orders');
+        return { success: true, count: updatedCount };
+    } catch (error: any) {
+        console.error("Bulk Sync Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+export async function getLastPxpSync() {
+    try {
+        const lastSync = await prisma.pxpSyncLog.findFirst({
+            orderBy: { createdAt: 'desc' }
+        });
+        return { success: true, lastSync };
+    } catch (error: any) {
         return { success: false, error: error.message };
     }
 }

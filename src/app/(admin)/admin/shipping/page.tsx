@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Truck, Package, CheckCircle2, AlertCircle, FileText, Printer, ArrowRight, Loader2, Download } from "lucide-react";
-import { closePxpDay, getManifestHistory, getManifestPdf } from "@/app/actions/shipping";
+import { closePxpDay, getManifestHistory, getManifestPdf, getBulkShippingLabels } from "@/app/actions/shipping";
 import Link from "next/link";
 
 interface ShippingOrder {
@@ -20,6 +20,7 @@ export default function ShippingPage() {
     const [loading, setLoading] = useState(true);
     const [isClosing, setIsClosing] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [isPrinting, setIsPrinting] = useState(false);
 
     useEffect(() => {
         fetchOrders();
@@ -35,7 +36,7 @@ export default function ShippingPage() {
 
             const manifestRes = await getManifestHistory();
             if (manifestRes.success) {
-                setManifests(manifestRes.manifests);
+                setManifests(manifestRes.manifests || []);
             }
         } catch (error) {
             console.error("Order fetch error:", error);
@@ -57,12 +58,22 @@ export default function ShippingPage() {
                 
                 // Trigger PDF download
                 if (result.pdfBase64) {
+                    const byteCharacters = atob(result.pdfBase64.replace(/\s/g, ''));
+                    const byteNumbers = new Array(byteCharacters.length);
+                    for (let i = 0; i < byteCharacters.length; i++) {
+                        byteNumbers[i] = byteCharacters.charCodeAt(i);
+                    }
+                    const byteArray = new Uint8Array(byteNumbers);
+                    const blob = new Blob([byteArray], { type: 'application/pdf' });
+                    const url = URL.createObjectURL(blob);
+                    
                     const link = document.createElement('a');
-                    link.href = `data:application/pdf;base64,${result.pdfBase64}`;
+                    link.href = url;
                     link.download = `PXP_Gyujtolista_${new Date().toISOString().split('T')[0]}.pdf`;
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
                 }
                 
                 // Refresh list
@@ -81,17 +92,62 @@ export default function ShippingPage() {
         try {
             const res = await getManifestPdf(id);
             if (res.success && res.pdfBase64) {
+                const byteCharacters = atob(res.pdfBase64.replace(/\s/g, ''));
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+
                 const link = document.createElement('a');
-                link.href = `data:application/pdf;base64,${res.pdfBase64}`;
+                link.href = url;
                 link.download = `PXP_Gyujtolista_${new Date(dateStr).toISOString().split('T')[0]}.pdf`;
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
+                URL.revokeObjectURL(url);
             } else {
                 setMessage({ type: 'error', text: res.error || "Nem sikerült letölteni a PDF-et." });
             }
         } catch (error: any) {
              setMessage({ type: 'error', text: error.message });
+        }
+    };
+
+    const handleBulkLabels = async () => {
+        const trackingNumbers = orders.map(o => o.trackingNumber).filter(Boolean);
+        if (trackingNumbers.length === 0) return;
+
+        setIsPrinting(true);
+        try {
+            const res = await getBulkShippingLabels(trackingNumbers);
+            if (res.success && res.pdfBase64) {
+                const byteCharacters = atob(res.pdfBase64.replace(/\s/g, ''));
+                const byteNumbers = new Array(byteCharacters.length);
+                for (let i = 0; i < byteCharacters.length; i++) {
+                    byteNumbers[i] = byteCharacters.charCodeAt(i);
+                }
+                const byteArray = new Uint8Array(byteNumbers);
+                const blob = new Blob([byteArray], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `PXP_Osszes_Cimke_${new Date().toISOString().split('T')[0]}.pdf`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                setMessage({ type: 'success', text: "Tömeges címke letöltés sikeres!" });
+            } else {
+                setMessage({ type: 'error', text: res.error || "Nem sikerült a tömeges címke letöltés." });
+            }
+        } catch (error: any) {
+            setMessage({ type: 'error', text: error.message });
+        } finally {
+            setIsPrinting(false);
         }
     };
 
@@ -113,14 +169,25 @@ export default function ShippingPage() {
                 </div>
 
                 {orders.length > 0 && (
-                    <button
-                        onClick={handleManifest}
-                        disabled={isClosing}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
-                    >
-                        {isClosing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
-                        NAPI ZÁRÁS INDÍTÁSA ({orders.length})
-                    </button>
+                    <div className="flex flex-wrap items-center gap-3">
+                        <button
+                            onClick={handleBulkLabels}
+                            disabled={isPrinting || isClosing}
+                            className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {isPrinting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5 text-gray-500" />}
+                            Címkék Összesítése ({orders.length})
+                        </button>
+
+                        <button
+                            onClick={handleManifest}
+                            disabled={isClosing || isPrinting}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {isClosing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
+                            NAPI ZÁRÁS INDÍTÁSA ({orders.length})
+                        </button>
+                    </div>
                 )}
             </div>
 

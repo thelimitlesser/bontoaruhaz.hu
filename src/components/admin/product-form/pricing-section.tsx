@@ -1,20 +1,24 @@
 "use client";
 
-import { Save, Loader2 } from "lucide-react";
+import { Save, Loader2, Package } from "lucide-react";
 import clsx from "clsx";
+import { PXP_SPECIAL_RATES } from "@/lib/shipping/pxp-rates";
+import { CustomSelect } from "@/components/ui/custom-select";
 
 interface PricingSectionProps {
     priceGross: string;
     setPriceGross: (val: string) => void;
     weight: string;
     setWeight: (val: string) => void;
+    length: string;
+    setLength: (val: string) => void;
     width: string;
     setWidth: (val: string) => void;
     height: string;
     setHeight: (val: string) => void;
-    length: string; // Changed from depth
-    setLength: (val: string) => void;
-    shippingPrice: string; // Changed from shippingCost
+    packageType: string;
+    setPackageType: (val: string) => void;
+    shippingPrice: string;
     setShippingPrice: (val: string) => void;
     stock: string;
     setStock: (val: string) => void;
@@ -26,15 +30,36 @@ interface PricingSectionProps {
 export function PricingSection({ 
     priceGross, setPriceGross,
     weight, setWeight,
+    length, setLength,
     width, setWidth,
     height, setHeight,
-    length, setLength,
+    packageType, setPackageType,
     shippingPrice, setShippingPrice,
     stock, setStock,
     isSubmitting, 
     initialData,
     errors = [] 
 }: PricingSectionProps) {
+    const packageTypeOptions = [
+        { value: 'doboz', label: 'Doboz', group: 'Alap típusok' },
+        { value: 'level', label: 'Levél', group: 'Alap típusok' },
+        { value: 'csomagterajto', label: `Csomagtérajtó (${PXP_SPECIAL_RATES['csomagterajto']} Ft)`, group: 'Speciális alkatrészek' },
+        { value: 'lokharito', label: `Lökhárító (személyautó) (${PXP_SPECIAL_RATES['lokharito']} Ft)`, group: 'Speciális alkatrészek' },
+        { value: 'lokharito_teher', label: `Lökhárító (teherautó) (${PXP_SPECIAL_RATES['lokharito_teher']} Ft)`, group: 'Speciális alkatrészek' },
+        { value: 'motor', label: `Motor (${PXP_SPECIAL_RATES['motor']} Ft)`, group: 'Speciális alkatrészek' },
+        { value: 'motorhazteto', label: `Motorháztető (${PXP_SPECIAL_RATES['motorhazteto']} Ft)`, group: 'Speciális alkatrészek' },
+        { value: 'oldalajto', label: `Oldalajtó (${PXP_SPECIAL_RATES['oldalajto']} Ft)`, group: 'Speciális alkatrészek' },
+        { value: 'valto', label: `Váltó (${PXP_SPECIAL_RATES['valto']} Ft)`, group: 'Speciális alkatrészek' },
+    ];
+
+    const handlePackageTypeChange = (newType: string) => {
+        setPackageType(newType);
+        
+        // Auto-fill price if it's a special rate
+        if (PXP_SPECIAL_RATES[newType]) {
+            setShippingPrice(PXP_SPECIAL_RATES[newType].toString());
+        }
+    };
     return (
         <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-6">
             <h2 className="text-xl font-bold border-b border-gray-200 text-gray-900 pb-4">Árazás & Szállítás</h2>
@@ -98,7 +123,24 @@ export function PricingSection({
                     </div>
                 </div>
 
-                {/* Dimensions */}
+                {/* Dimensions: Hosszúság x Szélesség x Magasság */}
+                <div className="space-y-2">
+                    <label className={clsx("text-sm font-medium", errors.includes("length") ? "text-red-600" : "text-gray-700")}>Hosszúság (cm) *</label>
+                    <input 
+                        name="length" 
+                        type="number" 
+                        required 
+                        value={length}
+                        onChange={(e) => setLength(e.target.value)}
+                        placeholder="pl. 30" 
+                        className={clsx(
+                            "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors",
+                            errors.includes("length") 
+                                ? "bg-red-50 border-2 border-red-500 text-red-900 placeholder-red-300" 
+                                : "bg-gray-50 border border-gray-200 text-gray-900 focus:border-[var(--color-primary)]"
+                        )} 
+                    />
+                </div>
                 <div className="space-y-2">
                     <label className={clsx("text-sm font-medium", errors.includes("width") ? "text-red-600" : "text-gray-700")}>Szélesség (cm) *</label>
                     <input 
@@ -133,23 +175,6 @@ export function PricingSection({
                         )} 
                     />
                 </div>
-                <div className="space-y-2">
-                    <label className={clsx("text-sm font-medium", errors.includes("length") ? "text-red-600" : "text-gray-700")}>Hosszúság (cm) *</label>
-                    <input 
-                        name="length" 
-                        type="number" 
-                        required 
-                        value={length}
-                        onChange={(e) => setLength(e.target.value)}
-                        placeholder="pl. 30" 
-                        className={clsx(
-                            "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors",
-                            errors.includes("length") 
-                                ? "bg-red-50 border-2 border-red-500 text-red-900 placeholder-red-300" 
-                                : "bg-gray-50 border border-gray-200 text-gray-900 focus:border-[var(--color-primary)]"
-                        )} 
-                    />
-                </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
@@ -172,6 +197,22 @@ export function PricingSection({
                         />
                         <div className={clsx("absolute right-4 top-1/2 -translate-y-1/2 font-bold", errors.includes("shippingPrice") ? "text-red-400" : "text-orange-400")}>Ft</div>
                     </div>
+                </div>
+
+                <div className="space-y-2">
+                    <CustomSelect 
+                        label="Csomag Típusa *"
+                        value={packageType}
+                        onChange={handlePackageTypeChange}
+                        options={packageTypeOptions}
+                        className={errors.includes("packageType") ? "ring-2 ring-red-500 rounded-lg" : ""}
+                    />
+                    <input type="hidden" name="packageType" value={packageType} />
+                    {PXP_SPECIAL_RATES[packageType] && (
+                        <p className="text-[10px] text-orange-600 font-bold uppercase tracking-wider mt-1 px-1">
+                            ✨ API: Fix kedvezményes szállítási ár alkalmazva
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-2">

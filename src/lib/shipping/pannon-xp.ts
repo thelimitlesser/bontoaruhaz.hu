@@ -34,49 +34,6 @@ function encryptData(data: any, key: string): string {
     return Buffer.concat([buf1, buf2]).toString('base64');
 }
 
-export function calculateShippingPriceForItems(items: any[]) {
-    let hasManualShippingPrice = false;
-    let manualTotalShipping = 0;
-    
-    items.forEach(item => {
-        if (item.shippingPrice !== undefined && item.shippingPrice !== null && item.shippingPrice > 0) {
-            hasManualShippingPrice = true;
-            manualTotalShipping += item.shippingPrice * (item.quantityInCart || 1);
-        }
-    });
-
-    if (hasManualShippingPrice) {
-        return manualTotalShipping;
-    }
-
-    let totalWeight = 0;
-    let maxSingleItemPrice = 0;
-    let hasSpecialCategory = false;
-
-    items.forEach(item => {
-        const weight = item.weight || 2; 
-        const l = item.length || 30;
-        const w = item.width || 20;
-        const h = item.height || 10;
-        const subcategorySlug = item.subcategorySlug;
-
-        const price = getShippingPrice(weight, l, w, h, subcategorySlug);
-        
-        if (subcategorySlug && ['csomagterajto', 'lokharito', 'komplett-motor', 'motorhazteto', 'ajto', 'valto'].includes(subcategorySlug)) {
-            hasSpecialCategory = true;
-            maxSingleItemPrice = Math.max(maxSingleItemPrice, price);
-        }
-
-        totalWeight += weight;
-    });
-
-    if (hasSpecialCategory) {
-        return maxSingleItemPrice;
-    }
-
-    return getShippingPrice(totalWeight);
-}
-
 // Real Pannon XP API v3 Shipment Creation
 export async function createPxpShipment(order: any) {
     const isTest = process.env.PXP_MODE !== 'production';
@@ -117,8 +74,12 @@ export async function createPxpShipment(order: any) {
         // Extract product details for the label and manifest
         const productSummaries = order.items.map((i: any) => `${i.part.sku ? `[${i.part.sku}] ` : ''}${i.part.name || 'Alkatrész'}`);
         const fullSummary = productSummaries.join(' + ');
-        const tartalomText = fullSummary.slice(0, 35) + (fullSummary.length > 35 ? '...' : ''); // Max 40 characters for PXP tartalom
-        const megjegyzesText = `Rendelés #${order.id.slice(-6)} | ${fullSummary}`.slice(0, 100); // Max 100 characters
+        const packageTypeLabel = (order.items[0]?.part as any).packageType || 'doboz';
+        const formattedType = packageTypeLabel.toUpperCase().replace('_', ' ');
+        // PXP has strict character limits: Tartalom (~40), Megjegyzés (~100)
+        // Forbidden chars: ' " \ < > ? $ ;
+        const tartalomText = (order.items.map((item: any) => `${item.part.name || 'Alkatrész'}`).join(' ')).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 39);
+        const megjegyzesText = ("R#" + order.id.slice(-6) + " | " + fullSummary).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 99);
         const refText = `R#${order.id.slice(-6)} ${productSummaries.map((i:any)=>i.split(' ')[0].replace(/\[|\]/g, '')).join(' ')}`.slice(0, 30); // Max 30 chars for ref
 
         // Prepare the shipment data
@@ -136,27 +97,45 @@ export async function createPxpShipment(order: any) {
                     cim_megjegyzes: megjegyzesText
                 },
                 szolgaltatas: "24H",
-                sms: true, // Bekapcsolva a PXP SMS értesítő
+                sms: true,
                 csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
                     const dims = [
                         item.part.length || 30,
                         item.part.width || 20,
                         item.part.height || 10
-                    ].sort((a, b) => b - a); // Csökkenő sorrend (L, W, H)
+                    ]; // Raw order (Length, Width, Height)
                     
-                    acc[idx.toString()] = {
-                        db: Number(Math.min(item.quantity, 99)),
-                        suly: Number((item.part.weight || 2).toFixed(2)), // API allows max 2 decimals
+                    const internalPackageType = (item.part as any).packageType || 'doboz';
+                    
+                    // Specific mapping for KSTA account as per PXP email
+                    let pxpType = 'doboz';
+                    
+                    if (internalPackageType === 'lokharito') {
+                        pxpType = 'lokharito_szemelyauto';
+                    } else if (internalPackageType === 'lokharito_teher') {
+                        pxpType = 'lokharito_teherauto';
+                    } else if (['csomagterajto', 'motor', 'motorhazteto', 'oldalajto', 'valto'].includes(internalPackageType)) {
+                        pxpType = internalPackageType; // Matches exactly
+                    } else if (internalPackageType === 'raklap') {
+                        // The user said there is no raklap, but if mistakenly chosen, we fallback to doboz or could keep it.
+                        // Given their feedback, let's treat it as doboz for now or just remove from the UI later.
+                        pxpType = 'doboz'; 
+                    }
+
+                    const shipmentPackage: any = {
+                        db: (item as any).quantityInCart || item.quantity || 1,
+                        suly: Math.max(0.1, item.part.weight || 0.1),
                         hosszusag: Math.min(420, Math.max(1, Math.round(dims[0]))),
                         szelesseg: Math.min(150, Math.max(1, Math.round(dims[1]))),
                         magassag: Math.min(160, Math.max(1, Math.round(dims[2]))),
-                        tipus: (item.part.weight > 40 || dims[0] > 200) ? "raklap" : "doboz"
+                        tipus: pxpType
                     };
+                    acc[idx.toString()] = shipmentPackage;
                     return acc;
                 }, {}),
                 tartalom: tartalomText,
                 referenciaszam: refText,
-                ...(utanvetAmount > 0 ? { utanvet: utanvetAmount } : {})
+                utanvet: utanvetAmount
             }
         };
 
@@ -170,10 +149,14 @@ export async function createPxpShipment(order: any) {
 
         if (isTest) {
             console.log("PXP REQUEST DATA (unescaped):", JSON.stringify(shipmentRequest, null, 2));
-            try { require('fs').writeFileSync('/tmp/pxp-request.json', JSON.stringify(shipmentRequest, null, 2)); } catch(e){}
+            try { 
+                if (typeof window === 'undefined') {
+                    require('fs').writeFileSync('/tmp/pxp-request.json', JSON.stringify(shipmentRequest, null, 2)); 
+                }
+            } catch(e){}
         }
 
-        const response = await fetch(`${baseUrl}/mentes/`, {
+        const response = await fetch(`${baseUrl}/mentes/`, { 
             method: 'POST',
             body: body,
             headers: {
@@ -236,7 +219,7 @@ export async function trackShipment(trackingNumber: string) {
         body.append('jelszo', hashPassword(password));
         body.append('keres', encryptedRequest);
 
-        const response = await fetch(`${baseUrl}/lekerdezes/`, {
+        const response = await fetch(`${baseUrl}/lekerdezes/`, { 
             method: 'POST',
             body: body.toString(),
             headers: { 
@@ -247,6 +230,10 @@ export async function trackShipment(trackingNumber: string) {
         });
 
         const result = await response.json();
+        
+        if (isTest) {
+            console.log("PXP STATUS RESPONSE for", trackingNumber, ":", JSON.stringify(result, null, 2));
+        }
 
         if (result.kapcsolat?.statusz === 'OK' && result.lekerdezes?.["0"]) {
             const data = result.lekerdezes["0"];
@@ -301,7 +288,7 @@ export async function getPxpLabelPdf(trackingNumber: string) {
         body.append('jelszo', hashPassword(password));
         body.append('keres', encryptedRequest);
 
-        const response = await fetch(`${baseUrl}/nyomtatas/`, {
+        const response = await fetch(`${baseUrl}/nyomtatas/`, { 
             method: 'POST',
             body: body.toString(),
             headers: { 
@@ -328,8 +315,8 @@ export async function getPxpLabelPdf(trackingNumber: string) {
     }
 }
 
-// Perform Daily Manifest (Napi Zárás)
-export async function performPxpManifest() {
+// Bulk Print Shipping Labels
+export async function getBulkPxpLabels(trackingNumbers: string[]) {
     const isTest = process.env.PXP_MODE !== 'production';
     const baseUrl = isTest ? 'https://mypxp-test.pannonxp.hu/api/v3' : 'https://mypxp.pannonxp.hu/api/v3';
 
@@ -339,9 +326,75 @@ export async function performPxpManifest() {
     const cserekulcs = (process.env.PXP_CSEREKULCS || PXP_CONFIG.cserekulcs).trim();
 
     try {
-        const manifestRequest = {
-            napizaras: true // This closes all "printed but not closed" shipments
+        const printRequest: any = {};
+        trackingNumbers.forEach((tn, index) => {
+            printRequest[index.toString()] = {
+                kuldemenyszam: tn
+            };
+        });
+
+        const encryptedRequest = encryptData(printRequest, cserekulcs);
+
+        const body = new URLSearchParams();
+        body.append('ugyfelkod', ugyfelkod);
+        body.append('technikai_felhasznalo', techUser);
+        body.append('jelszo', hashPassword(password));
+        body.append('keres', encryptedRequest);
+
+        const response = await fetch(`${baseUrl}/nyomtatas/`, { 
+            method: 'POST',
+            body: body.toString(),
+            headers: { 
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'User-Agent': 'BontoaruhazXP/1.0',
+                'Accept': 'application/json'
+            }
+        });
+
+        const result = await response.json();
+
+        if (result.kapcsolat?.statusz === 'OK' && result.pdf) {
+            return {
+                success: true,
+                pdfBase64: result.pdf
+            };
+        }
+        
+        return { success: false, error: result.kapcsolat?.uzenet || "Sikertelen tömeges címke letöltés" };
+    } catch (error: any) {
+        console.error("PXP Bulk Label Print Error:", error);
+        return { success: false, error: error.message };
+    }
+}
+
+// Perform Daily Manifest (Napi Zárás)
+export async function performPxpManifest(trackingNumbers?: string[]) {
+    const isTest = process.env.PXP_MODE !== 'production';
+    const baseUrl = isTest ? 'https://mypxp-test.pannonxp.hu/api/v3' : 'https://mypxp.pannonxp.hu/api/v3';
+
+    const ugyfelkod = (process.env.PXP_UGYFELKOD || PXP_CONFIG.ugyfelkod).trim();
+    const techUser = (process.env.PXP_USER || PXP_CONFIG.technikai_felhasznalo).trim();
+    const password = (process.env.PXP_PASSWORD || PXP_CONFIG.jelszo).trim();
+    const cserekulcs = (process.env.PXP_CSEREKULCS || PXP_CONFIG.cserekulcs).trim();
+
+    try {
+        let manifestRequest: any = {
+            ugyfelkod: ugyfelkod,
+            napizaras: true
         };
+
+        // If specific tracking numbers are provided, nest them inside napizaras
+        if (trackingNumbers && trackingNumbers.length > 0) {
+            manifestRequest.napizaras = {};
+            trackingNumbers.forEach((tn, index) => {
+                manifestRequest.napizaras[index.toString()] = {
+                    kuldemenyszam: tn,
+                    ugyfelkod: ugyfelkod
+                };
+            });
+        }
+
+        console.log("Sending PXP Manifest Request (sample):", JSON.stringify(manifestRequest).slice(0, 200));
 
         const encryptedRequest = encryptData(manifestRequest, cserekulcs);
 
@@ -351,7 +404,7 @@ export async function performPxpManifest() {
         body.append('jelszo', hashPassword(password));
         body.append('keres', encryptedRequest);
 
-        const response = await fetch(`${baseUrl}/napizaras/`, {
+        const response = await fetch(`${baseUrl}/napizaras/`, { 
             method: 'POST',
             body: body.toString(),
             headers: { 
@@ -408,7 +461,7 @@ export async function cancelPxpShipment(trackingNumber: string) {
         body.append('jelszo', hashPassword(password));
         body.append('keres', encryptedRequest);
 
-        const response = await fetch(`${baseUrl}/torles/`, {
+        const response = await fetch(`${baseUrl}/torles/`, { 
             method: 'POST',
             body: body.toString(),
             headers: { 

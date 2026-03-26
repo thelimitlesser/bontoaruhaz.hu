@@ -19,8 +19,11 @@ export const PXP_WEIGHT_RATES = [
 export const PXP_SPECIAL_RATES: Record<string, number> = {
     'csomagterajto': 7437,
     'lokharito': 6373,
+    'lokharito_teher': 7969,
+    'motor': 21247,
     'komplett-motor': 21247,
     'motorhazteto': 6373,
+    'oldalajto': 6373,
     'ajto': 6373,
     'valto': 6905,
 };
@@ -36,9 +39,15 @@ export function getShippingPrice(
     w?: number, 
     h?: number, 
     subcategorySlug?: string,
-    isBudapest: boolean = false
+    isBudapest: boolean = false,
+    packageType?: string
 ): number {
-    // 1. Check special category first
+    // 1. Check special package type first
+    if (packageType && PXP_SPECIAL_RATES[packageType]) {
+        return PXP_SPECIAL_RATES[packageType];
+    }
+
+    // 2. Check special category as fallback
     if (subcategorySlug && PXP_SPECIAL_RATES[subcategorySlug]) {
         return PXP_SPECIAL_RATES[subcategorySlug];
     }
@@ -65,4 +74,47 @@ export function getShippingPrice(
     }
 
     return 21248;
+}
+
+export function calculateShippingPriceForItems(items: any[]) {
+    let hasManualShippingPrice = false;
+    let manualTotalShipping = 0;
+    
+    items.forEach(item => {
+        if (item.shippingPrice !== undefined && item.shippingPrice !== null && item.shippingPrice > 0) {
+            hasManualShippingPrice = true;
+            manualTotalShipping += item.shippingPrice * (item.quantityInCart || 1);
+        }
+    });
+
+    if (hasManualShippingPrice) {
+        return manualTotalShipping;
+    }
+
+    let totalWeight = 0;
+    let maxSingleItemPrice = 0;
+    let hasSpecialCategory = false;
+
+    items.forEach(item => {
+        const weight = item.weight || 2; 
+        const l = item.length || 30;
+        const w = item.width || 20;
+        const h = item.height || 10;
+        const subcategorySlug = item.subcategorySlug;
+
+        const price = getShippingPrice(weight, l, w, h, subcategorySlug);
+        
+        if (subcategorySlug && ['csomagterajto', 'lokharito', 'komplett-motor', 'motorhazteto', 'ajto', 'valto'].includes(subcategorySlug)) {
+            hasSpecialCategory = true;
+            maxSingleItemPrice = Math.max(maxSingleItemPrice, price);
+        }
+
+        totalWeight += weight;
+    });
+
+    if (hasSpecialCategory) {
+        return maxSingleItemPrice;
+    }
+
+    return getShippingPrice(totalWeight);
 }

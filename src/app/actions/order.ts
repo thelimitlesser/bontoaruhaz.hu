@@ -3,8 +3,8 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { stripe } from "@/lib/stripe";
-import { sendOrderReceivedEmail, sendOrderConfirmedEmail } from "@/lib/resend";
-import { createInvoiceForOrder } from "@/lib/szamlazz";
+import { sendOrderReceivedEmail, sendOrderConfirmedEmail, sendOrderReadyForPickupEmail } from "@/lib/resend";
+import { createBillingoInvoice } from "@/lib/billingo";
 import { createPxpShipment } from "@/lib/shipping/pannon-xp";
 
 export async function createOrder(data: {
@@ -16,8 +16,17 @@ export async function createOrder(data: {
     paymentMethod: string;
     stripePaymentIntentId?: string;
     sessionId?: string;
+    isCompany?: boolean;
+    billingSameAsShipping?: boolean;
 }) {
-    const { userId, items, customerData, totalAmount, shippingMethod, paymentMethod, stripePaymentIntentId, sessionId } = data;
+    const { userId, items, customerData, totalAmount, shippingMethod, paymentMethod, stripePaymentIntentId, sessionId, isCompany, billingSameAsShipping } = data;
+
+    // Construct Definitive Billing Data
+    const billingName = isCompany ? customerData.companyName : `${customerData.lastName} ${customerData.firstName}`;
+    const billingPostalCode = billingSameAsShipping ? customerData.postalCode : customerData.billingPostalCode;
+    const billingCity = billingSameAsShipping ? customerData.city : customerData.billingCity;
+    const billingAddress = billingSameAsShipping ? customerData.address : customerData.billingAddress;
+    const taxNumber = isCompany ? customerData.taxNumber : '';
 
     const order = await prisma.order.create({
         data: {
@@ -32,16 +41,21 @@ export async function createOrder(data: {
                 email: customerData.email
             }),
             billingAddress: JSON.stringify({
-                name: customerData.companyName || `${customerData.lastName} ${customerData.firstName}`,
-                address: customerData.billingAddress || customerData.address,
-                city: customerData.billingCity || customerData.city,
-                postalCode: customerData.billingPostalCode || customerData.postalCode,
-                taxNumber: customerData.taxNumber || '',
-                email: customerData.email
+                name: billingName,
+                address: billingAddress,
+                city: billingCity,
+                postalCode: billingPostalCode,
+                taxNumber: taxNumber,
+                email: customerData.email,
+                companyName: customerData.companyName,
+                lastName: customerData.lastName,
+                firstName: customerData.firstName
             }),
             shippingMethod,
             paymentMethod,
             stripePaymentIntentId,
+            // @ts-ignore
+            isCompany: !!isCompany,
             status: 'PENDING',
             paymentStatus: 'PENDING',
             items: {
@@ -106,13 +120,24 @@ export async function approveOrder(orderId: string) {
     try {
         // 1. Capture Stripe Payment if it exists
         if (order.stripePaymentIntentId && order.paymentMethod === 'CARD') {
-            console.log("Capturing Stripe payment:", order.stripePaymentIntentId);
+            console.log("Checking Stripe payment status:", order.stripePaymentIntentId);
             if (!stripe) throw new Error("Stripe beállítások hiányoznak. Nem sikerült a fizetés véglegesítése.");
+            
             try {
-                await stripe.paymentIntents.capture(order.stripePaymentIntentId);
+                const intent = await stripe.paymentIntents.retrieve(order.stripePaymentIntentId);
+                if (intent.status === 'requires_capture') {
+                    console.log("Capturing Stripe payment...");
+                    await stripe.paymentIntents.capture(order.stripePaymentIntentId);
+                } else if (intent.status === 'succeeded') {
+                    console.log("Stripe payment already captured, proceeding...");
+                } else {
+                    console.warn("Stripe payment in unexpected state:", intent.status);
+                    // If it's something like 'requires_payment_method', we might want to fail
+                }
             } catch (err: any) {
-                console.error("Stripe capture error:", err);
-                throw new Error(`Bankkártyás fizetés véglegesítése sikertelen: ${err.message}`);
+                console.error("Stripe error:", err);
+                // Allow "already captured" errors to pass if we can identify them, but retrieve is safer
+                throw new Error(`Bankkártyás fizetés ellenőrzése sikertelen: ${err.message}`);
             }
         }
 
@@ -129,27 +154,37 @@ export async function approveOrder(orderId: string) {
             trackingNumber = pxpResult.trackingNumber;
         }
         
-        // 3. Create Számlázz.hu Invoice
-        console.log("Creating invoice...");
-        const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
-        const customerEmail = billingData.email || 'vevo@email.com';
+        // 3. Create Billingo Invoice (Skip for non-card PICKUP)
+        const isPickup = order.shippingMethod === 'PICKUP';
+        const isNonCardPickup = isPickup && order.paymentMethod !== 'CARD';
+        let invoiceResult = null;
         
-        const invoiceResult = await createInvoiceForOrder(order, { ...billingData, email: customerEmail });
-        if (!invoiceResult) {
-            console.warn("Invoice generation failed but process continues...");
-            // Optionally throw error if invoice is mandatory:
-            // throw new Error("A számla generálása sikertelen volt.");
+        if (!isNonCardPickup) {
+            console.log("Creating Billingo invoice...");
+            const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+            const customerEmail = billingData.email || 'vevo@email.com';
+            
+            console.log("APPROVE_ORDER: Calling Billingo for order", order.id, "with email", customerEmail);
+            invoiceResult = await createBillingoInvoice(order, { ...billingData, email: customerEmail });
+            console.log("Billingo Invoice Result:", invoiceResult);
+            if (!invoiceResult) {
+                console.warn("Invoice generation failed but process continues...");
+            }
+        } else {
+            console.log("Skipping Billingo invoice for non-card PICKUP order (will invoice on payment)");
         }
 
         // 4. Update Order Status
-        console.log("Updating database status to PROCESSING...");
+        console.log(`Updating database status to ${isPickup ? 'READY_FOR_PICKUP' : 'PROCESSING'}...`);
         const updatedOrder = await prisma.order.update({
             where: { id: orderId },
             data: {
-                status: 'PROCESSING',
+                status: isPickup ? 'READY_FOR_PICKUP' : 'PROCESSING',
                 paymentStatus: order.paymentMethod === 'CARD' ? 'PAID' : order.paymentStatus,
                 trackingNumber: trackingNumber,
-                invoiceId: invoiceResult?.invoiceId
+                invoiceId: invoiceResult?.invoiceId,
+                // @ts-ignore
+                invoiceUrl: invoiceResult?.pdfUrl
             },
             include: {
                 items: {
@@ -160,13 +195,19 @@ export async function approveOrder(orderId: string) {
             }
         });
 
-        // 5. Send "Order Confirmed" email
-        console.log("Sending confirmation email...");
+        // 5. Send Email
+        console.log("Sending appropriate notification email...");
         try {
-            await sendOrderConfirmedEmail(updatedOrder as any, customerEmail, invoiceResult?.pdfUrl);
+            const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+            const customerEmail = billingData.email || 'vevo@email.com';
+            
+            if (isNonCardPickup) {
+                await sendOrderReadyForPickupEmail(updatedOrder as any, customerEmail);
+            } else {
+                await sendOrderConfirmedEmail(updatedOrder as any, customerEmail, invoiceResult?.pdfUrl);
+            }
         } catch (emailErr) {
             console.error("Email sending failed:", emailErr);
-            // Don't fail the whole process if only email failed
         }
 
         console.log("Order approved successfully!");
@@ -189,10 +230,56 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
 }
 
 export async function updateOrderPaymentStatus(orderId: string, newPaymentStatus: string) {
+    console.log(`Updating payment status for ${orderId} to ${newPaymentStatus}`);
+    
+    const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: { include: { part: true } } }
+    });
+
+    if (!order) throw new Error("Order not found");
+
+    // Trigger Billingo if transitioning to PAID and no invoice exists yet
+    let invoiceId = order.invoiceId;
+    // @ts-ignore
+    let invoiceUrl = order.invoiceUrl;
+
+    if (newPaymentStatus === 'PAID' && !invoiceId) {
+        console.log("Generating delayed invoice for PAID order...");
+        const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+        
+        // Ensure we pass corporate data correctly to Billingo
+        const billingoData = {
+            ...billingData,
+            // @ts-ignore
+            isCompany: order.isCompany,
+            // Fallback for taxNumber if it's missing from billingData but we know it's a company
+            // @ts-ignore
+            taxNumber: billingData.taxNumber || (order.isCompany ? 'ADÓSZÁM HIÁNYZIK' : '')
+        };
+        
+        const customerEmail = billingData.email || 'vevo@email.com';
+        const invoiceResult = await createBillingoInvoice(order, { ...billingoData, email: customerEmail });
+        if (invoiceResult) {
+            invoiceId = invoiceResult.invoiceId;
+            invoiceUrl = invoiceResult.pdfUrl;
+        }
+    }
+
+    // If it's a PICKUP order and we mark it as PAID, it's also COMPLETED (they took it)
+    const shouldComplete = order.shippingMethod === 'PICKUP' && newPaymentStatus === 'PAID';
+
     await prisma.order.update({
         where: { id: orderId },
-        data: { paymentStatus: newPaymentStatus }
+        data: { 
+            paymentStatus: newPaymentStatus,
+            invoiceId: invoiceId,
+            // @ts-ignore
+            invoiceUrl: invoiceUrl,
+            status: shouldComplete ? 'DELIVERED' : order.status
+        }
     });
+
     revalidatePath(`/admin/orders/${orderId}`);
     revalidatePath('/admin/orders');
 }

@@ -79,6 +79,7 @@ model Part {
   weight          Float?
   width           Float?
   engineCode      String?
+  packageType     String              @default("doboz")
   orderItems      OrderItem[]
   VehicleBrand    VehicleBrand?       @relation(fields: [brandId], references: [id])
   PartCategory    PartCategory?       @relation(fields: [categoryId], references: [id])
@@ -102,6 +103,8 @@ model Order {
   paymentStatus         String      @default("PENDING")
   shippingMethod        String      @default("DELIVERY")
   invoiceId             String?
+  invoiceUrl            String?
+  isCompany             Boolean     @default(false)
   stripePaymentIntentId String?
   trackingNumber        String?
   user                  User?       @relation(fields: [userId], references: [id])
@@ -230,4 +233,10 @@ model PxpManifest {
   createdAt DateTime @default(now())
   itemCount Int      @default(0)
   pdfBase64 String   @db.Text
+}
+
+model PxpSyncLog {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  itemCount Int      @default(0)
 }

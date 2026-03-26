@@ -8,15 +8,33 @@ import { useRouter } from "next/navigation";
 interface ApproveOrderButtonProps {
     orderId: string;
     status: string;
+    paymentMethod: string;
+    shippingMethod: string;
 }
 
-export function ApproveOrderButton({ orderId, status }: ApproveOrderButtonProps) {
+export function ApproveOrderButton({ orderId, status, paymentMethod, shippingMethod }: ApproveOrderButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showConfirm, setShowConfirm] = useState(false);
     const router = useRouter();
 
     if (status !== 'PENDING') return null;
+
+    const isCard = paymentMethod === 'CARD';
+    const isPickup = shippingMethod === 'PICKUP';
+    
+    // Choose help text based on scenario
+    let helpText = "Ez véglegesen elindítja a fizetést, kiállítja a számlát és generálja a PannonXP szállítási címkét is.";
+    
+    if (isPickup && !isCard) {
+        helpText = "Ez elküldi a vevőnek a visszaigazoló emailt az átvételi információkkal. A számlát majd a helyszíni fizetéskor állítjuk ki.";
+    } else if (isPickup && isCard) {
+        helpText = "Ez véglegesíti a bankkártyás fizetést, kiállítja a számlát és elküldi a vevőnek az átvételi információkat.";
+    } else if (!isPickup && !isCard) {
+        helpText = "Ez kiállítja a számlát és generálja a PannonXP szállítási címkét is.";
+    } else if (!isPickup && isCard) {
+        helpText = "Ez véglegesíti a bankkártyás fizetést, kiállítja a számlát és generálja a PannonXP szállítási címkét is.";
+    }
 
     const handleApprove = async () => {
         setIsLoading(true);
@@ -57,7 +75,7 @@ export function ApproveOrderButton({ orderId, status }: ApproveOrderButtonProps)
                         Biztosan jóváhagyod a rendelést?
                     </h3>
                     <p className="text-sm text-emerald-700/80 dark:text-emerald-400/80 mb-4 font-medium">
-                        Ez véglegesen elindítja a fizetést, kiállítja a számlát és generálja a PannonXP szállítási címkét is.
+                        {helpText}
                     </p>
                     <div className="flex gap-2">
                         <button

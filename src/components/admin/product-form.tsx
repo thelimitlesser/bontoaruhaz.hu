@@ -46,9 +46,10 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
     // Pricing & Dimensions states (to fix data loss and naming mismatch)
     const [priceGross, setPriceGross] = useState(initialData?.priceGross?.toString() || "");
     const [weight, setWeight] = useState(initialData?.weight?.toString() || "");
+    const [length, setLength] = useState(initialData?.length?.toString() || ""); // Sync with DB
     const [width, setWidth] = useState(initialData?.width?.toString() || "");
     const [height, setHeight] = useState(initialData?.height?.toString() || "");
-    const [length, setLength] = useState(initialData?.length?.toString() || ""); // Sync with DB
+    const [packageType, setPackageType] = useState(initialData?.packageType || "doboz");
     const [shippingPrice, setShippingPrice] = useState(initialData?.shippingPrice?.toString() || ""); // Sync with DB
     const [stock, setStock] = useState(initialData?.stock?.toString() || "1");
 
@@ -167,6 +168,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
         if (!width) errors.push("width");
         if (!height) errors.push("height");
         if (!length) errors.push("length"); // Changed from depth
+        if (!packageType) errors.push("packageType");
         if (!shippingPrice) errors.push("shippingPrice"); // Changed from shippingCost
 
         // Images
@@ -225,6 +227,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
             if (width) formData.set('width', width);
             if (height) formData.set('height', height);
             if (length) formData.set('length', length); // Changed from depth
+            if (packageType) formData.set('packageType', packageType);
             if (weight) formData.set('weight', weight);
             if (priceGross) formData.set('priceGross', priceGross);
             if (shippingPrice) formData.set('shippingPrice', shippingPrice);
@@ -286,9 +289,10 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
             <PricingSection 
                 priceGross={priceGross} setPriceGross={setPriceGross}
                 weight={weight} setWeight={setWeight}
+                length={length} setLength={setLength}
+                packageType={packageType} setPackageType={setPackageType}
                 width={width} setWidth={setWidth}
                 height={height} setHeight={setHeight}
-                length={length} setLength={setLength}
                 shippingPrice={shippingPrice} setShippingPrice={setShippingPrice}
                 stock={stock} setStock={setStock}
                 initialData={initialData} 

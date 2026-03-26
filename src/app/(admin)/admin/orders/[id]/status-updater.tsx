@@ -15,7 +15,7 @@ export function OrderStatusUpdater({ orderId, currentStatus }: { orderId: string
 
     const statusOptions = [
         { value:"PENDING", label:"Függőben" },
-        { value:"PAID", label:"Fizetve" },
+        { value:"READY_FOR_PICKUP", label:"Átvehető" },
         { value:"PROCESSING", label:"Feldolgozás alatt" },
         { value:"SHIPPED", label:"Szállítva" },
         { value:"DELIVERED", label:"Kézbesítve" },

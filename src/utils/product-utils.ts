@@ -81,6 +81,7 @@ export function parseProductFormData(formData: FormData) {
         height: getNum('height'),
         width: getNum('width'),
         length: getNum('length'),
+        packageType: formData.get('packageType') as string || "doboz",
         shippingPrice: getInt('shippingPrice'), // Sync with form field name
         existingImages: formData.get('existingImages') as string || "",
     };

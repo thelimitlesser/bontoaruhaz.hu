@@ -13,8 +13,13 @@ export async function createPaymentIntent(amount: number) {
     }
 
     try {
+        console.log("Creating Stripe PaymentIntent for amount (raw):", amount);
+        // Multiply by 100 because Stripe seems to be treating HUF as a 2-decimal currency in this account
+        const stripeAmount = Math.round(amount * 100);
+        console.log("Stripe Amount (after *100):", stripeAmount);
+
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(amount), // Stripe expects amount in smallest currency unit (cents/filler), but for HUF it is the actual amount
+            amount: stripeAmount, 
             currency: 'huf',
             // manual capture means we only authorize the funds
             capture_method: 'manual',

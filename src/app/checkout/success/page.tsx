@@ -1,7 +1,18 @@
+"use client";
+
 import Link from "next/link";
 import { CheckCircle, ShoppingBag, ArrowRight } from "lucide-react";
+import { useEffect } from "react";
+import { useCart } from "@/context/cart-context";
 
 export default function CheckoutSuccessPage() {
+    const { clearCart } = useCart();
+
+    useEffect(() => {
+        // Clear cart only once when success page is reached
+        clearCart();
+    }, []);
+
     return (
         <div className="min-h-screen pt-32 pb-20 flex flex-col items-center justify-center text-center px-4">
             <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center mb-8 animate-in zoom-in-50 duration-500">

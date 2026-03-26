@@ -6,7 +6,7 @@ import {
     useStripe,
     useElements
 } from "@stripe/react-stripe-js";
-import { CreditCard, Loader2, AlertCircle, Truck } from "lucide-react";
+import { CreditCard, Loader2, AlertCircle, Truck, ShoppingBag } from "lucide-react";
 import { createOrder } from "@/app/actions/order";
 import { validateCartReservations } from "@/app/actions/reservation";
 import { useCart } from "@/context/cart-context";
@@ -18,6 +18,8 @@ interface PaymentFormProps {
     shippingMethod: string;
     paymentMethodOverride?: 'COD' | 'CARD';
     isFormValid?: boolean;
+    isCompany?: boolean;
+    billingSameAsShipping?: boolean;
 }
 
 export function PaymentForm(props: PaymentFormProps) {
@@ -27,7 +29,7 @@ export function PaymentForm(props: PaymentFormProps) {
     return <StripePaymentForm {...props} />;
 }
 
-function StripePaymentForm({ formData, totalAmount, shippingMethod }: PaymentFormProps) {
+function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, billingSameAsShipping }: PaymentFormProps) {
     const stripe = useStripe();
     const elements = useElements();
     const { items, clearCart } = useCart();
@@ -36,8 +38,8 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod }: PaymentFor
     const [message, setMessage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
+    const handleSubmit = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
 
         if (!stripe || !elements) return;
 
@@ -59,6 +61,9 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod }: PaymentFor
         // Confirm the payment with Stripe
         const { error, paymentIntent } = await stripe.confirmPayment({
             elements,
+            confirmParams: {
+                return_url: `${window.location.origin}/checkout/success`,
+            },
             redirect: "if_required",
         });
 
@@ -77,10 +82,11 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod }: PaymentFor
                     shippingMethod: shippingMethod,
                     paymentMethod: 'CARD',
                     stripePaymentIntentId: paymentIntent.id,
-                    sessionId: sessionId || undefined
+                    sessionId: sessionId || undefined,
+                    isCompany,
+                    billingSameAsShipping
                 });
 
-                clearCart();
                 router.push("/checkout/success");
             } catch (err: any) {
                 console.error("Order creation error:", err);
@@ -116,7 +122,7 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod }: PaymentFor
     );
 }
 
-function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid }: PaymentFormProps) {
+function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid, isCompany, billingSameAsShipping }: PaymentFormProps) {
     const { items, clearCart } = useCart();
     const router = useRouter();
 
@@ -147,10 +153,11 @@ function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid }: 
                 totalAmount,
                 shippingMethod: shippingMethod,
                 paymentMethod: 'COD',
-                sessionId: sessionId || undefined
+                sessionId: sessionId || undefined,
+                isCompany,
+                billingSameAsShipping
             });
 
-            clearCart();
             router.push("/checkout/success");
         } catch (err: any) {
             console.error("Order creation error:", err);
@@ -166,8 +173,8 @@ function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid }: 
                     disabled={isLoading || !isFormValid}
                     className="w-full mt-8 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-600/50 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
                 >
-                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Truck className="w-5 h-5" />}
-                    RENDELÉS LEADÁSA (UTÁNVÉT)
+                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (shippingMethod === 'PICKUP' ? <ShoppingBag className="w-5 h-5" /> : <Truck className="w-5 h-5" />)}
+                    RENDELÉS LEADÁSA
                 </button>
 
                 {message && (

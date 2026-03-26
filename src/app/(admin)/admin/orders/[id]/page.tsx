@@ -9,6 +9,7 @@ import { ShipmentTracker } from "./ShipmentTracker";
 import { OrderTimeline } from "./OrderTimeline";
 import { FileText, ClipboardCheck, ExternalLink, Check } from "lucide-react";
 import { CancelOrderButton } from "./cancel-button";
+import { MarkAsPickedUpButton } from "./picked-up-button";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const { id } = await params;
@@ -69,6 +70,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     paymentMethod={order.paymentMethod}
                     invoiceId={order.invoiceId}
                     trackingNumber={order.trackingNumber}
+                    shippingMethod={order.shippingMethod}
                     createdAt={order.createdAt}
                 />
             </div>
@@ -79,9 +81,20 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     currentPaymentStatus={order.paymentStatus || 'PENDING'} 
                     orderStatus={order.status || 'PENDING'} 
                     paymentMethod={order.paymentMethod || 'CARD'} 
+                    shippingMethod={order.shippingMethod || 'DELIVERY'}
                     trackingNumber={order.trackingNumber}
                 />
-                <ApproveOrderButton orderId={order.id} status={order.status || 'PENDING'} />
+                <ApproveOrderButton 
+                    orderId={order.id} 
+                    status={order.status || 'PENDING'} 
+                    paymentMethod={order.paymentMethod || 'CARD'} 
+                    shippingMethod={order.shippingMethod || 'DELIVERY'} 
+                />
+                <MarkAsPickedUpButton 
+                    orderId={order.id}
+                    status={order.status || 'PENDING'}
+                    shippingMethod={order.shippingMethod || 'DELIVERY'}
+                />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -239,7 +252,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                                 </span>
                                                 <span className="text-gray-400">|</span>
                                                 <span>
-                                                    {item.part?.length || '?'}x{item.part?.width || '?'}x{item.part?.height || '?'} cm
+                                                    {item.part?.length || 0}x{item.part?.width || 0}x{item.part?.height || 0} cm
                                                 </span>
                                             </div>
                                         </div>
@@ -261,13 +274,24 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                         <FileText className="w-5 h-5" />
                                     </div>
                                     <div className="flex-1">
-                                        <p className="text-xs font-bold text-gray-900 dark:text-white leading-tight">E-Számla (Számlázz.hu)</p>
+                                        <p className="text-xs font-bold text-gray-900 dark:text-white leading-tight">E-Számla (Billingo)</p>
                                         <p className="text-[10px] text-gray-500 mt-0.5">{order.invoiceId ? `Sorszám: ${order.invoiceId}` : 'Még nincs generálva'}</p>
                                     </div>
                                 </div>
                                 {order.invoiceId && (
-                                    <div className="w-full py-2 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 border border-emerald-200 dark:border-emerald-500/20">
-                                        <Check className="w-3.5 h-3.5" /> KÉSZ
+                                    <div className="space-y-2">
+                                        <div className="w-full py-2 bg-emerald-100 dark:bg-emerald-500/10 text-emerald-600 rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 border border-emerald-200 dark:border-emerald-500/20">
+                                            <Check className="w-3.5 h-3.5" /> KÉSZ
+                                        </div>
+                                        {order.invoiceUrl && (
+                                            <a 
+                                                href={order.invoiceUrl}
+                                                target="_blank"
+                                                className="w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all shadow-sm active:scale-[0.98] border border-emerald-400"
+                                            >
+                                                <ExternalLink className="w-4 h-4" /> SZÁMLA MEGTEKINTÉSE
+                                            </a>
+                                        )}
                                     </div>
                                 )}
                             </div>

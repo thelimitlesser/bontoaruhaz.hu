@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Search, Loader2, CheckCircle2, Truck, AlertCircle, ExternalLink } from "lucide-react";
 import { trackAndSyncShipment } from "@/app/actions/shipping";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 interface ShipmentTrackerProps {
     orderId: string;
@@ -50,23 +51,31 @@ export function ShipmentTracker({ orderId, trackingNumber }: ShipmentTrackerProp
         }
     };
 
+    useEffect(() => {
+        if (trackingNumber) {
+            handleTrack();
+        }
+    }, [trackingNumber]);
+
     if (!trackingNumber) return null;
 
     return (
         <div className="mt-4 pt-4 border-t border-gray-100 dark:border-white/5 space-y-3">
             <div className="flex items-center justify-between gap-2">
                 <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Csomagszám</span>
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm font-mono font-bold text-gray-900 dark:text-white">{trackingNumber}</span>
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Csomagszám</span>
+                    <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="text-[11px] font-mono font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-white/5 px-1.5 py-0.5 rounded border border-gray-100 dark:border-white/5 truncate max-w-[120px]" title={trackingNumber}>
+                            {trackingNumber}
+                        </span>
                         <a 
                             href={`https://mypxp.pannonxp.hu/kereses?v=${trackingNumber}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded text-blue-500 transition-colors"
+                            className="p-1 hover:bg-gray-100 dark:hover:bg-white/10 rounded text-blue-500/70 hover:text-blue-500 transition-colors"
                             title="Megnyitás a PannonXP oldalán"
                         >
-                            <ExternalLink className="w-3.5 h-3.5" />
+                            <ExternalLink className="w-3 h-3" />
                         </a>
                     </div>
                 </div>

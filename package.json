@@ -30,7 +30,6 @@
     "resend": "^3.5.0",
     "sharp": "^0.34.5",
     "stripe": "^20.4.1",
-    "szamlazz.js": "^9.2.0",
     "tailwind-merge": "^3.4.0"
   },
   "devDependencies": {

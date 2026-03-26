@@ -12,7 +12,7 @@ export const stripe = (() => {
   }
   
   stripeInstance = new Stripe(key, {
-    apiVersion: '2025-01-27' as any,
-  });
+    // apiVersion is optional, let the library use its default
+  } as any);
   return stripeInstance;
 })() as Stripe; // Casting for TS, but we should check for null in usage.

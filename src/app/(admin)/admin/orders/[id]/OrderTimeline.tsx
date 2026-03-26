@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Circle, Clock, CreditCard, Package, Truck, CheckCircle2 } from "lucide-react";
+import { Check, Circle, Clock, CreditCard, Package, Truck, CheckCircle2, MapPin } from "lucide-react";
 
 interface TimelineStep {
     id: string;
@@ -16,15 +16,18 @@ interface OrderTimelineProps {
     paymentMethod: string;
     invoiceId?: string | null;
     trackingNumber?: string | null;
+    shippingMethod?: string | null;
     createdAt?: Date;
 }
 
-export function OrderTimeline({ status, paymentStatus, paymentMethod, invoiceId, trackingNumber, createdAt }: OrderTimelineProps) {
+export function OrderTimeline({ status, paymentStatus, paymentMethod, invoiceId, trackingNumber, shippingMethod, createdAt }: OrderTimelineProps) {
     const isPaid = paymentStatus === "PAID" || paymentStatus === "paid";
-    const isProcessed = ["PROCESSING", "SHIPPED", "DELIVERED"].includes(status);
+    const isProcessed = ["PROCESSING", "SHIPPED", "DELIVERED", "READY_FOR_PICKUP"].includes(status);
     const isShipped = ["SHIPPED", "DELIVERED"].includes(status);
     const isDelivered = status === "DELIVERED";
-    const isCOD = paymentMethod === "COD";
+    const isPickup = shippingMethod === "PICKUP";
+    // Better: use the prop if we add it, but for now let's use status logic
+    const isReadyForPickup = status === "READY_FOR_PICKUP";
 
     const steps: TimelineStep[] = [
         {
@@ -36,30 +39,30 @@ export function OrderTimeline({ status, paymentStatus, paymentMethod, invoiceId,
         },
         {
             id: "payment",
-            label: isCOD ? "Utánvétes" : "Fizetés",
-            description: isPaid ? "Sikeres fizetés" : (isCOD ? "Kiszállításkor fizetendő" : "Fizetésre vár"),
-            status: isPaid || isCOD ? "complete" : "current",
+            label: (paymentMethod === "COD" || (isPickup && !isPaid)) ? "Fizetés átvételkor" : "Fizetés",
+            description: isPaid ? "Sikeres fizetés" : "Fizetésre vár",
+            status: isPaid ? "complete" : "current",
             icon: CreditCard
         },
         {
             id: "processing",
             label: "Feldolgozás",
-            description: invoiceId ? "Számla elkészült" : "Admin jóváhagyásra vár",
-            status: isProcessed ? "complete" : (!isPaid && !isCOD ? "upcoming" : "current"),
+            description: isReadyForPickup ? "Átvehetőre állítva" : (invoiceId ? "Számla elkészült" : "Admin jóváhagyásra vár"),
+            status: isProcessed ? "complete" : (!isPaid && paymentMethod !== "COD" ? "upcoming" : "current"),
             icon: Package
         },
         {
             id: "shipping",
-            label: "Szállítás",
-            description: trackingNumber ? `Feladva: ${trackingNumber}` : "Csomagolás alatt",
-            status: isShipped ? "complete" : (!isProcessed ? "upcoming" : "current"),
-            icon: Truck
+            label: isPickup ? "Átvétel" : "Szállítás",
+            description: isPickup ? (isReadyForPickup ? "Átvehető!" : "Előkészítés alatt") : (trackingNumber ? `Feladva: ${trackingNumber}` : "Csomagolás alatt"),
+            status: (isShipped || isReadyForPickup) ? "complete" : (!isProcessed ? "upcoming" : "current"),
+            icon: isPickup ? MapPin : Truck
         },
         {
             id: "delivered",
-            label: "Kézbesítve",
-            description: isDelivered ? "Sikeresen átadva" : "Úton a vevőhöz",
-            status: isDelivered ? "complete" : (!isShipped ? "upcoming" : "current"),
+            label: isPickup ? "Átvéve" : "Kézbesítve",
+            description: isDelivered ? (isPickup ? "Sikeres átvétel" : "Sikeresen átadva") : (isPickup ? "Várjuk a vevőt" : "Úton a vevőhöz"),
+            status: isDelivered ? "complete" : (!isShipped && !isReadyForPickup ? "upcoming" : "current"),
             icon: CheckCircle2
         }
     ];
