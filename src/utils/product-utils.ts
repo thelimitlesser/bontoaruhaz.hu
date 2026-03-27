@@ -6,7 +6,7 @@ export function parseProductFormData(formData: FormData) {
         const val = formData.get(key);
         if (!val || val === '') return null;
         // Normalize: replace comma with dot and remove anything that's not a digit or dot
-        const normalized = (val as string).replace(',', '.').replace(/[^-0.9.]/g, '');
+        const normalized = (val as string).replace(',', '.').replace(/[^-0-9.]/g, '');
         const num = parseFloat(normalized);
         return isNaN(num) ? null : num;
     };
