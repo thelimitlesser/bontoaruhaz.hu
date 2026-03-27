@@ -1,3 +1,4 @@
+"use client";
 import Link from "next/link";
 import { ShoppingCart, Tag, MapPin, Globe } from "lucide-react";
 import Image from "next/image";
