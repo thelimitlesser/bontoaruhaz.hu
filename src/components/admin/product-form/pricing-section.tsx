@@ -263,10 +263,20 @@ export function PricingSection({
                 </div>
                 <button
                     type="submit"
-                    className="flex-grow flex items-center justify-center gap-3 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-300 text-white font-black py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-95 text-lg uppercase tracking-tight"
+                    disabled={isSubmitting}
+                    className="flex-grow flex items-center justify-center gap-3 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-300 text-white font-black py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-95 text-lg uppercase tracking-tight disabled:cursor-not-allowed"
                 >
-                    <Save className="w-6 h-6" />
-                    {initialData?.id ? "Módosítások Mentése" : "Termék Hozzáadása"}
+                    {isSubmitting ? (
+                        <>
+                            <Loader2 className="w-6 h-6 animate-spin" />
+                            <span>Kérjük várjon...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Save className="w-6 h-6" />
+                            <span>{initialData?.id ? "Módosítások Mentése" : "Termék Hozzáadása"}</span>
+                        </>
+                    )}
                 </button>
             </div>
         </div>

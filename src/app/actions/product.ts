@@ -86,7 +86,7 @@ export async function createProduct(formData: FormData) {
             // Process with sharp (optimized quality/effort for best results)
             const processedBuffer = await sharp(buffer)
                 .resize(1000, 1000, { fit: 'inside', withoutEnlargement: true })
-                .webp({ quality: 80, effort: 6 })
+                .webp({ quality: 80, effort: 4 })
                 .toBuffer();
 
             // Upload to Supabase Storage
@@ -203,7 +203,7 @@ export async function updateProduct(id: string, formData: FormData) {
 
             const processedBuffer = await sharp(buffer)
                 .resize(1000, 1000, { fit: 'inside', withoutEnlargement: true })
-                .webp({ quality: 80, effort: 6 })
+                .webp({ quality: 80, effort: 4 })
                 .toBuffer();
 
             const { error } = await supabase.storage

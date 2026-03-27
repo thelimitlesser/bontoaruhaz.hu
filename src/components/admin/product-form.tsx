@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import { createProduct, updateProduct, getNextReferenceNumber, checkDuplicateSku } from "@/app/actions/product";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
+import { LoadingOverlay } from "@/components/ui/loading-overlay";
 
 // Sub-components
 import { BasicInfoSection } from "./product-form/basic-info-section";
@@ -33,6 +34,7 @@ export function ProductForm({
     const nameRef = useRef<HTMLInputElement>(null);
 
     // --- State ---
+    const [isPending, startTransition] = useTransition();
     const [selectedBrand, setSelectedBrand] = useState(initialData?.brandId || "");
     const [selectedModel, setSelectedModel] = useState(initialData?.modelId || "");
     const [isUniversal, setIsUniversal] = useState(initialData?.isUniversal || false);
@@ -195,7 +197,8 @@ export function ProductForm({
         }
         
         setIsSubmitting(true);
-        try {
+        startTransition(async () => {
+            try {
             // Build image metadata
             const existingImages = images.filter(img => img.isExisting).map(img => img.preview).join(',');
             formData.append('existingImages', existingImages);
@@ -248,21 +251,24 @@ export function ProductForm({
             } else {
                 await createProduct(formData);
             }
-            if (onSuccess) onSuccess();
-        } catch (error: any) {
-            // Check for Next.js redirect "error"
-            if (error.digest?.includes('NEXT_REDIRECT')) {
-                // Keep isSubmitting true and let the redirect happen
-                return;
+                if (onSuccess) onSuccess();
+            } catch (error: any) {
+                // Check for Next.js redirect "error"
+                if (error.digest?.includes('NEXT_REDIRECT')) {
+                    // Keep isSubmitting true and let the redirect happen
+                    return;
+                }
+                console.error("Product submission error details:", error);
+                alert("Hiba történt a mentés során: " + error.message);
+                setIsSubmitting(false);
             }
-            console.error("Product submission error details:", error);
-            alert("Hiba történt a mentés során: " + error.message);
-            setIsSubmitting(false);
-        }
+        });
     };
 
     return (
-        <form action={handleSubmit} className={`space-y-8 max-w-4xl pb-12 ${className || ""}`}>
+        <form action={handleSubmit} className={`relative space-y-8 max-w-4xl pb-12 ${className || ""}`}>
+            
+            <LoadingOverlay isVisible={isSubmitting || isPending} />
             
             <ImageUploadSection 
                 images={images} setImages={setImages}
@@ -317,7 +323,7 @@ export function ProductForm({
                 shippingPrice={shippingPrice} setShippingPrice={setShippingPrice}
                 stock={stock} setStock={setStock}
                 initialData={initialData} 
-                isSubmitting={isSubmitting} 
+                isSubmitting={isSubmitting || isPending} 
                 errors={validationErrors} 
             />
 
