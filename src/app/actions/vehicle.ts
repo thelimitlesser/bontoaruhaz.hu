@@ -133,9 +133,15 @@ export async function getActiveCategoriesForModelAction(brandId: string, modelId
 
     const activeIds = new Set(categoriesWithProducts.map(c => c.id));
 
-    return allCategories.map(cat => ({
+    // 2. Initial alphabetical sort
+    let sortedCategories = allCategories.sort((a, b) => a.name.localeCompare(b.name, 'hu'));
+    
+    // 4. Filter to only show categories with products
+    const filteredCategories = sortedCategories.filter(cat => activeIds.has(cat.id));
+    
+    return filteredCategories.map(cat => ({
         ...cat,
-        hasProducts: activeIds.has(cat.id)
+        hasProducts: true // All returned categories have products now
     }));
 }
 

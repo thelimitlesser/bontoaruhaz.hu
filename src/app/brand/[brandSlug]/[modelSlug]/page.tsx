@@ -95,49 +95,49 @@ export default async function ModelCategoryPage({ params }: { params: Promise<{ 
                     </p>
                 </div>
 
-                {/* Category Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                     {filteredCategories.map((cat) => {
                         const Icon = cat.icon;
-
                         return (
                             <Link
                                 key={cat.id}
-                                href={cat.hasProducts ? `/brand/${brand.slug}/${model.slug}/${cat.slug}` : "#"}
-                                className={`group relative bg-white border border-gray-200 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 ${cat.hasProducts ? 'hover:border-[var(--color-primary)] hover:shadow-xl hover:shadow-[var(--color-primary)]/10 active:scale-[0.98]' : 'opacity-40 grayscale pointer-events-none cursor-not-allowed'}`} >
-                                {/* Icon */}
-                                <Icon className={`w-12 h-12 shrink-0 object-contain transition-all duration-300 ${cat.hasProducts ? 'group-hover:scale-110 text-[var(--color-primary)] opacity-80 group-hover:opacity-100' : 'text-gray-400'}`} strokeWidth={1.5} />
+                                href={`/brand/${brand.slug}/${model.slug}/${cat.slug}`}
+                                className="group relative bg-white border border-gray-100 rounded-3xl p-6 md:p-8 hover:shadow-2xl hover:shadow-[var(--color-primary)]/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden"
+                            >
+                                <div className="flex items-center gap-6 relative z-10">
+                                    {/* Icon */}
+                                    <Icon className="w-12 h-12 shrink-0 object-contain transition-all duration-300 group-hover:scale-110 text-[var(--color-primary)] opacity-80 group-hover:opacity-100" strokeWidth={1.5} />
+                                    
+                                    <div className="flex flex-col">
+                                        <span className="text-lg font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors leading-tight uppercase tracking-tight">
+                                            {cat.name}
+                                        </span>
+                                        <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Alkatrészek</span>
+                                    </div>
 
-                                {/* Name */}
-                                <div className="flex-1 min-w-0">
-                                    <h3 className={`font-bold text-lg leading-tight transition-colors break-words ${cat.hasProducts ? 'text-gray-900 group-hover:text-[var(--color-primary)]' : 'text-gray-400'}`}>
-                                        {cat.name.split('/').map((part, i, arr) => (
-                                            <span key={i}>
-                                                {part}
-                                                {i < arr.length - 1 && <>/<wbr /></>}
-                                            </span>
-                                        ))}
-                                    </h3>
-                                </div>
-
-                                {/* Subtle Indicator */}
-                                {cat.hasProducts && (
+                                    {/* Subtle Indicator */}
                                     <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
                                         <ArrowRight className="w-4 h-4 text-[var(--color-primary)]" />
                                     </div>
-                                )}
+                                </div>
+                                
+                                {/* Decorative background element */}
+                                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-gray-50 rounded-full opacity-0 group-hover:opacity-100 transition-all duration-700 scale-0 group-hover:scale-150 z-0" />
                             </Link>
                         );
                     })}
 
                     {/*"Not found" LAST CARD */}
                     <Link
-                        href="/#kereso" className="group relative bg-white border border-dashed border-[var(--color-primary)]/40 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 active:scale-[0.98]" >
+                        href="/#kereso" 
+                        className="group relative bg-white border border-dashed border-[var(--color-primary)]/40 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 rounded-3xl p-6 md:p-8 transition-all duration-200 flex items-center gap-6 active:scale-[0.98]" 
+                    >
                         <Search className="w-12 h-12 shrink-0 text-[var(--color-primary)] opacity-80 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" strokeWidth={2} />
                         <div>
-                            <h3 className="font-black text-[var(--color-primary)] text-[14px] leading-tight uppercase">
+                            <h3 className="font-black text-[var(--color-primary)] text-lg leading-tight uppercase">
                                 NEM TALÁLOD?
                             </h3>
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Egyedi keresés</span>
                         </div>
                     </Link>
                 </div>
