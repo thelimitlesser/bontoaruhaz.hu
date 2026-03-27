@@ -3,7 +3,7 @@
  * Resizes the image to fit within MAX_WIDTH x MAX_HEIGHT while maintaining aspect ratio.
  * Now supports HEIC/HEIF conversion for Windows/iPhone compatibility.
  */
-export const compressImage = async (file: File, maxWidth = 1200, maxHeight = 1200, quality = 0.85): Promise<File> => {
+export const compressImage = async (file: File, maxWidth = 1000, maxHeight = 1000, quality = 0.80): Promise<File> => {
     let processingFile = file;
 
     // Handle HEIC/HEIF (common on iPhones, problematic on Windows/Web)

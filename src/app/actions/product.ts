@@ -83,10 +83,10 @@ export async function createProduct(formData: FormData) {
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
             const filePath = `${folderName}/${fileName}`;
 
-            // Process with sharp
+            // Process with sharp (optimized quality/effort for best results)
             const processedBuffer = await sharp(buffer)
                 .resize(1000, 1000, { fit: 'inside', withoutEnlargement: true })
-                .webp({ quality: 90 })
+                .webp({ quality: 80, effort: 6 })
                 .toBuffer();
 
             // Upload to Supabase Storage
@@ -203,7 +203,7 @@ export async function updateProduct(id: string, formData: FormData) {
 
             const processedBuffer = await sharp(buffer)
                 .resize(1000, 1000, { fit: 'inside', withoutEnlargement: true })
-                .webp({ quality: 90 })
+                .webp({ quality: 80, effort: 6 })
                 .toBuffer();
 
             const { error } = await supabase.storage
