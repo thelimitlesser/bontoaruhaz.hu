@@ -116,10 +116,6 @@ export async function createPxpShipment(order: any) {
                         pxpType = 'lokharito_teherauto';
                     } else if (['csomagterajto', 'motor', 'motorhazteto', 'oldalajto', 'valto'].includes(internalPackageType)) {
                         pxpType = internalPackageType; // Matches exactly
-                    } else if (internalPackageType === 'raklap') {
-                        // The user said there is no raklap, but if mistakenly chosen, we fallback to doboz or could keep it.
-                        // Given their feedback, let's treat it as doboz for now or just remove from the UI later.
-                        pxpType = 'doboz'; 
                     }
 
                     const shipmentPackage: any = {
