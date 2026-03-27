@@ -76,8 +76,8 @@ export async function createProduct(formData: FormData) {
         // Unique folder suffix to avoid collisions for same-named parts
         const folderName = `${cleanName}_${Math.random().toString(36).substring(7)}`;
 
-        for (const file of imagesFiles) {
-            if (!file.name || file.size === 0) continue;
+        const uploadPromises = imagesFiles.map(async (file) => {
+            if (!file.name || file.size === 0) return null;
 
             const buffer = Buffer.from(await file.arrayBuffer());
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
@@ -89,7 +89,7 @@ export async function createProduct(formData: FormData) {
                 .webp({ quality: 90 })
                 .toBuffer();
 
-            // Upload to Supabase Storage with path
+            // Upload to Supabase Storage
             const { error } = await supabase.storage
                 .from('part-images')
                 .upload(filePath, processedBuffer, {
@@ -100,15 +100,18 @@ export async function createProduct(formData: FormData) {
 
             if (error) {
                 console.error("Supabase upload error:", error);
-                continue;
+                return null;
             }
 
             const { data: { publicUrl } } = supabase.storage
                 .from('part-images')
                 .getPublicUrl(filePath);
 
-            uploadedImageUrls.push(publicUrl);
-        }
+            return publicUrl;
+        });
+
+        const uploadResults = await Promise.all(uploadPromises);
+        uploadedImageUrls.push(...uploadResults.filter((url): url is string => url !== null));
     }
 
     let parsedCompatibilities = [];
@@ -192,8 +195,8 @@ export async function updateProduct(id: string, formData: FormData) {
 
         const folderName = `${cleanName}_${Math.random().toString(36).substring(7)}`;
 
-        for (const file of imagesFiles) {
-            if (!file.name || file.size === 0) continue;
+        const uploadPromises = imagesFiles.map(async (file) => {
+            if (!file.name || file.size === 0) return null;
             const buffer = Buffer.from(await file.arrayBuffer());
             const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
             const filePath = `${folderName}/${fileName}`;
@@ -207,10 +210,17 @@ export async function updateProduct(id: string, formData: FormData) {
                 .from('part-images')
                 .upload(filePath, processedBuffer, { contentType: 'image/webp' });
 
-            if (error) continue;
+            if (error) {
+                console.error("Supabase upload error:", error);
+                return null;
+            }
+            
             const { data: { publicUrl } } = supabase.storage.from('part-images').getPublicUrl(filePath);
-            newImageUrls.push(publicUrl);
-        }
+            return publicUrl;
+        });
+
+        const uploadResults = await Promise.all(uploadPromises);
+        newImageUrls.push(...uploadResults.filter((url): url is string => url !== null));
     }
 
     const finalImages = [

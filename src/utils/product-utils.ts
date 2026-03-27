@@ -5,14 +5,18 @@ export function parseProductFormData(formData: FormData) {
     const getNum = (key: string) => {
         const val = formData.get(key);
         if (!val || val === '') return null;
-        const num = parseFloat(val as string);
+        // Normalize: replace comma with dot and remove anything that's not a digit or dot
+        const normalized = (val as string).replace(',', '.').replace(/[^-0.9.]/g, '');
+        const num = parseFloat(normalized);
         return isNaN(num) ? null : num;
     };
 
     const getInt = (key: string) => {
         const val = formData.get(key);
         if (!val || val === '') return 0;
-        const num = parseInt(val as string);
+        // Strip non-numeric except minus sign
+        const normalized = (val as string).replace(/[^-0-9]/g, '');
+        const num = parseInt(normalized);
         return isNaN(num) ? 0 : num;
     };
 

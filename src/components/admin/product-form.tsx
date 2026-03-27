@@ -248,9 +248,13 @@ export function ProductForm({
             }
             if (onSuccess) onSuccess();
         } catch (error: any) {
-            if (error.message === 'NEXT_REDIRECT') throw error;
-            alert(error.message || "Hiba történt a mentés során!");
-        } finally {
+            // Check for Next.js redirect "error"
+            if (error.digest?.includes('NEXT_REDIRECT')) {
+                // Keep isSubmitting true and let the redirect happen
+                return;
+            }
+            console.error("Product submission error details:", error);
+            alert("Hiba történt a mentés során: " + error.message);
             setIsSubmitting(false);
         }
     };

@@ -70,10 +70,14 @@ export function PricingSection({
                     <div className="relative">
                         <input 
                             name="priceGross" 
-                            type="number" 
+                            type="text"
+                            inputMode="numeric"
                             required 
                             value={priceGross}
-                            onChange={(e) => setPriceGross(e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, '');
+                                setPriceGross(val);
+                            }}
                             placeholder="pl. 15000" 
                             className={clsx(
                                 "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors font-bold text-lg",
@@ -91,7 +95,8 @@ export function PricingSection({
                     <div className="relative">
                         <input 
                             name="originalPrice" 
-                            type="number" 
+                            type="text"
+                            inputMode="numeric"
                             defaultValue={initialData?.originalPrice || ""} 
                             placeholder="pl. 20000" 
                             className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" 
@@ -106,11 +111,15 @@ export function PricingSection({
                     <div className="relative">
                         <input 
                             name="weight" 
-                            type="number" 
-                            step="0.01" 
+                            type="text"
+                            inputMode="decimal"
                             required 
                             value={weight}
-                            onChange={(e) => setWeight(e.target.value)}
+                            onChange={(e) => {
+                                // Allow only numbers, comma and dot
+                                const val = e.target.value.replace(/[^0-9.,]/g, '');
+                                setWeight(val);
+                            }}
                             placeholder="pl. 5.5" 
                             className={clsx(
                                 "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors",
@@ -128,10 +137,14 @@ export function PricingSection({
                     <label className={clsx("text-sm font-medium", errors.includes("length") ? "text-red-600" : "text-gray-700")}>Hosszúság (cm) *</label>
                     <input 
                         name="length" 
-                        type="number" 
+                        type="text"
+                        inputMode="decimal"
                         required 
                         value={length}
-                        onChange={(e) => setLength(e.target.value)}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9.,]/g, '');
+                            setLength(val);
+                        }}
                         placeholder="pl. 30" 
                         className={clsx(
                             "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors",
@@ -145,10 +158,14 @@ export function PricingSection({
                     <label className={clsx("text-sm font-medium", errors.includes("width") ? "text-red-600" : "text-gray-700")}>Szélesség (cm) *</label>
                     <input 
                         name="width" 
-                        type="number" 
+                        type="text"
+                        inputMode="decimal"
                         required 
                         value={width}
-                        onChange={(e) => setWidth(e.target.value)}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9.,]/g, '');
+                            setWidth(val);
+                        }}
                         placeholder="pl. 40" 
                         className={clsx(
                             "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors",
@@ -162,10 +179,14 @@ export function PricingSection({
                     <label className={clsx("text-sm font-medium", errors.includes("height") ? "text-red-600" : "text-gray-700")}>Magasság (cm) *</label>
                     <input 
                         name="height" 
-                        type="number" 
+                        type="text"
+                        inputMode="decimal"
                         required 
                         value={height}
-                        onChange={(e) => setHeight(e.target.value)}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9.,]/g, '');
+                            setHeight(val);
+                        }}
                         placeholder="pl. 20" 
                         className={clsx(
                             "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors",
@@ -183,10 +204,14 @@ export function PricingSection({
                     <div className="relative">
                         <input 
                             name="shippingPrice" 
-                            type="number" 
+                            type="text"
+                            inputMode="numeric"
                             required 
                             value={shippingPrice}
-                            onChange={(e) => setShippingPrice(e.target.value)}
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, '');
+                                setShippingPrice(val);
+                            }}
                             placeholder="pl. 2500" 
                             className={clsx(
                                 "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors font-bold",
@@ -219,10 +244,14 @@ export function PricingSection({
                     <label className="text-sm font-medium text-gray-700">Készlet (db) *</label>
                     <input 
                         name="stock" 
-                        type="number" 
+                        type="text"
+                        inputMode="numeric"
                         required 
                         value={stock}
-                        onChange={(e) => setStock(e.target.value)}
+                        onChange={(e) => {
+                            const val = e.target.value.replace(/[^0-9]/g, '');
+                            setStock(val);
+                        }}
                         className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" 
                     />
                 </div>
@@ -234,20 +263,10 @@ export function PricingSection({
                 </div>
                 <button
                     type="submit"
-                    disabled={isSubmitting}
-                    className="w-full md:w-auto bg-[var(--color-primary)] hover:bg-[#e67e00] text-white font-bold py-4 px-12 rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-95 disabled:opacity-50 disabled:pointer-events-none flex items-center justify-center gap-3 text-lg"
+                    className="flex-grow flex items-center justify-center gap-3 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-300 text-white font-black py-4 rounded-xl shadow-lg shadow-orange-500/20 transition-all active:scale-95 text-lg uppercase tracking-tight"
                 >
-                    {isSubmitting ? (
-                        <>
-                            <Loader2 className="w-6 h-6 animate-spin" />
-                            Mentés folyamatban...
-                        </>
-                    ) : (
-                        <>
-                            <Save className="w-6 h-6" />
-                            {initialData?.id ? "Módosítások Mentése" : "Termék Hozzáadása"}
-                        </>
-                    )}
+                    <Save className="w-6 h-6" />
+                    {initialData?.id ? "Módosítások Mentése" : "Termék Hozzáadása"}
                 </button>
             </div>
         </div>
