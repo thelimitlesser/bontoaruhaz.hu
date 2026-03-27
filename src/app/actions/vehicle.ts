@@ -2,67 +2,77 @@
 
 import { prisma } from "@/lib/prisma";
 
-export async function getBrandsAction() {
-    // Only return brands that have at least one product with stock > 0
-    const activeBrands = await prisma.vehicleBrand.findMany({
-        where: {
-            hidden: false,
-            OR: [
-                {
-                    Part: {
-                        some: { stock: { gt: 0 } }
-                    }
-                },
-                {
-                    VehicleModel: {
-                        some: {
-                            PartCompatibility: {
-                                some: {
-                                    part: { stock: { gt: 0 } }
+import { unstable_cache } from "next/cache";
+
+export const getBrandsAction = unstable_cache(
+    async () => {
+        // Only return brands that have at least one product with stock > 0
+        const activeBrands = await prisma.vehicleBrand.findMany({
+            where: {
+                hidden: false,
+                OR: [
+                    {
+                        Part: {
+                            some: { stock: { gt: 0 } }
+                        }
+                    },
+                    {
+                        VehicleModel: {
+                            some: {
+                                PartCompatibility: {
+                                    some: {
+                                        part: { stock: { gt: 0 } }
+                                    }
                                 }
                             }
                         }
                     }
-                }
-            ]
-        },
-        select: { id: true, name: true, slug: true, logo: true }
-    });
-    
-    return activeBrands;
-}
+                ]
+            },
+            select: { id: true, name: true, slug: true, logo: true }
+        });
+        
+        return activeBrands;
+    },
+    ["brands-list"],
+    { revalidate: 3600, tags: ["brands"] }
+);
 
-export async function getModelsByBrandAction(brandId: string) {
-    if (!brandId) return [];
-    
-    const activeModels = await prisma.vehicleModel.findMany({
-        where: {
-            brandId: brandId,
-            OR: [
-                {
-                    Part: {
-                        some: { stock: { gt: 0 } }
-                    }
-                },
-                {
-                    PartCompatibility: {
-                        some: {
-                            part: { stock: { gt: 0 } }
+export const getModelsByBrandAction = unstable_cache(
+    async (brandId: string) => {
+        if (!brandId) return [];
+        
+        const activeModels = await prisma.vehicleModel.findMany({
+            where: {
+                brandId: brandId,
+                OR: [
+                    {
+                        Part: {
+                            some: { stock: { gt: 0 } }
+                        }
+                    },
+                    {
+                        PartCompatibility: {
+                            some: {
+                                part: { stock: { gt: 0 } }
+                            }
                         }
                     }
-                }
-            ]
-        },
-        select: { 
-            id: true, 
-            name: true, 
-            slug: true,
-            series: true 
-        }
-    });
+                ]
+            },
+            select: { 
+                id: true, 
+                name: true, 
+                slug: true,
+                series: true 
+            }
+        });
 
-    return activeModels;
-}
+        return activeModels;
+    },
+    ["models-by-brand"],
+    { revalidate: 3600, tags: ["models"] }
+);
 
 export async function getActivePartOptionsAction(brandId?: string, modelId?: string) {
     // Query PartItems that have associated parts with stock > 0
@@ -116,22 +126,21 @@ export async function getActiveCategoriesForModelAction(brandId: string, modelId
     });
 
     // 2. Fetch IDs of categories that HAVE products for this model (including compatibility)
-    const categoriesWithProducts = await prisma.partCategory.findMany({
+    // We can do this more efficiently by finding all categories that have at least one part
+    // that matches either directly or via compatibility.
+    const activeCategories = await prisma.part.findMany({
         where: {
-            Part: {
-                some: {
-                    stock: { gt: 0 },
-                    OR: [
-                        { brandId: brandId, modelId: modelId },
-                        { compatibilities: { some: { brandId: brandId, modelId: modelId } } }
-                    ]
-                }
-            }
+            stock: { gt: 0 },
+            OR: [
+                { brandId: brandId, modelId: modelId },
+                { compatibilities: { some: { brandId: brandId, modelId: modelId } } }
+            ]
         },
-        select: { id: true }
+        distinct: ['categoryId'],
+        select: { categoryId: true }
     });
 
-    const activeIds = new Set(categoriesWithProducts.map(c => c.id));
+    const activeIds = new Set(activeCategories.map(c => c.categoryId).filter(Boolean) as string[]);
 
     // 2. Initial alphabetical sort
     let sortedCategories = allCategories.sort((a, b) => a.name.localeCompare(b.name, 'hu'));

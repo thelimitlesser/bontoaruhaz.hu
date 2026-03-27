@@ -89,6 +89,13 @@ model Part {
   PartSubcategory PartSubcategory?    @relation(fields: [subcategoryId], references: [id])
   compatibilities PartCompatibility[]
   reservations    Reservation[]
+
+  @@index([brandId])
+  @@index([modelId])
+  @@index([categoryId])
+  @@index([subcategoryId])
+  @@index([partItemId])
+  @@index([stock])
 }
 
 model Order {
@@ -156,6 +163,10 @@ model PartCompatibility {
   yearTo       Int?
   VehicleModel VehicleModel @relation(fields: [modelId], references: [id])
   part         Part         @relation(fields: [partId], references: [id], onDelete: Cascade)
+
+  @@index([partId])
+  @@index([brandId])
+  @@index([modelId])
 }
 
 model PartCategory {
@@ -176,6 +187,8 @@ model PartItem {
   keywords        String[]
   Part            Part[]
   PartSubcategory PartSubcategory @relation(fields: [subcategoryId], references: [id])
+
+  @@index([subcategoryId])
 }
 
 model PartSubcategory {
@@ -187,6 +200,8 @@ model PartSubcategory {
   Part         Part[]
   PartItem     PartItem[]
   PartCategory PartCategory @relation(fields: [categoryId], references: [id])
+
+  @@index([categoryId])
 }
 
 model VehicleBrand {
@@ -211,6 +226,8 @@ model VehicleModel {
   Part              Part[]
   PartCompatibility PartCompatibility[]
   VehicleBrand      VehicleBrand        @relation(fields: [brandId], references: [id])
+
+  @@index([brandId])
 }
 
 model Reservation {
