@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createProduct, updateProduct, getNextReferenceNumber, checkDuplicateSku } from "@/app/actions/product";
+import { motion, AnimatePresence } from "framer-motion";
+import { Loader2 } from "lucide-react";
 
 // Sub-components
 import { BasicInfoSection } from "./product-form/basic-info-section";
