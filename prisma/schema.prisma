@@ -232,7 +232,7 @@ model PxpManifest {
   id        String   @id @default(uuid())
   createdAt DateTime @default(now())
   itemCount Int      @default(0)
-  pdfBase64 String   @db.Text
+  pdfBase64 String
 }
 
 model PxpSyncLog {

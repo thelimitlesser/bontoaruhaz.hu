@@ -43,6 +43,7 @@ export function PricingSection({
     const packageTypeOptions = [
         { value: 'doboz', label: 'Doboz', group: 'Alap típusok' },
         { value: 'level', label: 'Levél', group: 'Alap típusok' },
+        { value: 'raklap', label: `Raklap (${PXP_SPECIAL_RATES['raklap']} Ft)`, group: 'Alap típusok' },
         { value: 'csomagterajto', label: `Csomagtérajtó (${PXP_SPECIAL_RATES['csomagterajto']} Ft)`, group: 'Speciális alkatrészek' },
         { value: 'lokharito', label: `Lökhárító (személyautó) (${PXP_SPECIAL_RATES['lokharito']} Ft)`, group: 'Speciális alkatrészek' },
         { value: 'lokharito_teher', label: `Lökhárító (teherautó) (${PXP_SPECIAL_RATES['lokharito_teher']} Ft)`, group: 'Speciális alkatrészek' },

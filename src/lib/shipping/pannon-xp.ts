@@ -326,10 +326,14 @@ export async function getBulkPxpLabels(trackingNumbers: string[]) {
     const cserekulcs = (process.env.PXP_CSEREKULCS || PXP_CONFIG.cserekulcs).trim();
 
     try {
-        const printRequest: any = {};
+        const printRequest: any = {
+            cimketipus: "1c101,6x152,4",
+            cimkek: {}
+        };
+        
         trackingNumbers.forEach((tn, index) => {
-            printRequest[index.toString()] = {
-                kuldemenyszam: tn
+            printRequest.cimkek[index.toString()] = {
+                nyomtatas: tn
             };
         });
 
