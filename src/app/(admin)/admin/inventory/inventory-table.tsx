@@ -2,16 +2,24 @@
 
 import { useState } from "react";
 import { Box, Edit2, Trash2, X, AlertTriangle } from "lucide-react";
-import { brands, getModelsByBrand } from "@/lib/vehicle-data";
 import { ProductForm } from "@/components/admin/product-form";
 import { deleteProduct, updatePartStock } from "@/app/actions/product";
 import { useRouter } from "next/navigation";
 
 interface InventoryTableProps {
     parts: any[];
+    // Dynamic data from DB
+    brands: any[];
+    models: any[];
+    categories: any[];
+    subcategories: any[];
+    partItems: any[];
 }
 
-export function InventoryTable({ parts }: InventoryTableProps) {
+export function InventoryTable({ 
+    parts,
+    brands, models, categories, subcategories, partItems
+}: InventoryTableProps) {
     const [editingProduct, setEditingProduct] = useState<any | null>(null);
     const [deletingProductId, setDeletingProductId] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
@@ -102,8 +110,8 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                             ) : part.brandId ? (
                                                 <div className="text-sm">
                                                     <div className="font-medium text-gray-900">
-                                                        {(brands.find(b => b.id === part.brandId))?.name || part.brandId}{''}
-                                                        {part.modelId ? (getModelsByBrand(part.brandId).find(m => m.id === part.modelId))?.name || part.modelId : ''}
+                                                        {(brands.find(b => b.id === part.brandId))?.name || part.brandId}{' '}
+                                                        {part.modelId ? (models.filter((m: any) => m.brandId === part.brandId).find((m: any) => m.id === part.modelId))?.name || part.modelId : ''}
                                                     </div>
                                                 </div>
                                             ) : (
@@ -182,6 +190,11 @@ export function InventoryTable({ parts }: InventoryTableProps) {
                                 initialData={editingProduct}
                                 onSuccess={() => setEditingProduct(null)}
                                 className="mx-auto"
+                                brands={brands}
+                                models={models}
+                                categories={categories}
+                                subcategories={subcategories}
+                                partItems={partItems}
                             />
                         </div>
                     </div>

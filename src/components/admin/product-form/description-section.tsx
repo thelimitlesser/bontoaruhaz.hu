@@ -1,7 +1,6 @@
 "use client";
 
 import { Sparkles } from "lucide-react";
-import { brands, getModelsByBrand } from "@/lib/vehicle-data";
 import { useMemo } from "react";
 import clsx from "clsx";
 
@@ -17,18 +16,23 @@ interface DescriptionSectionProps {
     descriptionRef: React.RefObject<HTMLTextAreaElement | null>;
     condition?: string;
     errors?: string[];
+    // Dynamic data from DB
+    brands: any[];
+    models: any[];
 }
 
 export function DescriptionSection({
     selectedBrand, selectedModel, selectedPartItemObj,
     yearFrom, yearTo, autoRef,
     manualDescription, setManualDescription,
-    descriptionRef, condition = "used", errors = []
+    descriptionRef, condition = "used", errors = [],
+    brands,
+    models
 }: DescriptionSectionProps) {
     
     const generatedHeader = useMemo(() => {
         const brandName = brands.find(b => b.id === selectedBrand)?.name;
-        const modelName = getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name;
+        const modelName = models.filter((m: any) => m.brandId === selectedBrand).find((m: any) => m.id === selectedModel)?.name;
         const partName = selectedPartItemObj?.name;
         const years = yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : "";
         const condLabel = condition === 'new' ? 'gyári új' : 'gyári használt';
@@ -67,7 +71,7 @@ export function DescriptionSection({
                             )}
  
                             {selectedModel ? (
-                                <span className="font-bold text-gray-900 underline decoration-gray-300 underline-offset-4">{getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name}</span>
+                                <span className="font-bold text-gray-900 underline decoration-gray-300 underline-offset-4">{models.filter((m: any) => m.brandId === selectedBrand).find((m: any) => m.id === selectedModel)?.name}</span>
                             ) : (
                                 <span className="text-gray-300 italic">[Modell]</span>
                             )}

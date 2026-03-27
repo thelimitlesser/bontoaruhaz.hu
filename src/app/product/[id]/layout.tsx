@@ -1,6 +1,5 @@
 import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
-import { getBrandById, getModelById, getBrandBySlug, getModelBySlug } from '@/lib/vehicle-data'
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
     const { id } = await params
@@ -18,11 +17,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
     if (!dbPart) return { title: 'Termék nem található' }
 
-    const brandObj = dbPart.brandId ? getBrandById(dbPart.brandId) : null;
-    const modelObj = dbPart.modelId ? getModelById(dbPart.modelId) : null;
+    const [brandObj, modelObj] = await Promise.all([
+        dbPart.brandId ? prisma.vehicleBrand.findUnique({ where: { id: dbPart.brandId } }) : null,
+        dbPart.modelId ? prisma.vehicleModel.findUnique({ where: { id: dbPart.modelId } }) : null
+    ]);
     
-    const brandName = brandObj?.name || (dbPart.brandId ? getBrandBySlug(dbPart.brandId)?.name : null) || dbPart.brandId || "";
-    const modelName = modelObj?.name || (dbPart.modelId ? getModelBySlug(dbPart.modelId)?.name : null) || dbPart.modelId || "";
+    const brandName = brandObj?.name || dbPart.brandId || "";
+    const modelName = modelObj?.name || dbPart.modelId || "";
 
     // Construction of the SEO-perfect title: Brand - Model - Part Name - Year
     let yearString = "";

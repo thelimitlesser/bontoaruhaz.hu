@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createProduct, updateProduct, getNextReferenceNumber, checkDuplicateSku } from "@/app/actions/product";
-import { partItems, categories, partsSubcategories as subcategories, brands, getModelsByBrand } from "@/lib/vehicle-data";
 
 // Sub-components
 import { BasicInfoSection } from "./product-form/basic-info-section";
@@ -15,9 +14,18 @@ interface ProductFormProps {
     initialData?: any;
     onSuccess?: () => void;
     className?: string;
+    // Dynamic data from DB
+    brands: any[];
+    models: any[];
+    categories: any[];
+    subcategories: any[];
+    partItems: any[];
 }
 
-export function ProductForm({ initialData, onSuccess, className }: ProductFormProps) {
+export function ProductForm({ 
+    initialData, onSuccess, className,
+    brands, models, categories, subcategories, partItems
+}: ProductFormProps) {
     // Refs for spellcheck/focus
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
     const nameRef = useRef<HTMLInputElement>(null);
@@ -127,7 +135,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
     const [lastAutoName, setLastAutoName] = useState("");
     useEffect(() => {
         const brand = brands.find(b => b.id === selectedBrand)?.name;
-        const model = getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name;
+        const model = models.filter(m => m.brandId === selectedBrand).find(m => m.id === selectedModel)?.name;
         const part = selectedPartItemObj?.name;
         
         if (brand && model && part) {
@@ -138,7 +146,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                 setLastAutoName(newAutoName);
             }
         }
-    }, [selectedBrand, selectedModel, selectedPartItem, condition]); // Kept condition here to avoid React error about array size changing during HMR
+    }, [selectedBrand, selectedModel, selectedPartItem, condition, brands, models, selectedPartItemObj]);
 
     // Native Spellcheck Force
     useEffect(() => {
@@ -198,7 +206,7 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
             const finalDescriptionParts = [];
             
             const brand = brands.find(b => b.id === selectedBrand)?.name;
-            const model = getModelsByBrand(selectedBrand).find(m => m.id === selectedModel)?.name;
+            const model = models.filter(m => m.brandId === selectedBrand).find(m => m.id === selectedModel)?.name;
             const part = selectedPartItemObj?.name;
             const years = yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : "";
             
@@ -264,6 +272,8 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                 yearTo={yearTo} setYearTo={setYearTo}
                 compatibilities={compatibilities} setCompatibilities={setCompatibilities}
                 errors={validationErrors}
+                brands={brands}
+                models={models}
             />
 
             <BasicInfoSection 
@@ -275,6 +285,9 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                 engineCode={engineCode} setEngineCode={setEngineCode}
                 initialData={initialData}
                 errors={validationErrors}
+                partItems={partItems}
+                categories={categories}
+                subcategories={subcategories}
             />
 
             <DescriptionSection 
@@ -284,6 +297,8 @@ export function ProductForm({ initialData, onSuccess, className }: ProductFormPr
                 setManualDescription={setManualDescription} descriptionRef={descriptionRef}
                 condition={condition}
                 errors={validationErrors}
+                brands={brands}
+                models={models}
             />
 
             <PricingSection 

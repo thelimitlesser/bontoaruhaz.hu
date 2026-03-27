@@ -7,7 +7,6 @@ import { createClient } from "@/lib/supabase/server";
 import sharp from "sharp";
 import path from "path";
 import { promises as fs } from "fs";
-import { brands, models, partItems, categories, partsSubcategories as subcategories } from "@/lib/vehicle-data";
 import { partSynonyms } from "@/lib/search-synonyms";
 import { findClosestMatches } from "@/lib/string-similarity";
 import { parseProductFormData } from "@/utils/product-utils";
@@ -448,10 +447,15 @@ export async function getSearchProducts(params: {
         }
 
         // Check for Brand/Model matches in the query string
-        const brandsFound = brands.filter(b => !b.hidden && queryLower.includes(b.name.toLowerCase()));
+        const [dbBrands, dbModels] = await Promise.all([
+            prisma.vehicleBrand.findMany({ where: { hidden: false }, select: { id: true, name: true } }),
+            prisma.vehicleModel.findMany({ select: { id: true, name: true, series: true } })
+        ]);
+
+        const brandsFound = dbBrands.filter(b => queryLower.includes(b.name.toLowerCase()));
         matchingBrands.push(...brandsFound);
 
-        const modelsFound = models.filter(m => {
+        const modelsFound = dbModels.filter(m => {
             const mName = m.name.toLowerCase();
             const cleanName = mName.replace(/[()]/g, '');
             const mSeries = m.series?.toLowerCase() || '';
@@ -545,13 +549,19 @@ export async function getSearchProducts(params: {
         prisma.part.count({ where })
     ]);
 
-    // Enhance results with human-readable model names from our vehicle-data
+    // 5. Fetch all brands and models once for enhancement (memoize this in a real prod env)
+    const [allBrands, allModels] = await Promise.all([
+        prisma.vehicleBrand.findMany({ select: { id: true, name: true } }),
+        prisma.vehicleModel.findMany({ select: { id: true, name: true } })
+    ]);
+
+    // Enhance results with human-readable model names from DB
     const enhancedParts = parts.map(part => {
-        const modelData = models.find(m => m.id === part.modelId);
+        const modelData = allModels.find(m => m.id === part.modelId);
         return {
             ...part,
             availableStock: part.stock - (part.reservations?.length || 0),
-            brandName: brands.find(b => b.id === part.brandId)?.name || part.brandId,
+            brandName: allBrands.find(b => b.id === part.brandId)?.name || part.brandId,
             modelName: modelData?.name || part.modelId
         };
     });
@@ -567,16 +577,20 @@ export async function getSearchProducts(params: {
 
     // Fuzzy search logic if no results found
     if (enhancedParts.length === 0 && query && query.length > 2) {
+        const [dbCats, dbSubcats, dbItems] = await Promise.all([
+            prisma.partCategory.findMany({ select: { name: true, keywords: true } }),
+            prisma.partSubcategory.findMany({ select: { name: true, keywords: true } }),
+            prisma.partItem.findMany({ select: { name: true } })
+        ]);
+
         const dictionary = [
-            ...brands.filter(b => !b.hidden).map(b => b.name),
-            ...models.map(m => m.name),
-            ...models.map(m => m.series).filter(Boolean) as string[],
-            ...partItems.map(p => p.name),
-            ...categories.map(c => c.name),
-            ...subcategories.map(s => s.name),
-            // Flat list of all keywords
-            ...categories.flatMap(c => c.keywords || []),
-            ...subcategories.flatMap(s => s.keywords || [])
+            ...allBrands.map(b => b.name),
+            ...allModels.map(m => m.name),
+            ...dbItems.map(p => p.name),
+            ...dbCats.map(c => c.name),
+            ...dbSubcats.map(s => s.name),
+            ...dbCats.flatMap(c => (c as any).keywords ? (c as any).keywords.split(',').map((k: string) => k.trim()) : []),
+            ...dbSubcats.flatMap(s => (s as any).keywords ? (s as any).keywords.split(',').map((k: string) => k.trim()) : [])
         ];
 
         // Clean query of detected year to avoid confusing the typo search
@@ -598,6 +612,13 @@ export async function getSearchProducts(params: {
         }
     }
 
+    // Resolve active filter names for the UI
+    const [activeCat, activeSubcat, activeItem] = await Promise.all([
+        category ? prisma.partCategory.findUnique({ where: { id: category }, select: { name: true } }) : null,
+        subcategory ? prisma.partSubcategory.findUnique({ where: { id: subcategory }, select: { name: true } }) : null,
+        partItem ? prisma.partItem.findUnique({ where: { id: partItem }, select: { name: true } }) : null
+    ]);
+
     return {
         parts: enhancedParts,
         total,
@@ -605,7 +626,10 @@ export async function getSearchProducts(params: {
             detectedYear: searchYear,
             detectedBrand: matchingBrands[0]?.name,
             detectedModel: detectedModelLabel,
-            suggestion
+            suggestion,
+            categoryName: activeCat?.name,
+            subcategoryName: activeSubcat?.name,
+            partItemName: activeItem?.name
         }
     };
 }
@@ -736,11 +760,16 @@ export async function getRelatedProducts(currentProductId: string, modelId: stri
             }
         });
 
-        // Add brand/model names from vehicle-data
+        // Add brand/model names from DB
+        const [dbBrands, dbModels] = await Promise.all([
+            prisma.vehicleBrand.findMany({ where: { id: { in: products.map(p => p.brandId).filter(Boolean) as string[] } } }),
+            prisma.vehicleModel.findMany({ where: { id: { in: products.map(p => p.modelId).filter(Boolean) as string[] } } })
+        ]);
+
         return products.map(p => ({
             ...p,
-            brandName: brands.find(b => b.id === p.brandId)?.name || p.brandId,
-            modelName: models.find(m => m.id === p.modelId)?.name || p.modelId
+            brandName: dbBrands.find(b => b.id === p.brandId)?.name || p.brandId,
+            modelName: dbModels.find(m => m.id === p.modelId)?.name || p.modelId
         }));
     } catch (error) {
         console.error("Error fetching related products:", error);

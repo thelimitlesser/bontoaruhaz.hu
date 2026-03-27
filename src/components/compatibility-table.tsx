@@ -1,9 +1,10 @@
-import { Check, X, Globe, AlertTriangle } from"lucide-react";
-import { getBrandBySlug, getModelBySlug } from"@/lib/vehicle-data";
+import { Check, X, Globe, AlertTriangle } from "lucide-react";
 
 interface ExtraCompatibility {
     brandId: string;
     modelId: string;
+    brandName?: string;
+    modelName?: string;
     yearFrom?: number | null;
     yearTo?: number | null;
 }
@@ -69,8 +70,8 @@ export function CompatibilityTable({ brand, model, yearFrom, yearTo, isUniversal
 
                         {/* Extra Compatibilities */}
                         {extraCompatibilities.map((comp, idx) => {
-                            const bName = getBrandBySlug(comp.brandId)?.name || comp.brandId;
-                            const mName = getModelBySlug(comp.modelId)?.name || comp.modelId;
+                            const bName = comp.brandName || comp.brandId;
+                            const mName = comp.modelName || comp.modelId;
                             return (
                                 <tr key={idx} className="hover:bg-foreground/5 transition-colors group">
                                     <td className="p-4 font-bold">{bName}</td>

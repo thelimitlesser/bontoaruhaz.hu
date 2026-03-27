@@ -8,7 +8,6 @@ import { getSearchProducts } from "@/app/actions/product";
 import { Filter, Search, Loader2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import clsx from "clsx";
-import { categories, subcategories, partItems } from "@/lib/parts-data";
 
 function SearchResultsContent() {
     const router = useRouter();
@@ -32,6 +31,9 @@ function SearchResultsContent() {
         detectedBrand?: string;
         detectedModel?: string;
         suggestion?: string;
+        categoryName?: string;
+        subcategoryName?: string;
+        partItemName?: string;
     }>({});
 
     useEffect(() => {
@@ -91,70 +93,72 @@ function SearchResultsContent() {
                     </h1>
                 </div>
 
-                {aiPowered && (
-                    <div className="flex flex-col gap-4 mb-6">
+                <div className="flex flex-col gap-4 mb-6">
+                    {aiPowered && (
                         <div className="inline-flex items-center gap-2 bg-orange-50 border border-orange-100 px-3 py-1 rounded-full w-fit">
                             <div className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
                             <span className="text-[10px] font-bold text-orange-700 uppercase tracking-wider">AI Segítséggel optimalizálva</span>
                         </div>
+                    )}
 
-                        <div className="flex flex-wrap items-center gap-2">
-                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-1">Észlelt keresési feltételek:</span>
+                    <div className="flex flex-wrap items-center gap-2">
+                        {(brand || detectedMeta.detectedBrand || model || detectedMeta.detectedModel || detectedMeta.detectedYear || item || subcategory || category) && (
+                            <span className="text-xs font-bold text-gray-400 uppercase tracking-widest mr-1">Szűrő feltételek:</span>
+                        )}
 
-                            {(brand || detectedMeta.detectedBrand) && (
-                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Márka</span>
-                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">{brand || detectedMeta.detectedBrand}</span>
-                                </div>
-                            )}
+                        {(brand || detectedMeta.detectedBrand) && (
+                            <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Márka</span>
+                                <span className="text-sm font-black text-gray-900 uppercase tracking-tight">{brand || detectedMeta.detectedBrand}</span>
+                            </div>
+                        )}
 
-                            {(model || detectedMeta.detectedModel) ? (
-                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Modell</span>
-                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                                        {products.find(p => p.modelId === model)?.modelName || model || detectedMeta.detectedModel}
-                                    </span>
-                                </div>
-                            ) : (brand || detectedMeta.detectedBrand) && (
-                                <div className="px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-lg flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-blue-400 uppercase">Modell</span>
-                                    <span className="text-sm font-black text-blue-700 uppercase tracking-tight">Összes generáció</span>
-                                </div>
-                            )}
+                        {(model || detectedMeta.detectedModel) ? (
+                            <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Modell</span>
+                                <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                    {products.find(p => p.modelId === model)?.modelName || model || detectedMeta.detectedModel}
+                                </span>
+                            </div>
+                        ) : (brand || detectedMeta.detectedBrand) && (
+                            <div className="px-3 py-1.5 bg-blue-50 border border-blue-100 rounded-lg flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-blue-400 uppercase">Modell</span>
+                                <span className="text-sm font-black text-blue-700 uppercase tracking-tight">Összes generáció</span>
+                            </div>
+                        )}
 
-                            {/* Detected Year */}
-                            {detectedMeta.detectedYear && (
-                                <div className="px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-lg shadow-sm flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-orange-400 uppercase">Évjárat</span>
-                                    <span className="text-sm font-black text-orange-700 uppercase tracking-tight">{detectedMeta.detectedYear}</span>
-                                </div>
-                            )}
+                        {/* Detected Year */}
+                        {detectedMeta.detectedYear && (
+                            <div className="px-3 py-1.5 bg-orange-50 border border-orange-100 rounded-lg shadow-sm flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-orange-400 uppercase">Évjárat</span>
+                                <span className="text-sm font-black text-orange-700 uppercase tracking-tight">{detectedMeta.detectedYear}</span>
+                            </div>
+                        )}
 
-                            {item ? (
-                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Alkatrész</span>
-                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                                        {products.find(p => p.partItemId === item)?.partItemName || item.replace(/-/g, ' ')}
-                                    </span>
-                                </div>
-                            ) : subcategory ? (
-                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Kategória</span>
-                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                                        {products.find(p => p.subcategoryId === subcategory)?.subcategoryName || subcategory.replace(/-/g, ' ')}
-                                    </span>
-                                </div>
-                            ) : category && (
-                                <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
-                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Főcsoport</span>
-                                    <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                                        {products.find(p => p.categoryId === category)?.categoryName || category.replace(/-/g, ' ')}
-                                    </span>
-                                </div>
-                            )}
-                        </div>
+                        {item ? (
+                            <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Alkatrész</span>
+                                <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                    {detectedMeta.partItemName || item.replace(/-/g, ' ')}
+                                </span>
+                            </div>
+                        ) : subcategory ? (
+                            <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Kategória</span>
+                                <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                    {detectedMeta.subcategoryName || subcategory.replace(/-/g, ' ')}
+                                </span>
+                            </div>
+                        ) : category && (
+                            <div className="px-3 py-1.5 bg-white border border-gray-100 rounded-lg shadow-sm flex items-center gap-2">
+                                <span className="text-[10px] font-bold text-gray-400 uppercase">Főcsoport</span>
+                                <span className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                    {detectedMeta.categoryName || category.replace(/-/g, ' ')}
+                                </span>
+                            </div>
+                        )}
                     </div>
-                )}
+                </div>
 
                 <p className="text-gray-500 font-medium">
                     Találatok a <span className="text-gray-900 font-bold">&quot;{query}&quot;</span> kifejezésre.
@@ -214,7 +218,7 @@ function SearchResultsContent() {
                             {/* Level 1: Categories */}
                             <div className="flex flex-col gap-3">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded">Főcsoportok</span>
+                                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded">Elérhető kategóriák</span>
                                     {(category || subcategory || item) && (
                                         <button
                                             onClick={() => {
@@ -226,19 +230,14 @@ function SearchResultsContent() {
                                             }}
                                             className="text-[10px] font-bold text-[var(--color-primary)] uppercase hover:underline"
                                         >
-                                            Összes kategória
+                                            Szűrők törlése
                                         </button>
                                     )}
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    {/* Get categories that are present in the results OR use specific ones if already filtered */}
-                                    {Array.from(new Set([
-                                        ...products.map(p => p.categoryId),
-                                        ...(category ? [category] : [])
-                                    ])).filter(Boolean).map(cId => {
-                                        const cat = categories.find(c => c.id === cId);
+                                    {Array.from(new Set(products.map(p => p.categoryId))).filter(Boolean).map(cId => {
+                                        const catName = products.find(p => p.categoryId === cId)?.categoryName || cId;
                                         const isSelected = category === cId;
-                                        if (!cat) return null;
 
                                         return (
                                             <button
@@ -257,85 +256,12 @@ function SearchResultsContent() {
                                                         : "bg-white/50 backdrop-blur-sm border-gray-100 text-gray-600 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-orange-50/50 hover:-translate-y-0.5"
                                                 )}
                                             >
-                                                {cat.name}
+                                                {catName}
                                             </button>
                                         );
                                     })}
                                 </div>
                             </div>
-
-                            {/* Level 2: Subcategories */}
-                            {category && (
-                                <div className="flex flex-col gap-3 p-5 bg-gray-50/50 border border-gray-100 rounded-3xl animate-in fade-in slide-in-from-top-2 duration-300">
-                                    <div className="flex items-center gap-2">
-                                        <ChevronRight className="w-4 h-4 text-gray-400" />
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Alkatrész csoportok</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {subcategories
-                                            .filter(sc => sc.categoryId === category)
-                                            .filter(sc => products.some(p => p.subcategoryId === sc.id) || subcategory === sc.id)
-                                            .map(sc => {
-                                                const isSelected = subcategory === sc.id;
-                                                return (
-                                                    <button
-                                                        key={sc.id}
-                                                        onClick={() => {
-                                                            const params = new URLSearchParams(searchParams.toString());
-                                                            params.set("subcat", sc.id);
-                                                            params.delete("item");
-                                                            router.push(`/search?${params.toString()}`);
-                                                        }}
-                                                        className={clsx(
-                                                            "px-5 py-2.5 rounded-2xl border text-xs font-black transition-all shadow-sm uppercase tracking-wider",
-                                                            isSelected
-                                                                ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20"
-                                                                : "bg-white border-gray-100 text-gray-600 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-orange-50/50"
-                                                        )}
-                                                    >
-                                                        {sc.name}
-                                                    </button>
-                                                );
-                                            })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Level 3: Part Items */}
-                            {subcategory && (
-                                <div className="flex flex-col gap-3 p-5 bg-white border border-[var(--color-primary)]/10 rounded-3xl animate-in fade-in slide-in-from-top-2 duration-300 shadow-xl shadow-[var(--color-primary)]/5">
-                                    <div className="flex items-center gap-2">
-                                        <ChevronRight className="w-4 h-4 text-[var(--color-primary)]" />
-                                        <span className="text-[10px] font-black text-[var(--color-primary)] uppercase tracking-widest text-opacity-70">Konkrét alkatrészek</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {partItems
-                                            .filter(pi => pi.subcategoryId === subcategory)
-                                            .filter(pi => products.some(p => p.partItemId === pi.id) || item === pi.id)
-                                            .map(pi => {
-                                                const isSelected = item === pi.id;
-                                                return (
-                                                    <button
-                                                        key={pi.id}
-                                                        onClick={() => {
-                                                            const params = new URLSearchParams(searchParams.toString());
-                                                            params.set("item", pi.id);
-                                                            router.push(`/search?${params.toString()}`);
-                                                        }}
-                                                        className={clsx(
-                                                            "px-5 py-2.5 rounded-2xl border text-xs font-black transition-all shadow-sm uppercase tracking-wider",
-                                                            isSelected
-                                                                ? "bg-[var(--color-primary)] border-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20"
-                                                                : "bg-gray-50 border-transparent text-gray-500 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] hover:bg-white"
-                                                        )}
-                                                    >
-                                                        {pi.name}
-                                                    </button>
-                                                );
-                                            })}
-                                    </div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}

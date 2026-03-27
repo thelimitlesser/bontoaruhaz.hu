@@ -1,10 +1,17 @@
 import { Metadata } from 'next'
-import { getBrandBySlug, getModelBySlug } from '@/lib/vehicle-data'
+import { prisma } from '@/lib/prisma'
 
 export async function generateMetadata({ params }: { params: Promise<{ brandSlug: string; modelSlug: string }> }): Promise<Metadata> {
     const { brandSlug, modelSlug } = await params
-    const brand = getBrandBySlug(brandSlug)
-    const model = getModelBySlug(modelSlug)
+    
+    // Fetch brand and model in parallel
+    const brand = await prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } });
+    const model = await prisma.vehicleModel.findFirst({ 
+        where: { 
+            slug: modelSlug,
+            brandId: brand?.id 
+        } 
+    });
 
     if (!brand || !model) return { title: 'Modell nem található' }
 

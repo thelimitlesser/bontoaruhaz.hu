@@ -4,34 +4,29 @@ import { use, Suspense, useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound, useSearchParams } from "next/navigation";
-import {
-    getBrandBySlug,
-    getModelBySlug,
-    getCategoryBySlug,
-    getProducts,
-} from "@/lib/vehicle-data";
 import { getActiveSubcategoriesForModelAction, getActivePartItemsForModelAction } from "@/app/actions/vehicle";
-import { subcategories as allSubcategories, partItems as allPartItems } from "@/lib/parts-data";
 import { Filter } from "lucide-react";
 import { Navbar } from "@/components/navbar";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { ProductCard } from "@/components/product-card";
 import { getSearchProducts } from "@/app/actions/product";
+import { prisma } from "@/lib/prisma";
 
-function CategoryProductsContent({ params }: { params: { brandSlug: string; modelSlug: string; categorySlug: string } }) {
+function CategoryProductsContent({ 
+    params,
+    brand,
+    model,
+    category
+}: { 
+    params: { brandSlug: string; modelSlug: string; categorySlug: string };
+    brand: any;
+    model: any;
+    category: any;
+}) {
     const { brandSlug, modelSlug, categorySlug } = params;
     const searchParams = useSearchParams();
     const subcatSlug = searchParams.get("subcat");
     const partItemSlug = searchParams.get("item");
-
-
-    const brand = getBrandBySlug(brandSlug);
-    const model = getModelBySlug(modelSlug);
-    const category = getCategoryBySlug(categorySlug);
-
-    if (!brand || !model || !category) {
-        notFound();
-    }
 
     const [realProducts, setRealProducts] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -249,14 +244,28 @@ function CategoryProductsContent({ params }: { params: { brandSlug: string; mode
     );
 }
 
-export default function CategoryProductsPage({ params }: { params: Promise<{ brandSlug: string; modelSlug: string; categorySlug: string }> }) {
-    const resolvedParams = use(params);
+export default async function CategoryProductsPage({ params }: { params: Promise<{ brandSlug: string; modelSlug: string; categorySlug: string }> }) {
+    const resolvedParams = await params;
+    const { brandSlug, modelSlug, categorySlug } = resolvedParams;
+
+    const brand = await prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } });
+    const model = await prisma.vehicleModel.findFirst({ where: { slug: modelSlug, brandId: brand?.id } });
+    const category = await prisma.partCategory.findUnique({ where: { slug: categorySlug } });
+
+    if (!brand || !model || !category) {
+        notFound();
+    }
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
             <Navbar />
             <Suspense fallback={<div className="pt-32 px-8">Loading...</div>}>
-                <CategoryProductsContent params={resolvedParams} />
+                <CategoryProductsContent 
+                    params={resolvedParams} 
+                    brand={brand}
+                    model={model}
+                    category={category}
+                />
             </Suspense>
         </div>
     );

@@ -271,3 +271,27 @@ export async function getManifestPdf(id: string) {
         return { success: false, error: error.message };
     }
 }
+
+export async function cleanupOldManifestsAction() {
+    try {
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+        const result = await prisma.pxpManifest.deleteMany({
+            where: {
+                createdAt: {
+                    lt: thirtyDaysAgo
+                }
+            }
+        });
+
+        if (result.count > 0) {
+            console.log(`Maintenance: Deleted ${result.count} old PXP manifests.`);
+        }
+
+        return { success: true, deletedCount: result.count };
+    } catch (error: any) {
+        console.error("Cleanup Action Error:", error);
+        return { success: false, error: error.message };
+    }
+}

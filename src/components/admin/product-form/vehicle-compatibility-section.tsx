@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { brands, getModelsByBrand } from "@/lib/vehicle-data";
 import clsx from "clsx";
 
 interface VehicleCompatibilitySectionProps {
@@ -20,6 +19,9 @@ interface VehicleCompatibilitySectionProps {
     compatibilities: { brandId: string; modelId: string; yearFrom?: string; yearTo?: string }[];
     setCompatibilities: React.Dispatch<React.SetStateAction<{ brandId: string; modelId: string; yearFrom?: string; yearTo?: string }[]>>;
     errors?: string[];
+    // Dynamic data from DB
+    brands: any[];
+    models: any[];
 }
 
 export function VehicleCompatibilitySection({
@@ -29,7 +31,9 @@ export function VehicleCompatibilitySection({
     yearFrom, setYearFrom,
     yearTo, setYearTo,
     compatibilities, setCompatibilities,
-    errors = []
+    errors = [],
+    brands,
+    models
 }: VehicleCompatibilitySectionProps) {
     
     const [addBrand, setAddBrand] = useState("");
@@ -53,13 +57,13 @@ export function VehicleCompatibilitySection({
     const brandOptions = brands.filter(b => !b.hidden).map(b => ({ value: b.id, label: b.name }));
     
     // Grouped model options using the 'series' field for elegant headers
-    const modelOptions = selectedBrand ? getModelsByBrand(selectedBrand).map(m => ({ 
+    const modelOptions = selectedBrand ? models.filter((m: any) => m.brandId === selectedBrand).map((m: any) => ({ 
         value: m.id, 
         label: m.name,
         group: m.series || 'Egyéb'
     })) : [];
 
-    const addModelOptions = addBrand ? getModelsByBrand(addBrand).map(m => ({ 
+    const addModelOptions = addBrand ? models.filter((m: any) => m.brandId === addBrand).map((m: any) => ({ 
         value: m.id, 
         label: m.name,
         group: m.series || 'Egyéb'
@@ -125,7 +129,7 @@ export function VehicleCompatibilitySection({
                             <div className="space-y-2">
                                 {compatibilities.map((comp, idx) => {
                                     const bName = brands.find(b => b.id === comp.brandId)?.name || comp.brandId;
-                                    const mName = getModelsByBrand(comp.brandId).find(m => m.id === comp.modelId)?.name || comp.modelId;
+                                    const mName = models.filter((m: any) => m.brandId === comp.brandId).find((m: any) => m.id === comp.modelId)?.name || comp.modelId;
                                     return (
                                         <div key={idx} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
                                             <div className="flex items-center gap-2">

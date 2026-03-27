@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { Search, SearchX } from "lucide-react";
-import { Model } from "@/lib/vehicle-data";
+import { Model } from "@/lib/types";
 
 interface BrandModelsListProps {
   brand: {

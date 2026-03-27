@@ -6,7 +6,6 @@ import { ProductGallery } from "@/components/product-gallery";
 import { CompatibilityTable } from "@/components/compatibility-table";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { prisma } from "@/lib/prisma";
-import { getBrandById, getModelById, getCategoryById, getSubcategoryById, getPartItemById, getBrandBySlug, getModelBySlug, categories, partsSubcategories, partItems } from "@/lib/vehicle-data";
 import { Product } from "@/lib/mock-data";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<import("next").Metadata> {
@@ -15,8 +14,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
   if (!dbPart) return { title: "Termék nem található" };
 
-  const brandObj = dbPart.brandId ? getBrandById(dbPart.brandId) : null;
-  const modelObj = dbPart.modelId ? getModelById(dbPart.modelId) : null;
+  const [brandObj, modelObj] = await Promise.all([
+    dbPart.brandId ? prisma.vehicleBrand.findUnique({ where: { id: dbPart.brandId } }) : null,
+    dbPart.modelId ? prisma.vehicleModel.findUnique({ where: { id: dbPart.modelId } }) : null
+  ]);
+
   const brandName = brandObj?.name || dbPart.brandId || "";
   const modelName = modelObj?.name || dbPart.modelId || "";
   
@@ -52,7 +54,15 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const dbPart = await prisma.part.findUnique({
     where: { id },
     include: {
-      compatibilities: true,
+      compatibilities: {
+        include: {
+          VehicleModel: {
+            include: {
+              VehicleBrand: true
+            }
+          }
+        }
+      },
       reservations: {
           where: { expiresAt: { gt: new Date() } }
       }
@@ -65,15 +75,16 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
 
   const relatedProducts = await getRelatedProducts(dbPart.id, dbPart.modelId, dbPart.brandId, 4);
 
-  const brandObj = dbPart.brandId ? getBrandById(dbPart.brandId) : null;
-  const modelObj = dbPart.modelId ? getModelById(dbPart.modelId) : null;
-  const categoryObj = dbPart.categoryId ? getCategoryById(dbPart.categoryId) : null;
-  const subcategoryObj = dbPart.subcategoryId ? getSubcategoryById(dbPart.subcategoryId) : null;
+  const [brandObj, modelObj, categoryObj, subcategoryObj, partItemObj] = await Promise.all([
+    dbPart.brandId ? prisma.vehicleBrand.findUnique({ where: { id: dbPart.brandId } }) : null,
+    dbPart.modelId ? prisma.vehicleModel.findUnique({ where: { id: dbPart.modelId } }) : null,
+    dbPart.categoryId ? prisma.partCategory.findUnique({ where: { id: dbPart.categoryId } }) : null,
+    dbPart.subcategoryId ? prisma.partSubcategory.findUnique({ where: { id: dbPart.subcategoryId } }) : null,
+    dbPart.partItemId ? prisma.partItem.findUnique({ where: { id: dbPart.partItemId } }) : null
+  ]);
 
-  const partItemObj = dbPart.partItemId ? getPartItemById(dbPart.partItemId) : null;
-
-  const brandName = brandObj?.name || (dbPart.brandId ? getBrandBySlug(dbPart.brandId)?.name : null) || dbPart.brandId || "Ismeretlen";
-  const modelName = modelObj?.name || (dbPart.modelId ? getModelBySlug(dbPart.modelId)?.name : null) || dbPart.modelId || "Ismeretlen";
+  const brandName = brandObj?.name || dbPart.brandId || "Ismeretlen";
+  const modelName = modelObj?.name || dbPart.modelId || "Ismeretlen";
   const categoryName = categoryObj?.name || dbPart.categoryId || null;
   const subcategoryName = subcategoryObj?.name || dbPart.subcategoryId || null;
   const partItemName = partItemObj?.name || dbPart.partItemId || null;
@@ -83,6 +94,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const categorySlug = categoryObj?.slug || dbPart.categoryId;
   const subcategorySlug = subcategoryObj?.slug || dbPart.subcategoryId;
   const partItemSlug = partItemObj?.slug || dbPart.partItemId;
+
+  // Format extra compatibilities with names
+  const enhancedCompatibilities = dbPart.compatibilities.map(comp => ({
+    ...comp,
+    brandName: comp.VehicleModel.VehicleBrand.name,
+    modelName: comp.VehicleModel.name
+  }));
 
   const normalizedCondition = (dbPart.condition || "USED").toUpperCase();
   const conditionMap: Record<string, string> = { 
@@ -342,7 +360,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
                   yearFrom={dbPart?.yearFrom}
                   yearTo={dbPart?.yearTo}
                   isUniversal={dbPart?.isUniversal}
-                  extraCompatibilities={dbPart?.compatibilities || []}
+                  extraCompatibilities={enhancedCompatibilities}
                 />
               </div>
             </div>

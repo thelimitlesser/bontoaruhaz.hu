@@ -1,6 +1,8 @@
 import { ProductForm } from "@/components/admin/product-form";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { getBrands, getCategories, getAllPartItems } from "@/app/actions/catalog";
+import { prisma } from "@/lib/prisma";
 
 export default async function NewProductPage() {
     return (
@@ -24,7 +26,25 @@ export default async function NewProductPage() {
                 </div>
                 
                 <div className="p-8">
-                    <ProductForm className="mx-auto" />
+                    {/* Fetch data on the server and pass to client component */}
+                    {async function() {
+                        const brands = await getBrands();
+                        const categories = await getCategories();
+                        const partItems = await getAllPartItems();
+                        const subcategories = await prisma.partSubcategory.findMany();
+                        const models = await prisma.vehicleModel.findMany();
+
+                        return (
+                            <ProductForm 
+                                className="mx-auto" 
+                                brands={brands}
+                                models={models}
+                                categories={categories}
+                                subcategories={subcategories}
+                                partItems={partItems}
+                            />
+                        );
+                    }()}
                 </div>
             </div>
         </div>

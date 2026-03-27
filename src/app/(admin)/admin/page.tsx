@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { DollarSign, Package, ShoppingCart, Users, Calendar } from "lucide-react";
 import Link from "next/link";
+import { MaintenanceTrigger } from "./maintenance-trigger";
 
 async function getStats(month?: number, year?: number) {
     const now = new Date();
@@ -139,6 +140,8 @@ export default async function AdminDashboard({
                     <h1 className="text-3xl font-bold tracking-tight">Vezérlőpult</h1>
                     <p className="text-gray-500">Üzleti statisztikák és áttekintés</p>
                 </div>
+
+                <MaintenanceTrigger />
 
                 <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
                     <div className="px-3 py-1.5 text-sm font-bold flex items-center gap-2 text-gray-400 border-r border-gray-100">

@@ -3,7 +3,6 @@
 import { Loader2 } from "lucide-react";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { CustomSelect } from "@/components/ui/custom-select";
-import { partItems, categories, partsSubcategories as subcategories } from "@/lib/vehicle-data";
 import clsx from "clsx";
 
 interface BasicInfoSectionProps {
@@ -24,6 +23,10 @@ interface BasicInfoSectionProps {
     setEngineCode: (val: string) => void;
     initialData?: any;
     errors?: string[];
+    // Dynamic data from DB
+    partItems: any[];
+    categories: any[];
+    subcategories: any[];
 }
 
 export function BasicInfoSection({
@@ -33,7 +36,8 @@ export function BasicInfoSection({
     autoRef, setAutoRef, 
     condition, setCondition,
     engineCode, setEngineCode,
-    initialData, errors = []
+    initialData, errors = [],
+    partItems, categories, subcategories
 }: BasicInfoSectionProps) {
     
     const allPartItemOptions = partItems.map(p => ({ value: p.id, label: p.name }));

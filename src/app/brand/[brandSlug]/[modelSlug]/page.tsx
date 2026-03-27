@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getActiveCategoriesForModelAction } from "@/app/actions/vehicle";
-import { categories as staticCategories } from "@/lib/vehicle-data";
-import { ArrowRight, Search } from "lucide-react";
+import { ArrowRight, Search, PlusCircle } from "lucide-react";
+import { getCategoryIcon } from "@/utils/icon-mapping";
 import { Navbar } from "@/components/navbar";
 import { Metadata } from "next";
 
@@ -39,10 +39,17 @@ export default async function ModelCategoryPage({ params }: { params: Promise<{ 
     }
 
     const activeCategories = await getActiveCategoriesForModelAction(brand.id, model.id);
-    const activeCategoryIds = activeCategories.map(c => c.id);
+    
+    // Fetch categories from DB for labels and icons
+    const dbCategories = await prisma.partCategory.findMany({
+        where: { id: { in: activeCategories.map(c => c.id) } },
+        orderBy: { name: 'asc' }
+    });
 
-    // Filter static categories to keep icons and ordering
-    const filteredCategories = staticCategories.filter(cat => activeCategoryIds.includes(cat.id));
+    const filteredCategories = dbCategories.map(cat => ({
+        ...cat,
+        icon: getCategoryIcon(cat.iconName)
+    }));
 
     const jsonLd = {
         "@context": "https://schema.org",

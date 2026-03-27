@@ -3,8 +3,8 @@ import { Plus } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";
 import { InventoryFilters } from "./inventory-filters";
-import { brands, getModelsByBrand } from "@/lib/vehicle-data";
 import { InventoryTable } from "./inventory-table";
+import { getBrands, getCategories, getAllPartItems } from "@/app/actions/catalog";
 
 export default async function InventoryPage({
     searchParams,
@@ -39,14 +39,20 @@ export default async function InventoryPage({
     }
 
 
-    // 2. Fetch Dropdown Data from vehicle-data directly based on inventory or just use all
-    // To keep it simple and fast, we provide all brands that exist in vehicle-data
-    const makeOptions = brands
-        .filter(b => !b.hidden)
+    // 2. Fetch Dropdown Data from DB
+    const [dbBrands, dbCategories, dbPartItems, dbSubcategories, allModels] = await Promise.all([
+        getBrands(),
+        getCategories(),
+        getAllPartItems(),
+        prisma.partSubcategory.findMany(),
+        prisma.vehicleModel.findMany()
+    ]);
+
+    const makeOptions = dbBrands
         .map(b => ({ value: b.id, label: b.name }));
 
     // For models, if a make is selected, provide its models
-    const availableModels = make ? getModelsByBrand(make) : [];
+    const availableModels = make ? allModels.filter(m => m.brandId === make) : [];
     const modelOptions = availableModels.map(m => ({ 
         value: m.id, 
         label: m.name,
@@ -97,7 +103,14 @@ export default async function InventoryPage({
             <InventoryFilters makes={makeOptions} models={modelOptions} />
 
             {/* Smart Table (Client Component for Actions) */}
-            <InventoryTable parts={parts} />
+            <InventoryTable 
+                parts={parts} 
+                brands={dbBrands}
+                models={allModels}
+                categories={dbCategories}
+                subcategories={dbSubcategories}
+                partItems={dbPartItems}
+            />
 
             {/* Pagination */}
             {totalPages > 1 && (

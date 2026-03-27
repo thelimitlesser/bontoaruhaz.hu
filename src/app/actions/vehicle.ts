@@ -1,6 +1,5 @@
 "use server";
 
-import { brands, models, categories, partsSubcategories, partItems } from "@/lib/vehicle-data";
 import { prisma } from "@/lib/prisma";
 
 export async function getBrandsAction() {
