@@ -109,8 +109,14 @@ export async function getActivePartOptionsAction(brandId?: string, modelId?: str
 }
 
 export async function getActiveCategoriesForModelAction(brandId: string, modelId: string) {
-    // Return unique categories that have products in stock for this model
-    const activeCategories = await prisma.partCategory.findMany({
+    // 1. Fetch all categories
+    const allCategories = await prisma.partCategory.findMany({
+        orderBy: { name: 'asc' },
+        select: { id: true, name: true, slug: true, iconName: true }
+    });
+
+    // 2. Fetch IDs of categories that HAVE products for this model (including compatibility)
+    const categoriesWithProducts = await prisma.partCategory.findMany({
         where: {
             Part: {
                 some: {
@@ -122,9 +128,15 @@ export async function getActiveCategoriesForModelAction(brandId: string, modelId
                 }
             }
         },
-        select: { id: true, name: true, slug: true, iconName: true }
+        select: { id: true }
     });
-    return activeCategories;
+
+    const activeIds = new Set(categoriesWithProducts.map(c => c.id));
+
+    return allCategories.map(cat => ({
+        ...cat,
+        hasProducts: activeIds.has(cat.id)
+    }));
 }
 
 export async function getActiveSubcategoriesForModelAction(brandId: string, modelId: string, categoryId: string) {

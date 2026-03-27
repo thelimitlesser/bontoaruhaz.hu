@@ -38,15 +38,9 @@ export default async function ModelCategoryPage({ params }: { params: Promise<{ 
         notFound();
     }
 
-    const activeCategories = await getActiveCategoriesForModelAction(brand.id, model.id);
+    const categories = await getActiveCategoriesForModelAction(brand.id, model.id);
     
-    // Fetch categories from DB for labels and icons
-    const dbCategories = await prisma.partCategory.findMany({
-        where: { id: { in: activeCategories.map(c => c.id) } },
-        orderBy: { name: 'asc' }
-    });
-
-    const filteredCategories = dbCategories.map(cat => ({
+    const filteredCategories = categories.map(cat => ({
         ...cat,
         icon: getCategoryIcon(cat.iconName)
     }));
@@ -109,14 +103,14 @@ export default async function ModelCategoryPage({ params }: { params: Promise<{ 
                         return (
                             <Link
                                 key={cat.id}
-                                href={`/brand/${brand.slug}/${model.slug}/${cat.slug}`}
-                                className="group relative bg-white border border-gray-200 hover:border-[var(--color-primary)] hover:shadow-xl hover:shadow-[var(--color-primary)]/10 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 active:scale-[0.98]" >
+                                href={cat.hasProducts ? `/brand/${brand.slug}/${model.slug}/${cat.slug}` : "#"}
+                                className={`group relative bg-white border border-gray-200 rounded-xl p-4 transition-all duration-200 flex items-center gap-4 ${cat.hasProducts ? 'hover:border-[var(--color-primary)] hover:shadow-xl hover:shadow-[var(--color-primary)]/10 active:scale-[0.98]' : 'opacity-40 grayscale pointer-events-none cursor-not-allowed'}`} >
                                 {/* Icon */}
-                                <Icon className="w-12 h-12 shrink-0 object-contain transition-all duration-300 group-hover:scale-110 text-[var(--color-primary)] opacity-80 group-hover:opacity-100" strokeWidth={1.5} />
+                                <Icon className={`w-12 h-12 shrink-0 object-contain transition-all duration-300 ${cat.hasProducts ? 'group-hover:scale-110 text-[var(--color-primary)] opacity-80 group-hover:opacity-100' : 'text-gray-400'}`} strokeWidth={1.5} />
 
                                 {/* Name */}
                                 <div className="flex-1 min-w-0">
-                                    <h3 className="font-bold text-lg leading-tight transition-colors text-gray-900 group-hover:text-[var(--color-primary)] break-words">
+                                    <h3 className={`font-bold text-lg leading-tight transition-colors break-words ${cat.hasProducts ? 'text-gray-900 group-hover:text-[var(--color-primary)]' : 'text-gray-400'}`}>
                                         {cat.name.split('/').map((part, i, arr) => (
                                             <span key={i}>
                                                 {part}
@@ -127,9 +121,11 @@ export default async function ModelCategoryPage({ params }: { params: Promise<{ 
                                 </div>
 
                                 {/* Subtle Indicator */}
-                                <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                    <ArrowRight className="w-4 h-4 text-[var(--color-primary)]" />
-                                </div>
+                                {cat.hasProducts && (
+                                    <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                        <ArrowRight className="w-4 h-4 text-[var(--color-primary)]" />
+                                    </div>
+                                )}
                             </Link>
                         );
                     })}
