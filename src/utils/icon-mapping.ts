@@ -46,5 +46,10 @@ export const iconMap: Record<string, any> = {
 
 export function getCategoryIcon(iconName: string | null | undefined) {
     if (!iconName) return PlusCircle;
-    return iconMap[iconName] || PlusCircle;
+    
+    // Case-insensitive lookup
+    const normalizedKey = iconName.toLowerCase();
+    const mapKey = Object.keys(iconMap).find(key => key.toLowerCase() === normalizedKey);
+    
+    return mapKey ? iconMap[mapKey] : PlusCircle;
 }
