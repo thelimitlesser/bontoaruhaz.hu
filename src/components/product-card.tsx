@@ -43,11 +43,11 @@ export function ProductCard({ product }: { product: Product | any }) {
     const displayBrand = isPrisma ? product.brandId : product.brand;
 
     return (
-        <Link href={`/product/${product.id}`} className="block h-full group">
+        <Link href={`/product/${product?.id}`} className="block h-full group">
             <div className="glass-card relative overflow-hidden flex flex-col h-full transition-transform duration-300 group-hover:-translate-y-1 bg-background/40 backdrop-blur-md border border-border hover:border-[var(--color-primary)]/50 hover:shadow-lg hover:shadow-[0_0_20px_rgba(219,81,60,0.1)]">
                 {/* Badge Container */}
                 <div className="absolute top-4 left-4 z-10 flex gap-2">
-                    {isPrisma && product.isUniversal && (
+                    {isPrisma && product?.isUniversal && (
                         <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-orange-500/20 border-orange-500 text-orange-600 backdrop-blur-md uppercase tracking-widest">
                             <Globe className="w-2.5 h-2.5 inline mr-1" /> Univerzális
                         </span>
@@ -77,14 +77,14 @@ export function ProductCard({ product }: { product: Product | any }) {
                     <div className="flex items-center gap-2 mb-2">
                         <Tag className="w-3 h-3 text-[var(--color-primary)]" />
                         <span className="text-xs text-muted uppercase tracking-wider">
-                            {isPrisma ? `${product.brandName || product.brandId} ${product.modelName || ''}` : product.brand}
+                            {isPrisma ? `${product?.brandName || product?.brandId || ''} ${product?.modelName || ''}`.trim() || 'Egyéb' : product?.brand}
                         </span>
                     </div>
 
                     <h3 className="text-lg font-bold text-foreground mb-1 leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-2">
-                        {product.name}
+                        {product?.name || "Név nélküli termék"}
                     </h3>
-                    <p className="text-xs text-muted mb-4 font-mono">{product.sku}</p>
+                    <p className="text-xs text-muted mb-4 font-mono">{product?.sku || "SKU-HIÁNY"}</p>
 
                     <div className="mt-auto flex items-end justify-between">
                         <div className="flex flex-col">

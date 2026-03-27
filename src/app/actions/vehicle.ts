@@ -72,8 +72,20 @@ export async function getActivePartOptionsAction(brandId?: string, modelId?: str
             Part: {
                 some: {
                     stock: { gt: 0 },
-                    ...(brandId && { brandId }),
-                    ...(modelId && { modelId }),
+                    AND: [
+                        brandId ? {
+                            OR: [
+                                { brandId: brandId },
+                                { compatibilities: { some: { brandId: brandId } } }
+                            ]
+                        } : {},
+                        modelId ? {
+                            OR: [
+                                { modelId: modelId },
+                                { compatibilities: { some: { modelId: modelId } } }
+                            ]
+                        } : {}
+                    ]
                 }
             }
         },
@@ -103,8 +115,10 @@ export async function getActiveCategoriesForModelAction(brandId: string, modelId
             Part: {
                 some: {
                     stock: { gt: 0 },
-                    brandId: brandId,
-                    modelId: modelId
+                    OR: [
+                        { brandId: brandId, modelId: modelId },
+                        { compatibilities: { some: { brandId: brandId, modelId: modelId } } }
+                    ]
                 }
             }
         },
@@ -119,9 +133,11 @@ export async function getActiveSubcategoriesForModelAction(brandId: string, mode
             Part: {
                 some: {
                     stock: { gt: 0 },
-                    brandId: brandId,
-                    modelId: modelId,
-                    categoryId: categoryId
+                    categoryId: categoryId,
+                    OR: [
+                        { brandId: brandId, modelId: modelId },
+                        { compatibilities: { some: { brandId: brandId, modelId: modelId } } }
+                    ]
                 }
             }
         },
@@ -136,9 +152,11 @@ export async function getActivePartItemsForModelAction(brandId: string, modelId:
             Part: {
                 some: {
                     stock: { gt: 0 },
-                    brandId: brandId,
-                    modelId: modelId,
-                    subcategoryId: subcategoryId
+                    subcategoryId: subcategoryId,
+                    OR: [
+                        { brandId: brandId, modelId: modelId },
+                        { compatibilities: { some: { brandId: brandId, modelId: modelId } } }
+                    ]
                 }
             }
         },
