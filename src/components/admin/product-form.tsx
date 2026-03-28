@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { createProduct, updateProduct, getNextReferenceNumber, checkDuplicateSku } from "@/app/actions/product";
+import { getNextReferenceNumber, checkDuplicateSku } from "@/app/actions/product";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { LoadingOverlay } from "@/components/ui/loading-overlay";
@@ -29,6 +30,7 @@ export function ProductForm({
     initialData, onSuccess, className,
     brands, models, categories, subcategories, partItems
 }: ProductFormProps) {
+    const router = useRouter();
     // Refs for spellcheck/focus
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
     const nameRef = useRef<HTMLInputElement>(null);
@@ -44,6 +46,7 @@ export function ProductForm({
     );
     const [isCompressing, setIsCompressing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [autoRef, setAutoRef] = useState(initialData?.productCode || "");
     const [productName, setProductName] = useState(initialData?.name || "");
     const [sku, setSku] = useState(initialData?.sku || "");
@@ -196,18 +199,21 @@ export function ProductForm({
         }
         
         setIsSubmitting(true);
+        setUploadProgress(0);
+
         try {
             // Build image metadata
             const existingImages = images.filter(img => img.isExisting).map(img => img.preview).join(',');
             formData.append('existingImages', existingImages);
+            if (initialData?.id) formData.append('id', initialData.id);
+
             formData.delete('imageFiles');
             images.forEach(img => {
                 if (!img.isExisting && img.file) formData.append('imageFiles', img.file);
             });
 
-            // Reconstruct final description (same logic as before but clean)
+            // Reconstruct final description
             const finalDescriptionParts = [];
-            
             const brand = brands.find(b => b.id === selectedBrand)?.name;
             const model = models.filter(m => m.brandId === selectedBrand).find(m => m.id === selectedModel)?.name;
             const part = selectedPartItemObj?.name;
@@ -237,35 +243,61 @@ export function ProductForm({
             
             if (width) formData.set('width', width);
             if (height) formData.set('height', height);
-            if (length) formData.set('length', length); // Changed from depth
+            if (length) formData.set('length', length);
             if (packageType) formData.set('packageType', packageType);
             if (weight) formData.set('weight', weight);
             if (priceGross) formData.set('priceGross', priceGross);
             if (shippingPrice) formData.set('shippingPrice', shippingPrice);
             if (stock) formData.set('stock', stock);
 
-            if (initialData?.id) {
-                await updateProduct(initialData.id, formData);
-            } else {
-                await createProduct(formData);
-            }
+            // Use XMLHttpRequest for actual upload progress tracking
+            const xhr = new XMLHttpRequest();
+            
+            xhr.upload.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = (event.loaded / event.total) * 100;
+                    // Scale 0-90% for upload, last 10% for processing
+                    setUploadProgress(percentComplete * 0.9);
+                }
+            });
+
+            const promise = new Promise((resolve, reject) => {
+                xhr.onload = () => {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        setUploadProgress(100);
+                        resolve(JSON.parse(xhr.responseText));
+                    } else {
+                        reject(new Error(xhr.responseText || 'Szerver hiba történt'));
+                    }
+                };
+                xhr.onerror = () => reject(new Error('Hálózati hiba történt'));
+                xhr.open('POST', '/api/admin/products');
+                xhr.send(formData);
+            });
+
+            await promise;
+            
             if (onSuccess) onSuccess();
+            else router.push('/admin/inventory');
         } catch (error: any) {
-            // Check for Next.js redirect "error"
-            if (error.digest?.includes('NEXT_REDIRECT')) {
-                // Keep isSubmitting true and let the redirect happen
-                return;
-            }
             console.error("Product submission error details:", error);
             alert("Hiba történt a mentés során: " + error.message);
             setIsSubmitting(false);
+            setUploadProgress(0);
         }
     };
 
     return (
-        <form action={handleSubmit} className={`relative space-y-8 max-w-4xl pb-12 ${className || ""}`}>
+        <form 
+            onSubmit={(e) => {
+                e.preventDefault();
+                const formData = new FormData(e.currentTarget);
+                handleSubmit(formData);
+            }} 
+            className={`relative space-y-8 max-w-4xl pb-12 ${className || ""}`}
+        >
             
-            <LoadingOverlay isVisible={isSubmitting} />
+            <LoadingOverlay isVisible={isSubmitting} progress={uploadProgress} />
             
             <ImageUploadSection 
                 images={images} setImages={setImages}
