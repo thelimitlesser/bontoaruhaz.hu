@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import sharp from "sharp";
 import { parseProductFormData } from "@/utils/product-utils";
@@ -137,7 +137,9 @@ export async function POST(req: Request) {
             await prisma.part.create({ data: productData });
         }
 
-        revalidatePath('/admin/inventory');
+        await revalidatePath('/admin/inventory', 'page');
+        await revalidatePath('/', 'layout');
+        
         return NextResponse.json({ success: true });
     } catch (error: any) {
         console.error("API Error:", error);

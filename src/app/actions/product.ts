@@ -1,8 +1,9 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
+import { getActiveSubcategoriesForModelAction, getActivePartItemsForModelAction } from "@/app/actions/vehicle";
 import { createClient } from "@/lib/supabase/server";
 import sharp from "sharp";
 import path from "path";
@@ -165,6 +166,7 @@ export async function createProduct(formData: FormData) {
     });
 
     revalidatePath('/admin/inventory');
+    revalidatePath('/', 'layout');
     redirect('/admin/inventory');
 }
 
@@ -280,6 +282,7 @@ export async function updateProduct(id: string, formData: FormData) {
 
     revalidatePath('/admin/inventory');
     revalidatePath(`/product/${id}`);
+    revalidatePath('/', 'layout');
 }
 
 export async function deleteProduct(id: string) {
@@ -332,7 +335,7 @@ export async function deleteProduct(id: string) {
     });
 
     revalidatePath('/admin/inventory');
-    revalidatePath('/admin/inventory');
+    revalidatePath('/', 'layout');
 }
 
 /*
@@ -370,9 +373,10 @@ export async function getSearchProducts(params: {
     query?: string;
     take?: number;
     skip?: number;
+    sortBy?: string;
 }) {
     let { query, year: searchYear } = params;
-    const { brand, model, category, subcategory, partItem, minPrice, maxPrice, take = 20, skip = 0 } = params;
+    const { brand, model, category, subcategory, partItem, minPrice, maxPrice, take = 20, skip = 0, sortBy = 'newest' } = params;
 
     // Smart year detection from query (e.g. "Audi A6 2018")
     if (query && !searchYear) {
@@ -531,12 +535,17 @@ export async function getSearchProducts(params: {
     // Always filter out 0 stock products for public queries
     where.stock = { gt: 0 };
 
+    // Sorting logic
+    let orderBy: any = { createdAt: 'desc' };
+    if (sortBy === 'price_asc') orderBy = { priceGross: 'asc' };
+    else if (sortBy === 'price_desc') orderBy = { priceGross: 'desc' };
+
     const [parts, total] = await Promise.all([
         prisma.part.findMany({
             where,
             take: take,
             skip: skip,
-            orderBy: { createdAt: 'desc' },
+            orderBy: orderBy,
             select: {
                 id: true,
                 name: true,
@@ -743,94 +752,202 @@ export async function checkDuplicateSku(sku: string, excludeId?: string) {
     }
 }
 
-export async function getRelatedProducts(currentProductId: string, modelId: string | null, brandId: string | null, take: number = 4) {
-    try {
-        const products = await prisma.part.findMany({
-            where: {
-                id: { not: currentProductId },
-                stock: { gt: 0 },
-                OR: [
-                    { modelId: modelId },
-                    { brandId: brandId },
-                    { isUniversal: true }
-                ]
-            },
-            take: take,
-            orderBy: {
-                createdAt: 'desc'
-            },
-            select: {
-                id: true,
-                name: true,
-                priceGross: true,
-                images: true,
-                sku: true,
-                brandId: true,
-                modelId: true
-            }
-        });
+export const getRelatedProducts = unstable_cache(
+    async (currentProductId: string, modelId: string | null, brandId: string | null, take: number = 4) => {
+        try {
+            const products = await prisma.part.findMany({
+                where: {
+                    id: { not: currentProductId },
+                    stock: { gt: 0 },
+                    OR: [
+                        { modelId: modelId },
+                        { brandId: brandId },
+                        { isUniversal: true }
+                    ]
+                },
+                take: take,
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                select: {
+                    id: true,
+                    name: true,
+                    priceGross: true,
+                    images: true,
+                    sku: true,
+                    brandId: true,
+                    modelId: true
+                }
+            });
 
-        // Add brand/model names from DB
-        const [dbBrands, dbModels] = await Promise.all([
-            prisma.vehicleBrand.findMany({ where: { id: { in: products.map(p => p.brandId).filter(Boolean) as string[] } } }),
-            prisma.vehicleModel.findMany({ where: { id: { in: products.map(p => p.modelId).filter(Boolean) as string[] } } })
-        ]);
+            // Add brand/model names from DB
+            const [dbBrands, dbModels] = await Promise.all([
+                prisma.vehicleBrand.findMany({ where: { id: { in: products.map(p => p.brandId).filter(Boolean) as string[] } } }),
+                prisma.vehicleModel.findMany({ where: { id: { in: products.map(p => p.modelId).filter(Boolean) as string[] } } })
+            ]);
 
-        return products.map(p => ({
-            ...p,
-            brandName: dbBrands.find(b => b.id === p.brandId)?.name || p.brandId,
-            modelName: dbModels.find(m => m.id === p.modelId)?.name || p.modelId
-        }));
-    } catch (error) {
-        console.error("Error fetching related products:", error);
-        return [];
-    }
-}
+            return products.map(p => ({
+                ...p,
+                brandName: dbBrands.find(b => b.id === p.brandId)?.name || p.brandId,
+                modelName: dbModels.find(m => m.id === p.modelId)?.name || p.modelId
+            }));
+        } catch (error) {
+            console.error("Error fetching related products:", error);
+            return [];
+        }
+    },
+    ["related-products"],
+    { revalidate: 3600, tags: ["products"] }
+);
 
 /**
  * Checks if a search query matches exactly one product by SKU or Product Code.
  * Returns the product ID if a single unique match is found, or if there is 
  * an exact SKU/Product Code match despite other partial matches.
  */
-export async function getDirectMatchAction(query: string) {
-    if (!query || query.trim().length < 3) return null;
+export const getDirectMatchAction = unstable_cache(
+    async (query: string) => {
+        if (!query || query.trim().length < 3) return null;
 
-    const cleanQuery = query.trim();
+        const cleanQuery = query.trim();
 
-    try {
-        const parts = await prisma.part.findMany({
-            where: {
-                stock: { gt: 0 },
-                OR: [
-                    { sku: { equals: cleanQuery, mode: 'insensitive' } },
-                    { productCode: { equals: cleanQuery, mode: 'insensitive' } },
-                    { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } }
-                ]
-            },
-            select: { id: true, sku: true, productCode: true },
-            take: 5 // Take a few to check for exactness
+        try {
+            const parts = await prisma.part.findMany({
+                where: {
+                    stock: { gt: 0 },
+                    OR: [
+                        { sku: { equals: cleanQuery, mode: 'insensitive' } },
+                        { productCode: { equals: cleanQuery, mode: 'insensitive' } },
+                        { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } }
+                    ]
+                },
+                select: { id: true, sku: true, productCode: true },
+                take: 5 // Take a few to check for exactness
+            });
+
+            if (parts.length === 0) return null;
+
+            // 1. Look for exact SKU or Product Code match (highest priority)
+            const strictMatch = parts.find(p => 
+                (p.sku && p.sku.toLowerCase() === cleanQuery.toLowerCase()) || 
+                (p.productCode && p.productCode.toLowerCase() === cleanQuery.toLowerCase())
+            );
+
+            if (strictMatch) {
+                return strictMatch.id;
+            }
+
+            // 2. If exactly one result found (even if partial/OEM contains), redirect
+            if (parts.length === 1) {
+                return parts[0].id;
+            }
+
+            return null;
+        } catch (error) {
+            console.error("Direct match check error:", error);
+            return null;
+        }
+    },
+    ["direct-match"],
+    { revalidate: 3600, tags: ["search"] }
+);
+export const getProductPageDataAction = unstable_cache(
+    async (id: string) => {
+        const dbPart = await prisma.part.findUnique({
+            where: { id },
+            include: {
+                compatibilities: {
+                    include: {
+                        VehicleModel: {
+                            include: {
+                                VehicleBrand: true
+                            }
+                        }
+                    }
+                },
+                reservations: {
+                    where: { expiresAt: { gt: new Date() } }
+                }
+            }
         });
 
-        if (parts.length === 0) return null;
+        if (!dbPart) return null;
 
-        // 1. Look for exact SKU or Product Code match (highest priority)
-        const strictMatch = parts.find(p => 
-            (p.sku && p.sku.toLowerCase() === cleanQuery.toLowerCase()) || 
-            (p.productCode && p.productCode.toLowerCase() === cleanQuery.toLowerCase())
-        );
+        const [brandObj, modelObj, categoryObj, subcategoryObj, partItemObj] = await Promise.all([
+            dbPart.brandId ? prisma.vehicleBrand.findUnique({ where: { id: dbPart.brandId } }) : null,
+            dbPart.modelId ? prisma.vehicleModel.findUnique({ where: { id: dbPart.modelId } }) : null,
+            dbPart.categoryId ? prisma.partCategory.findUnique({ where: { id: dbPart.categoryId } }) : null,
+            dbPart.subcategoryId ? prisma.partSubcategory.findUnique({ where: { id: dbPart.subcategoryId } }) : null,
+            dbPart.partItemId ? prisma.partItem.findUnique({ where: { id: dbPart.partItemId } }) : null
+        ]);
 
-        if (strictMatch) {
-            return strictMatch.id;
+        return {
+            dbPart,
+            brandObj,
+            modelObj,
+            categoryObj,
+            subcategoryObj,
+            partItemObj
+        };
+    },
+    ["product-page-data"],
+    { revalidate: 3600, tags: ["products"] }
+);
+
+/**
+ * Consolidated fetcher for the category products page to eliminate waterfall loading.
+ */
+export const getCategoryPageDataAction = unstable_cache(
+    async (params: {
+        brandId: string;
+        modelId: string;
+        categoryId: string;
+        subcatSlug?: string | null;
+        partItemSlug?: string | null;
+        year?: number | null;
+        page?: number;
+        sortBy?: string;
+    }) => {
+        const { brandId, modelId, categoryId, subcatSlug, partItemSlug, year, page = 0, sortBy = 'newest' } = params;
+        const perPage = 24;
+
+        // 1. Fetch subcategories
+        const subcategories = await getActiveSubcategoriesForModelAction(brandId, modelId, categoryId);
+        
+        // 2. Find current subcategory if slug provided
+        const currentSubcat = subcatSlug ? subcategories.find(s => s.slug === subcatSlug) : null;
+        
+        // 3. Fetch part items if subcat is active
+        let activeItems: any[] = [];
+        if (currentSubcat) {
+            activeItems = await getActivePartItemsForModelAction(brandId, modelId, currentSubcat.id);
         }
+        
+        // 4. Find current part item if slug provided
+        const currentPartItem = partItemSlug ? activeItems.find(i => i.slug === partItemSlug) : null;
 
-        // 2. If exactly one result found (even if partial/OEM contains), redirect
-        if (parts.length === 1) {
-            return parts[0].id;
-        }
+        // 5. Fetch initial products with pagination
+        const productsResponse = await getSearchProducts({
+            brand: brandId,
+            model: modelId,
+            category: categoryId,
+            subcategory: currentSubcat?.id,
+            partItem: currentPartItem?.id,
+            year: year || undefined,
+            take: perPage,
+            skip: page * perPage,
+            sortBy
+        });
 
-        return null;
-    } catch (error) {
-        console.error("Direct match check error:", error);
-        return null;
-    }
-}
+        return {
+            subcategories,
+            activeItems,
+            initialProducts: productsResponse.parts,
+            totalCount: productsResponse.total,
+            page,
+            perPage
+        };
+    },
+    ["category-page-data"],
+    { revalidate: 3600, tags: ["automotive", "parts", "categories"] }
+);

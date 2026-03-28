@@ -4,6 +4,7 @@ import { Navbar } from"@/components/navbar";
 import { Package, Calendar, CreditCard, ChevronLeft, MapPin, Truck, CheckCircle2 } from"lucide-react";
 import Link from"next/link";
 import { redirect, notFound } from"next/navigation";
+import Image from "next/image";
 
 export default async function OrderDetailPage({ params }: { params: { orderId: string } }) {
     const supabase = await createClient();
@@ -76,9 +77,15 @@ export default async function OrderDetailPage({ params }: { params: { orderId: s
                             <div className="divide-y divide-gray-100">
                                 {order.items.map((item) => (
                                     <div key={item.id} className="p-6 flex items-center gap-6">
-                                        <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden">
+                                        <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden relative">
                                             {item.part.images ? (
-                                                <img src={item.part.images.split(',')[0]} alt={item.part.name} className="w-full h-full object-cover rounded" />
+                                                <Image
+                                                    src={item.part.images.split(',')[0]}
+                                                    alt={item.part.name}
+                                                    fill
+                                                    className="object-cover rounded"
+                                                    sizes="80px"
+                                                />
                                             ) : (
                                                 <Package className="w-8 h-8 text-gray-300" />
                                             )}

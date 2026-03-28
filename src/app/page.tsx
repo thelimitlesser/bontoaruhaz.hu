@@ -2,10 +2,9 @@ import { ArrowRight, Search } from "lucide-react";
 import { VehicleSelector } from "@/components/vehicle-selector";
 import { HeroBackground } from "@/components/hero-background";
 import { BrandSelector } from "@/components/brand-selector";
-import { getBrandsAction, getActivePartOptionsAction } from "@/app/actions/vehicle";
-
+import { getVehicleSelectorDataAction, getActivePartOptionsAction } from "@/app/actions/vehicle";
 export default async function Home() {
-  const activeBrands = await getBrandsAction();
+  const { brands: activeBrands, modelsMap } = await getVehicleSelectorDataAction();
   const initialPartOptions = await getActivePartOptionsAction();
 
   return (
@@ -38,7 +37,7 @@ export default async function Home() {
 
             {/* MAIN SEARCH WIDGET */}
             <div className="w-full text-left transform translate-y-0 sm:translate-y-4 px-1 sm:px-0">
-              <VehicleSelector initialBrands={activeBrands} initialPartOptions={initialPartOptions} />
+              <VehicleSelector initialBrands={activeBrands} initialModelsMap={modelsMap} initialPartOptions={initialPartOptions} />
             </div>
 
             {/* 14-Day Guarantee Card */}

@@ -200,17 +200,14 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
 
                         {/* Main Image Container - Full size, centered */}
                         <div className="relative w-full h-full flex items-center justify-center overflow-hidden">
-                            <motion.img
-                                key={selectedImage}
-                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.9, opacity: 0, y: -20 }}
-                                transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                src={selectedImage}
-                                alt={productName}
-                                className="max-w-full max-h-full object-contain rounded-lg shadow-[0_0_100px_rgba(0,0,0,0.5)]"
-                                onClick={(e) => e.stopPropagation()}
-                            />
+                                <Image
+                                    key={selectedImage}
+                                    src={selectedImage}
+                                    alt={productName}
+                                    fill
+                                    className="object-contain rounded-lg shadow-[0_0_100px_rgba(0,0,0,0.5)]"
+                                    onClick={(e) => e.stopPropagation()}
+                                />
                         </div>
 
                         {/* Thumbnails at bottom for easy switching */}
@@ -230,7 +227,13 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                                 : "border-transparent opacity-40 hover:opacity-100"
                                         )}
                                     >
-                                        <img src={img} className="object-cover w-full h-full" alt={`${productName} - ${idx + 1}. kép`} />
+                                        <Image 
+                                            src={img} 
+                                            fill 
+                                            className="object-cover" 
+                                            alt={`${productName} - ${idx + 1}. kép`} 
+                                            sizes="64px"
+                                        />
                                     </button>
                                 ))}
                             </div>

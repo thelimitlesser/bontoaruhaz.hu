@@ -13,10 +13,11 @@ type SearchTab = "manual" | "code";
 
 interface VehicleSelectorProps {
     initialBrands: any[];
+    initialModelsMap: Record<string, any[]>;
     initialPartOptions: any[];
 }
 
-export function VehicleSelector({ initialBrands, initialPartOptions }: VehicleSelectorProps) {
+export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOptions }: VehicleSelectorProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<SearchTab>("manual");
 
@@ -26,7 +27,7 @@ export function VehicleSelector({ initialBrands, initialPartOptions }: VehicleSe
     const [selectedPartItem, setSelectedPartItem] = useState<string>("");
     const [availableModels, setAvailableModels] = useState<any[]>([]);
     const [isLoadingModels, setIsLoadingModels] = useState(false);
-    const [modelsCache, setModelsCache] = useState<Record<string, any[]>>({});
+    const [modelsCache, setModelsCache] = useState<Record<string, any[]>>(initialModelsMap || {});
     
     // Part Options State
     const [currentPartOptions, setCurrentPartOptions] = useState<any[]>(initialPartOptions);
@@ -72,15 +73,28 @@ export function VehicleSelector({ initialBrands, initialPartOptions }: VehicleSe
 
         fetchModels();
         return () => { active = false; };
-    }, [selectedBrand, modelsCache]);
+    }, [selectedBrand]); // Removed modelsCache from deps to avoid infinite loops and redundant triggers
     
+    // Part Options Cache
+    const [partsCache, setPartsCache] = useState<Record<string, any[]>>({
+        "all": initialPartOptions // Cache for the empty brand/model case
+    });
+
     // Fetch active part options when brand or model changes
     useEffect(() => {
+        const cacheKey = `${selectedBrand}-${selectedModel}`;
+        if (partsCache[cacheKey]) {
+            setCurrentPartOptions(partsCache[cacheKey]);
+            return;
+        }
+
         const fetchParts = async () => {
             setIsLoadingParts(true);
             try {
                 const parts = await getActivePartOptionsAction(selectedBrand, selectedModel);
-                setCurrentPartOptions(parts || []);
+                const results = parts || [];
+                setCurrentPartOptions(results);
+                setPartsCache(prev => ({ ...prev, [cacheKey]: results }));
             } catch (error) {
                 console.error("Error fetching active parts:", error);
             } finally {
@@ -89,7 +103,7 @@ export function VehicleSelector({ initialBrands, initialPartOptions }: VehicleSe
         };
 
         fetchParts();
-    }, [selectedBrand, selectedModel]);
+    }, [selectedBrand, selectedModel]); // Removed partsCache from deps
 
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();

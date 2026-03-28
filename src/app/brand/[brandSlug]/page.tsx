@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/navbar";
 import { BrandModelsList } from "@/components/brand/brand-models-list";
 import { Metadata } from "next";
+import Image from "next/image";
 
 export async function generateMetadata({ params }: { params: Promise<{ brandSlug: string }> }): Promise<Metadata> {
     const { brandSlug } = await params;
@@ -98,7 +99,7 @@ export default async function BrandPage({ params }: { params: Promise<{ brandSlu
                     <span className="shrink-0">/</span>
                     <div className="flex items-center gap-1.5 shrink-0">
                         {brand.logo && (
-                            <img src={brand.logo} alt={brand.name} className="w-4 h-4 object-contain opacity-50 grayscale" />
+                            <Image src={brand.logo} alt={brand.name} width={16} height={16} className="object-contain opacity-50 grayscale" />
                         )}
                         <span className="text-[var(--color-primary)] font-bold">{brand.name}</span>
                     </div>

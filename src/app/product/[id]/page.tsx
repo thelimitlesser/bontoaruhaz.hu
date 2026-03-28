@@ -1,7 +1,8 @@
-import { getRelatedProducts } from "@/app/actions/product";
+import { getRelatedProducts, getProductPageDataAction } from "@/app/actions/product";
 import { ArrowLeft, CheckCircle2, ShieldCheck, Truck, Star, Settings, Calendar, Hash, Factory, Info, Phone, HelpCircle, Globe, ChevronRight, Box } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import Image from "next/image";
 import { ProductGallery } from "@/components/product-gallery";
 import { CompatibilityTable } from "@/components/compatibility-table";
 import { AddToCartButton } from "@/components/add-to-cart-button";
@@ -10,14 +11,10 @@ import { Product } from "@/lib/mock-data";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<import("next").Metadata> {
   const { id } = await params;
-  const dbPart = await prisma.part.findUnique({ where: { id } });
+  const data = await getProductPageDataAction(id);
+  if (!data) return { title: "Termék nem található" };
 
-  if (!dbPart) return { title: "Termék nem található" };
-
-  const [brandObj, modelObj] = await Promise.all([
-    dbPart.brandId ? prisma.vehicleBrand.findUnique({ where: { id: dbPart.brandId } }) : null,
-    dbPart.modelId ? prisma.vehicleModel.findUnique({ where: { id: dbPart.modelId } }) : null
-  ]);
+  const { dbPart, brandObj, modelObj } = data;
 
   const brandName = brandObj?.name || dbPart.brandId || "";
   const modelName = modelObj?.name || dbPart.modelId || "";
@@ -51,37 +48,13 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  const dbPart = await prisma.part.findUnique({
-    where: { id },
-    include: {
-      compatibilities: {
-        include: {
-          VehicleModel: {
-            include: {
-              VehicleBrand: true
-            }
-          }
-        }
-      },
-      reservations: {
-          where: { expiresAt: { gt: new Date() } }
-      }
-    }
-  });
+  const data = await getProductPageDataAction(id);
 
-  if (!dbPart) {
+  if (!data) {
     notFound();
   }
 
-  const relatedProducts = await getRelatedProducts(dbPart.id, dbPart.modelId, dbPart.brandId, 4);
-
-  const [brandObj, modelObj, categoryObj, subcategoryObj, partItemObj] = await Promise.all([
-    dbPart.brandId ? prisma.vehicleBrand.findUnique({ where: { id: dbPart.brandId } }) : null,
-    dbPart.modelId ? prisma.vehicleModel.findUnique({ where: { id: dbPart.modelId } }) : null,
-    dbPart.categoryId ? prisma.partCategory.findUnique({ where: { id: dbPart.categoryId } }) : null,
-    dbPart.subcategoryId ? prisma.partSubcategory.findUnique({ where: { id: dbPart.subcategoryId } }) : null,
-    dbPart.partItemId ? prisma.partItem.findUnique({ where: { id: dbPart.partItemId } }) : null
-  ]);
+  const { dbPart, brandObj, modelObj, categoryObj, subcategoryObj, partItemObj } = data;
 
   const brandName = brandObj?.name || dbPart.brandId || "Ismeretlen";
   const modelName = modelObj?.name || dbPart.modelId || "Ismeretlen";
@@ -101,6 +74,7 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
     brandName: comp.VehicleModel.VehicleBrand.name,
     modelName: comp.VehicleModel.name
   }));
+  const relatedProducts = await getRelatedProducts(dbPart.id, dbPart.modelId, dbPart.brandId, 4);
 
   const normalizedCondition = (dbPart.condition || "USED").toUpperCase();
   const conditionMap: Record<string, string> = { 
@@ -465,10 +439,12 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
               >
                 {/* Image Container */}
                 <div className="relative aspect-square overflow-hidden bg-muted">
-                  <img
+                  <Image
                     src={p.images?.split(',')[0] || "/logo_orange.png"}
                     alt={p.name}
-                    className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-110"
+                    fill
+                    className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors" />
                 </div>

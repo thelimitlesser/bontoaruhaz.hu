@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Mail, Phone, MapPin } from "lucide-react";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 export function Footer() {
@@ -20,8 +21,13 @@ export function Footer() {
                     <div className="space-y-4 text-center sm:text-left">
                         <Link href="/" className="inline-flex items-center gap-2 text-xl sm:text-2xl font-black tracking-tighter text-background group mx-auto sm:mx-0">
                             <div className="relative w-10 h-10 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                <img
-                                    src="/logo_orange.png" alt="Logo" className="w-full h-full object-contain" style={{ imageRendering: 'crisp-edges' }}
+                                <Image
+                                    src="/logo_orange.png"
+                                    alt="Logo"
+                                    width={40}
+                                    height={40}
+                                    className="object-contain"
+                                    style={{ imageRendering: 'crisp-edges' }}
                                 />
                             </div>
                             <span className="whitespace-nowrap">

@@ -103,12 +103,13 @@ export function CartDrawer() {
                                         )}
                                         {/* Image */}
                                         <div className="w-20 h-20 bg-white rounded-lg border border-border overflow-hidden shrink-0 relative">
-                                            {/* Using standard img for reliability with mock data quirks */}
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img
+                                            <Image
                                                 src={item.image}
                                                 alt={item.name}
-                                                className="w-full h-full object-cover" />
+                                                fill
+                                                className="object-cover"
+                                                sizes="80px"
+                                            />
                                         </div>
 
                                         {/* Info */}

@@ -3,8 +3,15 @@ import { notFound } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { prisma } from "@/lib/prisma";
 import { CategoryProductsContent } from "@/components/category-products-content";
+import { getCategoryPageDataAction } from "@/app/actions/product";
 
-export default async function CategoryProductsPage({ params }: { params: Promise<{ brandSlug: string; modelSlug: string; categorySlug: string }> }) {
+export default async function CategoryProductsPage({ 
+    params,
+    searchParams 
+}: { 
+    params: Promise<{ brandSlug: string; modelSlug: string; categorySlug: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}) {
     const resolvedParams = await params;
     const { brandSlug, modelSlug, categorySlug } = resolvedParams;
 
@@ -16,17 +23,37 @@ export default async function CategoryProductsPage({ params }: { params: Promise
         notFound();
     }
 
+    const { searchParams: resolvedSearchParams } = { searchParams: await searchParams };
+    const subcatSlug = resolvedSearchParams.subcat as string | undefined;
+    const partItemSlug = resolvedSearchParams.item as string | undefined;
+    const yearStr = resolvedSearchParams.year as string | undefined;
+    const year = yearStr ? parseInt(yearStr) : null;
+    const pageStr = resolvedSearchParams.page as string | undefined;
+    const page = pageStr ? Math.max(0, parseInt(pageStr) - 1) : 0; // URL is 1-indexed, DB 0-indexed
+    const sortBy = (resolvedSearchParams.sortBy as string) || "newest";
+
+    // Prefetch EVERYTHING on the server!
+    const pageData = await getCategoryPageDataAction({
+        brandId: brand.id,
+        modelId: model.id,
+        categoryId: category.id,
+        subcatSlug,
+        partItemSlug,
+        year,
+        page,
+        sortBy
+    });
+
     return (
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
             <Navbar />
-            <Suspense fallback={<div className="pt-32 px-8">Loading...</div>}>
-                <CategoryProductsContent 
-                    params={resolvedParams} 
-                    brand={brand}
-                    model={model}
-                    category={category}
-                />
-            </Suspense>
+            <CategoryProductsContent 
+                params={resolvedParams} 
+                brand={brand}
+                model={model}
+                category={category}
+                initialData={pageData}
+            />
         </div>
     );
 }
