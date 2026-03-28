@@ -103,7 +103,7 @@ export function PricingSection({
                         />
                         <div className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">Ft</div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Ha kitöltöd, a rendszer automatikusan "AKCIÓ" címkét tesz rá.</p>
+                    <p className="text-xs text-gray-500 mt-1">Ha kitöltöd, a rendszer automatikusan &quot;AKCIÓ&quot; címkét tesz rá.</p>
                 </div>
 
                 <div className="space-y-2">
