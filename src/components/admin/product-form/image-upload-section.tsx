@@ -1,6 +1,6 @@
 "use client";
 
-import { Upload, X as CloseIcon, Loader2, GripVertical, ArrowLeft, ArrowRight, ZoomIn, X } from "lucide-react";
+import { Upload, X as CloseIcon, Loader2, GripVertical, ArrowLeft, ArrowRight, ZoomIn, X, RotateCw } from "lucide-react";
 import { compressImage } from "@/utils/image-utils";
 import clsx from "clsx";
 import { Reorder, AnimatePresence, motion } from "framer-motion";
@@ -56,6 +56,46 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
         }
         newImages.splice(index, 1);
         setImages(newImages);
+    };
+
+    const rotateImage = (index: number) => {
+        const img = images[index];
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        const image = new Image();
+        image.crossOrigin = "anonymous"; // Handle Supabase CORS if enabled
+        image.onload = () => {
+            // Rotate 90 deg clockwise
+            canvas.width = image.height;
+            canvas.height = image.width;
+            
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(90 * Math.PI / 180);
+            ctx.drawImage(image, -image.width / 2, -image.height / 2);
+            
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const rotatedFile = new File([blob], img.file?.name || `rotated-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    const newPreview = URL.createObjectURL(rotatedFile);
+                    
+                    // Revoke old object URL if it was a blob URL
+                    if (!img.isExisting) {
+                        URL.revokeObjectURL(img.preview);
+                    }
+                    
+                    const newImages = [...images];
+                    newImages[index] = {
+                        file: rotatedFile,
+                        preview: newPreview,
+                        isExisting: false // Now treated as a new upload
+                    };
+                    setImages(newImages);
+                }
+            }, 'image/jpeg', 0.9);
+        };
+        image.src = img.preview;
     };
 
     const shiftImage = (index: number, direction: 'left' | 'right') => {
@@ -164,6 +204,18 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                             >
                                 <ZoomIn className="w-4 h-4" />
                             </button>
+
+                            <button
+                                type="button"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    rotateImage(index);
+                                }}
+                                className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded-lg transition-all shadow-lg"
+                                title="Forgatás 90°"
+                            >
+                                <RotateCw className="w-4 h-4" />
+                            </button>
                         </div>
                     </Reorder.Item>
                 ))}
@@ -212,7 +264,7 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
             )}
             
             <p className="text-xs text-gray-500 italic mt-3 flex items-center justify-between">
-                <span>A feltöltött képeket a rendszer automatikusan felbontja, tömöríti (saját gépen), és vízjelezi a szerveren.</span>
+                <span>A feltöltött képeket a rendszer automatikusan felbontja és tömöríti. A képeket a feltöltőben 90 fokonként forgathatod.</span>
                 {isCompressing && <span className="text-[var(--color-primary)] font-bold animate-pulse">⚙️ Képek optimalizálása...</span>}
             </p>
 
