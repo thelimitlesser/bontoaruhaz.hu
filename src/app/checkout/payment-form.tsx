@@ -20,6 +20,7 @@ interface PaymentFormProps {
     isFormValid?: boolean;
     isCompany?: boolean;
     billingSameAsShipping?: boolean;
+    clientSecret?: string;
 }
 
 export function PaymentForm(props: PaymentFormProps) {
@@ -29,7 +30,7 @@ export function PaymentForm(props: PaymentFormProps) {
     return <StripePaymentForm {...props} />;
 }
 
-function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, billingSameAsShipping }: PaymentFormProps) {
+function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, billingSameAsShipping, clientSecret }: PaymentFormProps) {
     const stripe = useStripe();
     const elements = useElements();
     const { items, clearCart } = useCart();
@@ -41,61 +42,70 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, b
     const handleSubmit = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
 
-        if (!stripe || !elements) return;
+        if (!stripe || !elements || !clientSecret) return;
 
         setIsLoading(true);
         setMessage(null);
 
-        // Pre-payment reservation validation
         const sessionId = localStorage.getItem("bontoaruhaz-session-id");
+        
+        // 1. Pre-payment reservation validation
         if (sessionId) {
             const partIds = items.map(item => item.id);
             const isValid = await validateCartReservations(partIds, sessionId);
             if (!isValid) {
-                setMessage("Egy vagy több termék foglalási ideje lejárt és időközben megvásárolták, vagy kikerült a kosaradból. Kérjük, frissítsd az oldalt!");
+                setMessage("Egy vagy több termék foglalási ideje lejárt és időközben megvásárolták. Kérjük, frissítsd az oldalt!");
                 setIsLoading(false);
                 return;
             }
         }
 
-        // Confirm the payment with Stripe
-        const { error, paymentIntent } = await stripe.confirmPayment({
-            elements,
-            confirmParams: {
-                return_url: `${window.location.origin}/checkout/success`,
-            },
-            redirect: "if_required",
-        });
+        // 2. We extract the paymentIntent ID from clientSecret
+        const paymentIntentId = clientSecret.split('_secret_')[0];
 
-        if (error) {
-            setMessage(error.message || "An unexpected error occurred.");
+        // 3. Create the pending order in the database FIRST
+        // This ensures that even if Stripe redirects the user to their bank for 3D Secure,
+        // we have a record of the order waiting for payment.
+        try {
+            // Import dynamically or ensure it's imported at the top. We'll use fetch or server action directly.
+            // Wait, we need to import createPendingOrder at the top.
+            const { createPendingOrder } = await import('@/app/actions/order');
+            await createPendingOrder({
+                items,
+                customerData: formData,
+                totalAmount,
+                shippingMethod: shippingMethod,
+                paymentMethod: 'CARD',
+                stripePaymentIntentId: paymentIntentId,
+                sessionId: sessionId || undefined,
+                isCompany,
+                billingSameAsShipping
+            });
+        } catch (err: any) {
+            console.error("Order pre-creation error:", err);
+            setMessage("Hiba a rendelés előkészítésekor. Kérjük próbáld újra.");
             setIsLoading(false);
             return;
         }
 
-        if (paymentIntent && paymentIntent.status === "requires_capture") {
-            try {
-                await createOrder({
-                    items,
-                    customerData: formData,
-                    totalAmount,
-                    shippingMethod: shippingMethod,
-                    paymentMethod: 'CARD',
-                    stripePaymentIntentId: paymentIntent.id,
-                    sessionId: sessionId || undefined,
-                    isCompany,
-                    billingSameAsShipping
-                });
+        // 4. Confirm the payment with Stripe
+        // We set redirect: "always" so that conventional payments and 3DS payments BOTH 
+        // return via the success URL, where the backend finalizeStripeOrder action will run.
+        const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+                return_url: `${window.location.origin}/checkout/success`,
+            },
+            redirect: "always",
+        });
 
-                router.push("/checkout/success");
-            } catch (err: any) {
-                console.error("Order creation error:", err);
-                setMessage("A fizetés sikeres volt, de a rendelés mentése közben hiba történt. Kérjük vedd fel velünk a kapcsolatot!");
-            }
-        } else {
-            setMessage("A fizetés állapota váratlan: " + (paymentIntent?.status || "ismeretlen"));
+        // This point is only reached if there is an immediate error during processing 
+        // (e.g., card declined, validation error).
+        if (error) {
+            setMessage(error.message || "Ismeretlen hiba történt a fizetés során.");
+            setIsLoading(false);
+            return;
         }
-        setIsLoading(false);
     };
 
     return (

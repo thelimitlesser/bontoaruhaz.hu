@@ -7,6 +7,134 @@ import { sendOrderReceivedEmail, sendOrderConfirmedEmail, sendOrderReadyForPicku
 import { createBillingoInvoice } from "@/lib/billingo";
 import { createPxpShipment } from "@/lib/shipping/pannon-xp";
 
+export async function createPendingOrder(data: {
+    userId?: string;
+    items: any[];
+    customerData: any;
+    totalAmount: number;
+    shippingMethod: string;
+    paymentMethod: string;
+    stripePaymentIntentId?: string;
+    sessionId?: string;
+    isCompany?: boolean;
+    billingSameAsShipping?: boolean;
+}) {
+    const { userId, items, customerData, totalAmount, shippingMethod, paymentMethod, stripePaymentIntentId, sessionId, isCompany, billingSameAsShipping } = data;
+
+    // Construct Definitive Billing Data
+    const billingName = isCompany ? customerData.companyName : `${customerData.lastName} ${customerData.firstName}`;
+    const billingPostalCode = billingSameAsShipping ? customerData.postalCode : customerData.billingPostalCode;
+    const billingCity = billingSameAsShipping ? customerData.city : customerData.billingCity;
+    const billingAddress = billingSameAsShipping ? customerData.address : customerData.billingAddress;
+    const taxNumber = isCompany ? customerData.taxNumber : '';
+
+    const order = await prisma.order.create({
+        data: {
+            userId,
+            totalAmount,
+            shippingAddress: JSON.stringify({
+                name: `${customerData.lastName} ${customerData.firstName}`,
+                address: customerData.address,
+                city: customerData.city,
+                postalCode: customerData.postalCode,
+                phone: customerData.phone,
+                email: customerData.email
+            }),
+            billingAddress: JSON.stringify({
+                name: billingName,
+                address: billingAddress,
+                city: billingCity,
+                postalCode: billingPostalCode,
+                taxNumber: taxNumber,
+                email: customerData.email,
+                companyName: customerData.companyName,
+                lastName: customerData.lastName,
+                firstName: customerData.firstName
+            }),
+            shippingMethod,
+            paymentMethod,
+            stripePaymentIntentId,
+            // @ts-ignore
+            isCompany: !!isCompany,
+            status: 'PENDING',
+            paymentStatus: 'PENDING',
+            items: {
+                create: items.map(item => ({
+                    partId: item.id,
+                    quantity: item.quantityInCart,
+                    priceAtTime: item.price
+                }))
+            }
+        },
+        include: {
+            items: {
+                include: { part: true }
+            }
+        }
+    });
+
+    return order;
+}
+
+export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: string) {
+    if (!stripe) throw new Error("Stripe beállítások hiányoznak.");
+
+    const order = await prisma.order.findFirst({
+        where: { stripePaymentIntentId: paymentIntentId },
+        include: { items: { include: { part: true } } }
+    });
+
+    if (!order) return { success: false, error: "Order not found" };
+    
+    // If order is already finalized, skip (idempotent)
+    if (order.paymentStatus === 'AUTHORIZED' || order.paymentStatus === 'PAID') {
+        return { success: true, alreadyFinalized: true };
+    }
+
+    const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    
+    if (intent.status === 'succeeded' || intent.status === 'requires_capture') {
+        try {
+            for (const item of order.items) {
+                // Decrement stock
+                await prisma.part.update({
+                    where: { id: item.partId },
+                    data: { stock: { decrement: item.quantity } }
+                });
+
+                // Clear reservation
+                if (sessionId) {
+                    await prisma.reservation.deleteMany({
+                        where: { partId: item.partId, sessionId: sessionId }
+                    });
+                }
+            }
+        } catch (error) {
+            console.error("Error decrementing stock or clearing reservations after Stripe payment:", error);
+        }
+
+        // Send confirmation email
+        const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+        
+        try {
+            await sendOrderReceivedEmail(order as any, billingData.email);
+        } catch (err) {
+            console.error("Email sending error:", err);
+        }
+
+        // Mark as AUTHORIZED to indicate successful payment reservation but pending admin capture
+        await prisma.order.update({
+            where: { id: order.id },
+            data: { paymentStatus: 'AUTHORIZED' }
+        });
+
+        revalidatePath('/admin/orders');
+        return { success: true };
+    }
+
+    return { success: false, error: "Payment not confirmed" };
+}
+
 export async function createOrder(data: {
     userId?: string;
     items: any[];

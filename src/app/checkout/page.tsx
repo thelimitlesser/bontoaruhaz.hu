@@ -472,6 +472,7 @@ export default function CheckoutPage() {
                                             shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'} 
                                             isCompany={isCompany}
                                             billingSameAsShipping={billingSameAsShipping}
+                                            clientSecret={clientSecret}
                                         />
                                     </Elements>
                                 ) : (

@@ -2,16 +2,26 @@
 
 import Link from "next/link";
 import { CheckCircle, ShoppingBag, ArrowRight } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, Suspense } from "react";
 import { useCart } from "@/context/cart-context";
+import { useSearchParams } from "next/navigation";
+import { finalizeStripeOrder } from "@/app/actions/order";
 
-export default function CheckoutSuccessPage() {
+function SuccessContent() {
     const { clearCart } = useCart();
+    const searchParams = useSearchParams();
+    const paymentIntent = searchParams.get("payment_intent");
 
     useEffect(() => {
         // Clear cart only once when success page is reached
         clearCart();
-    }, []);
+
+        if (paymentIntent) {
+            const sessionId = localStorage.getItem("bontoaruhaz-session-id");
+            // Hit the server action to finalize stock/emails
+            finalizeStripeOrder(paymentIntent, sessionId || undefined).catch(console.error);
+        }
+    }, [clearCart, paymentIntent]);
 
     return (
         <div className="min-h-screen pt-32 pb-20 flex flex-col items-center justify-center text-center px-4">
@@ -46,5 +56,13 @@ export default function CheckoutSuccessPage() {
                 </Link>
             </div>
         </div>
+    );
+}
+
+export default function CheckoutSuccessPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen pt-32 pb-20 flex items-center justify-center">Loading...</div>}>
+            <SuccessContent />
+        </Suspense>
     );
 }
