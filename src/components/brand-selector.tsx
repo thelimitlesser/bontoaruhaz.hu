@@ -31,15 +31,14 @@ export function BrandSelector({ brands }: BrandSelectorProps) {
                             key={brand.id}
                             href={`/brand/${brand.slug}`}
                             className="group relative flex flex-col items-center justify-center gap-2 sm:gap-4 p-3 sm:p-6 rounded-xl sm:rounded-2xl bg-foreground/5 border border-foreground/10 hover:border-[var(--color-primary)]/50 hover:bg-foreground/10 transition-all duration-300 hover:-translate-y-1" >
-                            {/* Icon / Logo */}
-                            <div className={`w-10 h-10 sm:w-16 sm:h-16 flex items-center justify-center p-0.5 sm:p-1 transition-all duration-300 group-hover:scale-110 ${brand.scale || ""}`}>
+                            {/* Icon / Logo Container - Fixed Scaling */}
+                            <div className="relative w-12 h-12 sm:w-20 sm:h-20 flex items-center justify-center p-2 sm:p-3 transition-all duration-300 group-hover:scale-110">
                                 <Image
                                     src={brand.logo}
                                     alt={`${brand.name} logo - Bontott ${brand.name} alkatrészek`}
                                     fill
-                                    className={`object-contain transition-all duration-300 opacity-80 group-hover:opacity-100 ${brand.logo.endsWith('.png')
-                                        ? "mix-blend-multiply" : "filter brightness-0"}`}
-                                    sizes="(max-width: 640px) 40px, 64px"
+                                    className="object-contain transition-all duration-300 opacity-90 group-hover:opacity-100"
+                                    sizes="(max-width: 640px) 48px, 80px"
                                 />
                             </div>
 
