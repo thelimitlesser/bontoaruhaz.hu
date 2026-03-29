@@ -115,22 +115,18 @@ export function BasicInfoSection({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2 relative">
-                    <label className={clsx("text-sm font-medium", errors.includes("sku") ? "text-red-600" : "text-gray-700")}>Cikkszám (Gyári szám) *</label>
+                    <label className="text-sm font-medium text-gray-700">Cikkszám (Gyári szám)</label>
                     <div className="relative">
                         <input 
-                            name="sku" type="text" required value={sku} 
+                            name="sku" type="text" value={sku} 
                             onChange={(e) => setSku(e.target.value)} 
                             placeholder="pl. 5G1941005" 
                             className={clsx(
-                                "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors font-mono uppercase",
-                                errors.includes("sku") 
-                                    ? "bg-red-50 border-2 border-red-500 text-red-900 placeholder-red-300" 
-                                    : "bg-gray-50 border border-gray-200 text-gray-900 focus:border-[var(--color-primary)]"
+                                "w-full rounded-lg px-4 py-3 focus:outline-none transition-colors font-mono uppercase bg-gray-50 border border-gray-200 text-gray-900 focus:border-[var(--color-primary)]"
                             )} 
                         />
                         {isCheckingSku && <div className="absolute right-3 top-3.5"><Loader2 className="w-5 h-5 text-gray-400 animate-spin" /></div>}
                     </div>
-                    {errors.includes("sku") && <p className="text-[10px] text-red-500 font-bold uppercase">A cikkszám megadása kötelező!</p>}
                     {duplicateWarnings.length > 0 && (
                         <div className="mt-3 bg-orange-50 border border-orange-200 p-3 rounded-lg animate-in fade-in slide-in-from-top-2 absolute w-full md:w-[250%] z-10 shadow-xl">
                             <p className="text-xs font-bold text-orange-800 flex items-center gap-1.5 mb-2">⚠️ Figyelem! Létező termék(ek):</p>

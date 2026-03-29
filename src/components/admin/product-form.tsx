@@ -56,6 +56,7 @@ export function ProductForm({
     const [yearTo, setYearTo] = useState(initialData?.yearTo?.toString() || "");
     const [condition, setCondition] = useState(initialData?.condition || "used");
     const [engineCode, setEngineCode] = useState(initialData?.engineCode || "");
+    const [descriptionHeader, setDescriptionHeader] = useState("");
     
     // Pricing & Dimensions states (to fix data loss and naming mismatch)
     const [priceGross, setPriceGross] = useState(initialData?.priceGross?.toString() || "");
@@ -80,15 +81,13 @@ export function ProductForm({
             content = content.substring(0, footerIndex).trim();
         }
 
-        // 2. Strip the auto-header (aggressive)
-        // Auto-header pattern: "Eladó gyári [Márka] [Modell] [Alkatrész] ([Év])."
-        // Also sometimes starts with legacy prefixes
-        const patternsToStrip = ["Eladó gyári", "Eladó használt", "Gyári"];
+        // 2. Extract and strip the header
+        // Header pattern: "Eladó gyári [Márka] [Modell] [Alkatrész] ([Év])."
+        const patternsToStrip = ["Eladó gyári", "Eladó használt", "Gyári", "Eladó"];
         
-        let foundHeader = false;
+        let foundHeader = "";
         for (const pattern of patternsToStrip) {
             if (content.trim().startsWith(pattern)) {
-                // Find the first sentence end or double newline
                 const firstDot = content.indexOf(".");
                 const firstDoubleNL = content.indexOf("\n\n");
                 
@@ -100,11 +99,16 @@ export function ProductForm({
                 }
 
                 if (splitIndex !== -1) {
+                    foundHeader = content.substring(0, splitIndex).trim();
                     content = content.substring(splitIndex).trim();
-                    foundHeader = true;
                     break;
                 }
             }
+        }
+
+        // Set the extracted header if found, otherwise it stays empty and will auto-generate
+        if (foundHeader && !descriptionHeader) {
+            setTimeout(() => setDescriptionHeader(foundHeader), 0);
         }
 
         return content;
@@ -137,22 +141,33 @@ export function ProductForm({
         return () => clearTimeout(timer);
     }, [sku, initialData?.id]);
 
-    // Intelligent Auto-Name Generation
+    // Intelligent Auto-Name & Header Generation
     const [lastAutoName, setLastAutoName] = useState("");
+    const [lastAutoHeader, setLastAutoHeader] = useState("");
     useEffect(() => {
         const brand = brands.find(b => b.id === selectedBrand)?.name;
         const model = models.filter(m => m.brandId === selectedBrand).find(m => m.id === selectedModel)?.name;
         const part = selectedPartItemObj?.name;
+        const yearsStr = yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : "";
+        const condLabel = condition === 'new' ? 'gyári új' : 'gyári használt';
         
         if (brand && model && part) {
             const newAutoName = `${brand} ${model} ${part}`;
-            // Only update if current name is empty OR matches exactly the previous auto-generated name
+            const newAutoHeader = `Eladó ${condLabel} ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
+
+            // Only update Title if current name is empty OR matches exactly the previous auto-generated name
             if (!productName || productName === lastAutoName) {
                 setProductName(newAutoName);
                 setLastAutoName(newAutoName);
             }
+
+            // Only update Description Header if current header is empty OR matches previous auto-generated header
+            if (!descriptionHeader || descriptionHeader === lastAutoHeader) {
+                setDescriptionHeader(newAutoHeader);
+                setLastAutoHeader(newAutoHeader);
+            }
         }
-    }, [selectedBrand, selectedModel, selectedPartItem, condition, brands, models, selectedPartItemObj]);
+    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, brands, models, selectedPartItemObj]);
 
     // Native Spellcheck Force
     useEffect(() => {
@@ -172,7 +187,7 @@ export function ProductForm({
         if (!selectedBrand && !isUniversal) errors.push("selectedBrand");
         if (!selectedModel && !isUniversal) errors.push("selectedModel");
         if (!selectedPartItem) errors.push("selectedPartItem");
-        if (!sku) errors.push("sku");
+        // SKU is now optional
         if (!autoRef) errors.push("autoRef");
         if (!productName) errors.push("productName");
         
@@ -214,14 +229,7 @@ export function ProductForm({
 
             // Reconstruct final description
             const finalDescriptionParts = [];
-            const brand = brands.find(b => b.id === selectedBrand)?.name;
-            const model = models.filter(m => m.brandId === selectedBrand).find(m => m.id === selectedModel)?.name;
-            const part = selectedPartItemObj?.name;
-            const years = yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : "";
-            
-            if (brand && model && part) {
-                finalDescriptionParts.push(`Eladó gyári ${brand} ${model} ${part} ${years}.`);
-            }
+            if (descriptionHeader.trim()) finalDescriptionParts.push(descriptionHeader.trim());
             if (manualDescription.trim()) finalDescriptionParts.push(manualDescription.trim());
             finalDescriptionParts.push(`A hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!\nHivatkozási szám: (${autoRef})`);
 
@@ -336,6 +344,7 @@ export function ProductForm({
                 selectedPartItemObj={selectedPartItemObj} yearFrom={yearFrom} yearTo={yearTo}
                 autoRef={autoRef} manualDescription={manualDescription}
                 setManualDescription={setManualDescription} descriptionRef={descriptionRef}
+                descriptionHeader={descriptionHeader} setDescriptionHeader={setDescriptionHeader}
                 condition={condition}
                 errors={validationErrors}
                 brands={brands}

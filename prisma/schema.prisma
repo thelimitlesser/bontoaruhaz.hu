@@ -50,7 +50,7 @@ model UserVehicle {
 
 model Part {
   id              String              @id @default(uuid())
-  sku             String
+  sku             String?
   name            String
   description     String?
   categoryId      String?
