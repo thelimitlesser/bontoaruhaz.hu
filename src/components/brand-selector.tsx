@@ -37,7 +37,7 @@ export function BrandSelector({ brands }: BrandSelectorProps) {
                                     src={brand.logo}
                                     alt={`${brand.name} logo - Bontott ${brand.name} alkatrészek`}
                                     fill
-                                    className="object-contain transition-all duration-300 opacity-90 group-hover:opacity-100"
+                                    className={`object-contain transition-all duration-300 opacity-90 group-hover:opacity-100 ${brand.logo.endsWith('.png') ? "mix-blend-multiply" : "brightness-0"}`}
                                     sizes="(max-width: 640px) 48px, 80px"
                                 />
                             </div>
