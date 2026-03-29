@@ -752,6 +752,38 @@ export async function checkDuplicateSku(sku: string, excludeId?: string) {
     }
 }
 
+/**
+ * Checks if a product with the same name already exists.
+ * Used for admin real-time warning during product upload.
+ */
+export async function checkDuplicateProduct(name: string, excludeId?: string) {
+    if (!name || name.trim().length < 5) return [];
+
+    try {
+        const parts = await prisma.part.findMany({
+            where: {
+                name: {
+                    equals: name,
+                    mode: 'insensitive'
+                },
+                ...(excludeId ? { id: { not: excludeId } } : {})
+            },
+            select: {
+                id: true,
+                name: true,
+                productCode: true,
+                stock: true
+            },
+            take: 3
+        });
+
+        return parts;
+    } catch (error) {
+        console.error("Error checking duplicate product:", error);
+        return [];
+    }
+}
+
 export const getRelatedProducts = unstable_cache(
     async (currentProductId: string, modelId: string | null, brandId: string | null, take: number = 4) => {
         try {

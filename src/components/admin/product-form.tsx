@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { getNextReferenceNumber, checkDuplicateSku } from "@/app/actions/product";
+import { getNextReferenceNumber, checkDuplicateSku, checkDuplicateProduct } from "@/app/actions/product";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2 } from "lucide-react";
@@ -9,6 +9,7 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay";
 
 // Sub-components
 import { BasicInfoSection } from "./product-form/basic-info-section";
+import { PartNameSearchSection } from "./product-form/part-name-search-section";
 import { VehicleCompatibilitySection } from "./product-form/vehicle-compatibility-section";
 import { ImageUploadSection } from "./product-form/image-upload-section";
 import { DescriptionSection } from "./product-form/description-section";
@@ -51,7 +52,9 @@ export function ProductForm({
     const [productName, setProductName] = useState(initialData?.name || "");
     const [sku, setSku] = useState(initialData?.sku || "");
     const [duplicateWarnings, setDuplicateWarnings] = useState<any[]>([]);
+    const [nameDuplicates, setNameDuplicates] = useState<any[]>([]);
     const [isCheckingSku, setIsCheckingSku] = useState(false);
+    const [isCheckingName, setIsCheckingName] = useState(false);
     const [yearFrom, setYearFrom] = useState(initialData?.yearFrom?.toString() || "");
     const [yearTo, setYearTo] = useState(initialData?.yearTo?.toString() || "");
     const [condition, setCondition] = useState(initialData?.condition || "used");
@@ -123,6 +126,23 @@ export function ProductForm({
     useEffect(() => {
         if (!initialData) getNextReferenceNumber().then(setAutoRef);
     }, [initialData]);
+
+    // Real-time name duplicate check
+    useEffect(() => {
+        const checkName = async () => {
+            if (productName.trim().length >= 5) {
+                setIsCheckingName(true);
+                const duplicates = await checkDuplicateProduct(productName, initialData?.id);
+                setNameDuplicates(duplicates);
+                setIsCheckingName(false);
+            } else {
+                setNameDuplicates([]);
+                setIsCheckingName(false);
+            }
+        };
+        const timer = setTimeout(checkName, 600);
+        return () => clearTimeout(timer);
+    }, [productName, initialData?.id]);
 
     // Real-time SKU duplicate check
     useEffect(() => {
@@ -313,6 +333,16 @@ export function ProductForm({
                 errors={validationErrors}
             />
 
+            <PartNameSearchSection 
+                productName={productName} setProductName={setProductName} nameRef={nameRef}
+                selectedPartItem={selectedPartItem} setSelectedPartItem={setSelectedPartItem}
+                isCheckingName={isCheckingName} nameDuplicates={nameDuplicates}
+                errors={validationErrors}
+                partItems={partItems}
+                categories={categories}
+                subcategories={subcategories}
+            />
+
             <VehicleCompatibilitySection 
                 isUniversal={isUniversal} setIsUniversal={setIsUniversal}
                 selectedBrand={selectedBrand} setSelectedBrand={setSelectedBrand}
@@ -326,17 +356,12 @@ export function ProductForm({
             />
 
             <BasicInfoSection 
-                productName={productName} setProductName={setProductName} nameRef={nameRef}
-                selectedPartItem={selectedPartItem} setSelectedPartItem={setSelectedPartItem}
                 sku={sku} setSku={setSku} isCheckingSku={isCheckingSku}
                 duplicateWarnings={duplicateWarnings} autoRef={autoRef} setAutoRef={setAutoRef}
                 condition={condition} setCondition={setCondition}
                 engineCode={engineCode} setEngineCode={setEngineCode}
                 initialData={initialData}
                 errors={validationErrors}
-                partItems={partItems}
-                categories={categories}
-                subcategories={subcategories}
             />
 
             <DescriptionSection 
