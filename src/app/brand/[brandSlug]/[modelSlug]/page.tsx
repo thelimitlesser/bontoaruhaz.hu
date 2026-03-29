@@ -102,23 +102,15 @@ export default async function ModelCategoryPage({ params }: { params: Promise<{ 
                             <Link
                                 key={cat.id}
                                 href={`/brand/${brand.slug}/${model.slug}/${cat.slug}`}
-                                className="group relative bg-white border border-gray-100 rounded-2xl p-4 md:p-5 hover:shadow-xl hover:shadow-[var(--color-primary)]/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden"
+                                className="group relative bg-white border border-gray-100 rounded-xl p-4 md:px-6 md:py-5 hover:shadow-xl hover:shadow-[var(--color-primary)]/10 transition-all duration-500 hover:-translate-y-1 overflow-hidden"
                             >
-                                <div className="flex items-center gap-4 relative z-10">
+                                <div className="flex items-center gap-5 relative z-10">
                                     {/* Icon */}
-                                    <Icon className="w-10 h-10 shrink-0 object-contain transition-all duration-300 group-hover:scale-110 text-[var(--color-primary)] opacity-80 group-hover:opacity-100" strokeWidth={1.5} />
+                                    <Icon className="w-14 h-14 shrink-0 object-contain transition-all duration-300 group-hover:scale-110 text-[var(--color-primary)] opacity-80 group-hover:opacity-100" strokeWidth={1.5} />
                                     
-                                    <div className="flex flex-col">
-                                        <span className="text-base font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors leading-tight uppercase tracking-tight">
-                                            {cat.name}
-                                        </span>
-                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Alkatrészek</span>
-                                    </div>
-
-                                    {/* Subtle Indicator */}
-                                    <div className="ml-auto opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                        <ArrowRight className="w-4 h-4 text-[var(--color-primary)]" />
-                                    </div>
+                                    <span className="text-lg font-bold text-gray-900 group-hover:text-[var(--color-primary)] transition-colors leading-tight uppercase tracking-tight">
+                                        {cat.name}
+                                    </span>
                                 </div>
                                 
                                 {/* Decorative background element */}
@@ -130,15 +122,12 @@ export default async function ModelCategoryPage({ params }: { params: Promise<{ 
                     {/*"Not found" LAST CARD */}
                     <Link
                         href="/#kereso" 
-                        className="group relative bg-white border border-dashed border-[var(--color-primary)]/40 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 rounded-2xl p-4 md:p-5 transition-all duration-200 flex items-center gap-4 active:scale-[0.98]" 
+                        className="group relative bg-white border border-dashed border-[var(--color-primary)]/40 hover:border-[var(--color-primary)] hover:bg-[var(--color-primary)]/5 rounded-xl p-4 md:px-6 md:py-5 transition-all duration-200 flex items-center gap-5 active:scale-[0.98]" 
                     >
-                        <Search className="w-10 h-10 shrink-0 text-[var(--color-primary)] opacity-80 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" strokeWidth={2} />
-                        <div>
-                            <h3 className="font-black text-[var(--color-primary)] text-base leading-tight uppercase">
-                                NEM TALÁLOD?
-                            </h3>
-                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Egyedi keresés</span>
-                        </div>
+                        <Search className="w-14 h-14 shrink-0 text-[var(--color-primary)] opacity-80 group-hover:opacity-100 transition-all duration-300 group-hover:scale-110" strokeWidth={2} />
+                        <h3 className="font-black text-[var(--color-primary)] text-lg leading-tight uppercase">
+                            NEM TALÁLOD?
+                        </h3>
                     </Link>
                 </div>
 
