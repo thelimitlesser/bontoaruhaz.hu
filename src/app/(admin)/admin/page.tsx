@@ -151,6 +151,7 @@ export default async function AdminDashboard({
                     <div className="flex gap-1 overflow-x-auto max-w-[300px] md:max-w-none px-2">
                         {[5, 4, 3, 2, 1, 0].map((offset) => {
                             const d = new Date();
+                            d.setDate(1); // Mentsük meg a világot a Február 31-től
                             d.setMonth(d.getMonth() - offset);
                             const month = d.getMonth() + 1;
                             const year = d.getFullYear();
