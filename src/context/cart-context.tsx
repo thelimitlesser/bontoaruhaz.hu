@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, ReactNode, useCallback } from "react";
 import { Product } from "@/lib/mock-data";
 import { reservePart, releaseReservation } from "@/app/actions/reservation";
 
@@ -100,7 +100,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }, [items, isMounted]);
 
 
-    const addItem = async (product: Product): Promise<boolean> => {
+    const addItem = useCallback(async (product: Product): Promise<boolean> => {
         if (!sessionId) return false;
 
         const existing = items.find(i => i.id === product.id);
@@ -136,16 +136,21 @@ export function CartProvider({ children }: { children: ReactNode }) {
         
         setIsCartOpen(true);
         return true;
-    };
+    }, [sessionId, items]);
 
-    const updateQuantity = async (productId: string, newQuantity: number): Promise<boolean> => {
+    const updateQuantity = useCallback(async (productId: string, newQuantity: number): Promise<boolean> => {
         if (!sessionId) return false;
 
         const item = items.find(i => i.id === productId);
         if (!item) return false;
 
         if (newQuantity <= 0) {
-            await removeItem(productId);
+            // Because removeItem is not initialized before this point, we just do it manually here or we wait for removeItem to be defined
+            // To simplify, we'll just handle it inline or use state directly
+            if (sessionId) {
+                releaseReservation(productId, sessionId).catch(console.error);
+            }
+            setItems((prev) => prev.filter((item) => item.id !== productId));
             return true;
         }
 
@@ -170,19 +175,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
         ));
 
         return true;
-    };
+    }, [sessionId, items]);
 
-    const removeItem = async (productId: string) => {
+    const removeItem = useCallback(async (productId: string) => {
         if (sessionId) {
             // Fire and forget server-side release
             releaseReservation(productId, sessionId).catch(console.error);
         }
         setItems((prev) => prev.filter((item) => item.id !== productId));
-    };
+    }, [sessionId]);
 
-    const clearCart = () => {
+    const clearCart = useCallback(() => {
         setItems([]);
-    };
+    }, []);
 
     const totalPrice = items.reduce(
         (total, item) => total + item.price * item.quantityInCart,
