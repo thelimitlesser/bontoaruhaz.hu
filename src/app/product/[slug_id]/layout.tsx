@@ -1,8 +1,10 @@
 import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
+import { extractIdFromSlug } from '@/utils/slug'
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
-    const { id } = await params
+export async function generateMetadata({ params }: { params: Promise<{ slug_id: string }> }): Promise<Metadata> {
+    const { slug_id } = await params
+    const id = extractIdFromSlug(slug_id)
     const dbPart = await prisma.part.findUnique({
         where: { id },
         select: {
