@@ -129,6 +129,7 @@ export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: s
         });
 
         revalidatePath('/admin/orders');
+        revalidatePath('/', 'layout'); // Ensure public pages reflect the new stock immediately
         return { success: true };
     }
 
@@ -233,6 +234,7 @@ export async function createOrder(data: {
     });
 
     revalidatePath('/admin/orders');
+    revalidatePath('/', 'layout'); // Ensure public pages reflect the new stock immediately
     return order;
 }
 
