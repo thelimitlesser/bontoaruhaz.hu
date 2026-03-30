@@ -4,6 +4,7 @@ import { ShoppingCart, Tag, MapPin, Globe } from "lucide-react";
 import Image from "next/image";
 import { clsx } from "clsx";
 import { Product } from "@/lib/mock-data";
+import { getProductUrl } from "@/utils/slug";
 
 // Add support for real Prisma Part
 export interface PrismaPart {
@@ -43,8 +44,16 @@ export function ProductCard({ product }: { product: Product | any }) {
     const mainImage = imageList[0] || 'https://placehold.co/600x400/1a1a1a/cccccc?text=Bontóáruház';
     const displayBrand = isPrisma ? product.brandId : product.brand;
 
+    const productUrl = getProductUrl({
+        id: product.id,
+        name: product.name,
+        brandName: isPrisma ? product.brandName : product.brand,
+        modelName: isPrisma ? product.modelName : product.model,
+        sku: product.sku
+    });
+
     return (
-        <Link href={`/product/${product?.id}`} className="block h-full group">
+        <Link href={productUrl} className="block h-full group">
             <div className="glass-card relative overflow-hidden flex flex-col h-full transition-transform duration-300 group-hover:-translate-y-1 bg-background/40 backdrop-blur-md border border-border hover:border-[var(--color-primary)]/50 hover:shadow-lg hover:shadow-[0_0_20px_rgba(219,81,60,0.1)]">
                 {/* Badge Container */}
                 <div className="absolute top-4 left-4 z-10 flex gap-2">

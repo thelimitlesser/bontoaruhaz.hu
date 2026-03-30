@@ -1,4 +1,6 @@
 import { getRelatedProducts, getProductPageDataAction } from "@/app/actions/product";
+import { extractIdFromSlug, getProductSlug, getProductUrl } from "@/utils/slug";
+import { redirect } from "next/navigation";
 import { ArrowLeft, CheckCircle2, ShieldCheck, Truck, Star, Settings, Calendar, Hash, Factory, Info, Phone, HelpCircle, Globe, ChevronRight, Box } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -9,8 +11,9 @@ import { AddToCartButton } from "@/components/add-to-cart-button";
 import { prisma } from "@/lib/prisma";
 import { Product } from "@/lib/mock-data";
 
-export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<import("next").Metadata> {
-  const { id } = await params;
+export async function generateMetadata({ params }: { params: Promise<{ slug_id: string }> }): Promise<import("next").Metadata> {
+  const { slug_id } = await params;
+  const id = extractIdFromSlug(slug_id);
   const data = await getProductPageDataAction(id);
   if (!data) return { title: "Termék nem található" };
 
@@ -45,8 +48,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-export default async function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function ProductPage({ params }: { params: Promise<{ slug_id: string }> }) {
+  const { slug_id } = await params;
+  const id = extractIdFromSlug(slug_id);
 
   const data = await getProductPageDataAction(id);
 
@@ -67,6 +71,14 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
   const categorySlug = categoryObj?.slug || dbPart.categoryId;
   const subcategorySlug = subcategoryObj?.slug || dbPart.subcategoryId;
   const partItemSlug = partItemObj?.slug || dbPart.partItemId;
+
+  // Canonical Redirect Logic
+  const canonicalSlug = getProductSlug(dbPart.name, brandName, modelName, dbPart.sku);
+  const canonicalSlugId = `${canonicalSlug}-${dbPart.id}`;
+  
+  if (slug_id !== canonicalSlugId) {
+    redirect(`/product/${canonicalSlugId}`);
+  }
 
   // Format extra compatibilities with names
   const enhancedCompatibilities = dbPart.compatibilities.map(comp => ({
@@ -423,7 +435,13 @@ export default async function ProductPage({ params }: { params: Promise<{ id: st
             {relatedProducts.map((p) => (
               <Link
                 key={p.id}
-                href={`/product/${p.id}`}
+                href={getProductUrl({
+                  id: p.id,
+                  name: p.name,
+                  brandName: (p as any).brandName,
+                  modelName: (p as any).modelName,
+                  sku: (p as any).sku
+                })}
                 className="group bg-background border border-border rounded-[2rem] overflow-hidden hover:border-[var(--color-primary)] hover:shadow-2xl hover:shadow-[var(--color-primary)]/10 transition-all duration-300 flex flex-col active:scale-[0.98] snap-start min-w-[280px] sm:min-w-0"
               >
                 {/* Image Container */}
