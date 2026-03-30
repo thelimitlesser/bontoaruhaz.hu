@@ -145,7 +145,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
     },
     "offers": {
       "@type": "Offer",
-      "url": `https://bontoaruhaz.hu/product/${dbPart.id}`,
+      "url": `https://bontoaruhaz.hu/product/${canonicalSlugId}`,
       "priceCurrency": dbPart.currency || "HUF",
       "price": dbPart.priceGross,
       "availability": dbPart.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
