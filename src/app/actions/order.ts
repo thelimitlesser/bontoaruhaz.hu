@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { stripe } from "@/lib/stripe";
 import { sendOrderReceivedEmail, sendOrderConfirmedEmail, sendOrderReadyForPickupEmail } from "@/lib/resend";
 import { createBillingoInvoice } from "@/lib/billingo";
@@ -130,6 +130,9 @@ export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: s
 
         revalidatePath('/admin/orders');
         revalidatePath('/', 'layout'); // Ensure public pages reflect the new stock immediately
+        revalidateTag('products'); // Clear unstable_cache for products
+        revalidateTag('parts');
+        revalidateTag('search');
         return { success: true };
     }
 
@@ -235,6 +238,9 @@ export async function createOrder(data: {
 
     revalidatePath('/admin/orders');
     revalidatePath('/', 'layout'); // Ensure public pages reflect the new stock immediately
+    revalidateTag('products'); // Clear unstable_cache for products
+    revalidateTag('parts');
+    revalidateTag('search');
     return order;
 }
 
