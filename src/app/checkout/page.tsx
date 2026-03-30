@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { ArrowLeft, CreditCard, Truck, ShieldCheck, Mail, MapPin, User, Minus, Plus, ShoppingBag } from "lucide-react";
+import { ArrowLeft, CreditCard, Truck, ShieldCheck, Mail, MapPin, User, Minus, Plus, ShoppingBag, Loader2, AlertCircle } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -62,6 +62,8 @@ export default function CheckoutPage() {
     }, [formData, isCompany, billingSameAsShipping]);
 
     const [lastIntentAmount, setLastIntentAmount] = useState(0);
+    const [isFetchingSecret, setIsFetchingSecret] = useState(false);
+    const [paymentIntentError, setPaymentIntentError] = useState<string | null>(null);
 
     // Fetch PaymentIntent when the form becomes valid OR when the total changes
     useEffect(() => {
@@ -70,12 +72,17 @@ export default function CheckoutPage() {
             if (Math.abs(grandTotal - lastIntentAmount) < 1 && clientSecret) return;
 
             const fetchSecret = async () => {
+                setIsFetchingSecret(true);
+                setPaymentIntentError(null);
                 try {
                     const res = await createPaymentIntent(grandTotal);
                     setClientSecret(res.clientSecret);
                     setLastIntentAmount(grandTotal);
-                } catch (err) {
+                } catch (err: any) {
                     console.error("Failed to fetch client secret:", err);
+                    setPaymentIntentError(err.message || "Hiba történt a fizetés előkészítésekor.");
+                } finally {
+                    setIsFetchingSecret(false);
                 }
             };
             
@@ -84,6 +91,7 @@ export default function CheckoutPage() {
         } else if (paymentMethod !== 'card') {
             setClientSecret(null);
             setLastIntentAmount(0);
+            setPaymentIntentError(null);
         }
     }, [isFormValid, grandTotal, paymentMethod, clientSecret, lastIntentAmount]);
 
@@ -481,9 +489,18 @@ export default function CheckoutPage() {
                                             disabled
                                             className="w-full bg-muted text-gray-500 font-bold py-4 rounded-xl cursor-not-allowed opacity-50 flex items-center justify-center gap-2"
                                         >
-                                            TÖLTSD KI AZ ADATOKAT A FIZETÉSHEZ
+                                            {isFetchingSecret ? <Loader2 className="w-5 h-5 animate-spin" /> : null}
+                                            {isFetchingSecret ? "FIZETÉS ELŐKÉSZÍTÉSE..." : "TÖLTSD KI AZ ADATOKAT A FIZETÉSHEZ"}
                                         </button>
-                                        {!isFormValid() && (
+                                        
+                                        {paymentIntentError && (
+                                            <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2 text-red-600 text-xs font-semibold animate-in fade-in slide-in-from-top-1">
+                                                <AlertCircle className="w-4 h-4 shrink-0" />
+                                                <span>{paymentIntentError}</span>
+                                            </div>
+                                        )}
+
+                                        {!isFormValid() && !isFetchingSecret && !paymentIntentError && (
                                             <p className="text-xs text-center text-muted italic">
                                                 Kérjük töltsd ki az összes kötelező szállítási mezőt a fizetés megkezdéséhez.
                                             </p>
