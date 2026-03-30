@@ -116,7 +116,7 @@ export function CartDrawer() {
                                         <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
                                             <div>
                                                 <h3 className="text-foreground font-medium text-xs sm:text-sm leading-tight line-clamp-2">
-                                                    {item.brand} {item.model} {item.name}
+                                                    {item.name}
                                                 </h3>
                                                 <p className="text-[10px] sm:text-xs text-gray-500 mt-1 font-mono">{item.sku}</p>
                                             </div>
