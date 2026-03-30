@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, CarFront, Hash, Car } from "lucide-react";
+import { Search, CarFront, Hash, Car, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import Link from "next/link";
@@ -20,6 +20,7 @@ interface VehicleSelectorProps {
 export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOptions }: VehicleSelectorProps) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<SearchTab>("manual");
+    const [isPendingSearch, setIsPendingSearch] = useState(false);
 
     // Manual State
     const [selectedBrand, setSelectedBrand] = useState<string>("");
@@ -107,42 +108,57 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
 
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
+        setIsPendingSearch(true);
 
-        if (activeTab === "manual") {
-            if (!selectedBrand) return;
-
-            const brand = initialBrands.find(b => b.id === selectedBrand);
-            const model = availableModels.find(m => m.id === selectedModel);
-            const partItem = currentPartOptions.find(p => p.value === selectedPartItem);
-
-            if (!brand) return;
-
-            let url = `/brand/${brand.slug}`;
-            if (model) {
-                url += `/${model.slug}`;
-                if (partItem && partItem.categorySlug && partItem.subcatSlug) {
-                    url += `/${partItem.categorySlug}`;
-                    const params = new URLSearchParams();
-                    params.set("subcat", partItem.subcatSlug);
-                    params.set("item", partItem.slug);
-                    url += `?${params.toString()}`;
+        try {
+            if (activeTab === "manual") {
+                if (!selectedBrand) {
+                    setIsPendingSearch(false);
+                    return;
                 }
-            }
-            router.push(url);
-            return;
-        }
 
-        if (activeTab === "code") {
-            if (!codeQuery.trim()) return;
-            
-            const directId = await getDirectMatchAction(codeQuery.trim());
-            if (directId) {
-                router.push(`/product/${directId}`);
+                const brand = initialBrands.find(b => b.id === selectedBrand);
+                const model = availableModels.find(m => m.id === selectedModel);
+                const partItem = currentPartOptions.find(p => p.value === selectedPartItem);
+
+                if (!brand) {
+                    setIsPendingSearch(false);
+                    return;
+                }
+
+                let url = `/brand/${brand.slug}`;
+                if (model) {
+                    url += `/${model.slug}`;
+                    if (partItem && partItem.categorySlug && partItem.subcatSlug) {
+                        url += `/${partItem.categorySlug}`;
+                        const params = new URLSearchParams();
+                        params.set("subcat", partItem.subcatSlug);
+                        params.set("item", partItem.slug);
+                        url += `?${params.toString()}`;
+                    }
+                }
+                router.push(url);
                 return;
             }
 
-            router.push(`/search?query=${encodeURIComponent(codeQuery.trim())}`);
-            return;
+            if (activeTab === "code") {
+                if (!codeQuery.trim()) {
+                    setIsPendingSearch(false);
+                    return;
+                }
+                
+                const directId = await getDirectMatchAction(codeQuery.trim());
+                if (directId) {
+                    router.push(`/product/${directId}`);
+                    return;
+                }
+
+                router.push(`/search?query=${encodeURIComponent(codeQuery.trim())}`);
+                return;
+            }
+        } catch (err) {
+            console.error("Search failed:", err);
+            setIsPendingSearch(false);
         }
     };
 
@@ -227,16 +243,17 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                             <div className="p-2 flex items-center justify-center bg-gray-50/30 md:bg-transparent">
                                 <button
                                     onClick={() => handleSearch()}
-                                    disabled={!selectedBrand || !selectedModel || !selectedPartItem}
+                                    disabled={!selectedBrand || !selectedModel || !selectedPartItem || isPendingSearch}
                                     className={clsx(
                                         "h-14 md:h-12 w-full md:w-auto md:px-10 rounded-3xl flex items-center justify-center transition-all duration-300 gap-3 font-black text-white shrink-0 focus:outline-none focus-visible:ring-0",
                                         (selectedBrand && selectedModel && selectedPartItem)
                                             ? "bg-[var(--color-primary)] hover:bg-orange-600 shadow-md hover:scale-[1.01] active:scale-95"
-                                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                            : "bg-gray-200 text-gray-400 cursor-not-allowed",
+                                        isPendingSearch && "opacity-80 cursor-wait"
                                     )}
                                 >
-                                    <Search className="w-5 h-5 stroke-[2.5]" />
-                                    <span className="uppercase tracking-widest text-[12px]">Keresés</span>
+                                    {isPendingSearch ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5 stroke-[2.5]" />}
+                                    <span className="uppercase tracking-widest text-[12px]">{isPendingSearch ? "Keresés..." : "Keresés"}</span>
                                 </button>
                             </div>
                         </div>
@@ -266,16 +283,17 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                             <div className="p-2 flex items-center justify-center bg-gray-50/30 md:bg-transparent">
                                 <button
                                     onClick={() => handleSearch()}
-                                    disabled={!codeQuery.trim()}
+                                    disabled={!codeQuery.trim() || isPendingSearch}
                                     className={clsx(
                                         "h-14 md:h-12 w-full md:w-auto md:px-10 rounded-3xl flex items-center justify-center transition-all duration-300 gap-3 font-black text-white shrink-0 focus:outline-none focus-visible:ring-0",
                                         codeQuery.trim()
                                             ? "bg-[var(--color-primary)] hover:bg-orange-600 shadow-md hover:scale-[1.01] active:scale-95"
-                                            : "bg-gray-200 text-gray-400 cursor-not-allowed"
+                                            : "bg-gray-200 text-gray-400 cursor-not-allowed",
+                                        isPendingSearch && "opacity-80 cursor-wait"
                                     )}
                                 >
-                                    <Search className="w-5 h-5 stroke-[2.5]" />
-                                    <span className="uppercase tracking-widest text-[12px]">Keresés</span>
+                                    {isPendingSearch? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5 stroke-[2.5]" />}
+                                    <span className="uppercase tracking-widest text-[12px]">{isPendingSearch ? "Keresés..." : "Keresés"}</span>
                                 </button>
                             </div>
                         </div>

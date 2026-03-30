@@ -6,6 +6,7 @@ import { Footer } from "@/components/footer";
 
 import { CartProvider } from "@/context/cart-context";
 import { CartDrawer } from "@/components/cart-drawer";
+import NextTopLoader from 'nextjs-toploader';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -126,6 +127,7 @@ export default function RootLayout({
         suppressHydrationWarning
       >
         <CartProvider>
+          <NextTopLoader color="#db513c" showSpinner={false} />
           <Navbar />
           <CartDrawer />
           <main className="flex-1">
