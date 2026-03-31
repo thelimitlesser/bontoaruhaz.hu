@@ -31,13 +31,15 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
         <button
             onClick={handleAddToCart}
             disabled={isDisabled}
-            className={`w-full h-16 text-white font-bold text-lg rounded-xl flex items-center justify-center gap-3 transition-transform active:scale-[0.98] shadow-lg ${
+            className={`w-full min-h-[4rem] px-4 text-white font-bold rounded-xl flex items-center justify-center gap-3 transition-transform active:scale-[0.98] shadow-lg ${
                 isDisabled 
-                ? "bg-slate-400 cursor-not-allowed opacity-70" 
-                : "bg-[var(--color-primary)] hover:bg-orange-600 shadow-[var(--color-primary)]/20"
+                ? "bg-slate-400 cursor-not-allowed opacity-80" 
+                : "bg-[var(--color-primary)] hover:bg-orange-600 shadow-[var(--color-primary)]/20 text-lg"
             }`} >
-            <ShoppingCart className="w-5 h-5" />
-            {buttonText}
+            <ShoppingCart className="w-5 h-5 flex-shrink-0" />
+            <span className={`${isDisabled ? 'text-[13px]' : 'text-lg'} text-center leading-tight uppercase`}>
+                {buttonText}
+            </span>
         </button>
     );
 }
