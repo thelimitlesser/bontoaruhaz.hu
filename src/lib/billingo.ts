@@ -11,7 +11,7 @@ export interface BillingoPartner {
         address: string;
     };
     emails: string[];
-    tax_number?: string;
+    taxcode?: string;
     phone?: string;
 }
 
@@ -63,7 +63,7 @@ async function upsertPartner(customerData: any) {
         },
         emails: [email],
         phone: customerData.phone,
-        tax_number: taxNumber || undefined
+        taxcode: taxNumber || undefined
     };
 
     if (existingPartnerId) {
