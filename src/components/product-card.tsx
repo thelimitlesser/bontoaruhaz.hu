@@ -54,7 +54,7 @@ export function ProductCard({ product }: { product: Product | any }) {
 
     return (
         <Link href={productUrl} className="block h-full group">
-            <div className="glass-card relative overflow-hidden flex flex-col h-full transition-transform duration-300 group-hover:-translate-y-1 bg-background/40 backdrop-blur-md border border-border hover:border-[var(--color-primary)]/50 hover:shadow-lg hover:shadow-[0_0_20px_rgba(219,81,60,0.1)]">
+            <div className="glass-card p-0 pb-4 relative overflow-hidden flex flex-col h-full transition-transform duration-300 group-hover:-translate-y-1 bg-background/40 backdrop-blur-md border border-border hover:border-[var(--color-primary)]/50 hover:shadow-lg hover:shadow-[0_0_20px_rgba(219,81,60,0.1)]">
                 {/* Badge Container */}
                 <div className="absolute top-4 left-4 z-10 flex gap-2">
                     {isPrisma && product?.isUniversal && (
@@ -65,7 +65,7 @@ export function ProductCard({ product }: { product: Product | any }) {
                 </div>
 
                 {/* Image Container (4:3 aspect ratio) */}
-                <div className="relative w-full aspect-[4/3] mb-4 overflow-hidden rounded-t-[inherit] bg-zinc-100 dark:bg-zinc-900 group border-b border-border/50">
+                <div className="relative w-full aspect-[4/3] overflow-hidden bg-zinc-100 dark:bg-zinc-900 group border-b border-border/50">
                     {!isLoaded && (
                         <div className="absolute inset-0 bg-muted/20 animate-pulse z-10" />
                     )}
@@ -91,7 +91,7 @@ export function ProductCard({ product }: { product: Product | any }) {
                         fill
                         onLoadingComplete={() => setIsLoaded(true)}
                         className={clsx(
-                            "object-contain z-10 transition-transform duration-700 ease-out group-hover:scale-105 drop-shadow-xl p-2",
+                            "object-contain z-10 transition-transform duration-700 ease-out group-hover:scale-105 drop-shadow-xl",
                             isLoaded ? "opacity-100" : "opacity-0"
                         )} 
                     />
@@ -101,7 +101,7 @@ export function ProductCard({ product }: { product: Product | any }) {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 flex flex-col p-4 pt-0">
+                <div className="flex-1 flex flex-col px-5 pt-4">
                     <div className="flex items-center gap-2 mb-2">
                         <Tag className="w-3 h-3 text-[var(--color-primary)]" />
                         <span className="text-xs text-muted uppercase tracking-wider">

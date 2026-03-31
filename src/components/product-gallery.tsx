@@ -105,7 +105,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                     fill
                     priority={true}
                     className={clsx(
-                        "object-contain z-10 p-4 transition-transform duration-500 hover:scale-105 drop-shadow-2xl",
+                        "object-contain z-10 transition-transform duration-500 hover:scale-105 drop-shadow-2xl",
                         isLoaded ? "opacity-100" : "opacity-0"
                     )}
                 />
