@@ -1,8 +1,9 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import { Truck, Package, CheckCircle2, AlertCircle, FileText, Printer, ArrowRight, Loader2, Download } from "lucide-react";
+import { Printer, Download, Truck, Package, CheckCircle2, AlertCircle, FileText, ArrowRight, Loader2, X } from "lucide-react";
 import { closePxpDay, getManifestHistory, getManifestPdf, getBulkShippingLabels } from "@/app/actions/shipping";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 
 interface ShippingOrder {
@@ -21,6 +22,8 @@ export default function ShippingPage() {
     const [isClosing, setIsClosing] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
     const [isPrinting, setIsPrinting] = useState(false);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [manifestResult, setManifestResult] = useState<{ count: number; pdfBase64: string } | null>(null);
 
     useEffect(() => {
         fetchOrders();
@@ -45,35 +48,53 @@ export default function ShippingPage() {
         }
     };
 
+    const triggerDownload = (pdfBase64: string, filename: string) => {
+        try {
+            const byteCharacters = atob(pdfBase64.replace(/\s/g, ''));
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+                byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const blob = new Blob([byteArray], { type: 'application/pdf' });
+            const url = URL.createObjectURL(blob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            // Cleanup with delay to avoid issues in some browsers
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            return true;
+        } catch (err) {
+            console.error("Download trigger error:", err);
+            return false;
+        }
+    };
+
     const handleManifest = async () => {
-        if (!confirm(`Biztosan lezárod a mai napot? Ez összesen ${orders.length} csomagot érint.`)) return;
-        
+        setShowConfirmModal(false);
         setIsClosing(true);
         setMessage(null);
+        setManifestResult(null);
         
         try {
             const result = await closePxpDay();
             if (result.success) {
-                setMessage({ type: 'success', text: `Sikeres napi zárás! ${result.count} csomag lezárva. Letöltés indítása...` });
+                setManifestResult({ 
+                    count: result.count || 0, 
+                    pdfBase64: result.pdfBase64 || '' 
+                });
                 
-                // Trigger PDF download
+                // Attempt auto-download
                 if (result.pdfBase64) {
-                    const byteCharacters = atob(result.pdfBase64.replace(/\s/g, ''));
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-                    const blob = new Blob([byteArray], { type: 'application/pdf' });
-                    const url = URL.createObjectURL(blob);
-                    
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `PXP_Gyujtolista_${new Date().toISOString().split('T')[0]}.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
+                    triggerDownload(
+                        result.pdfBase64, 
+                        `PXP_Gyujtolista_${new Date().toISOString().split('T')[0]}.pdf`
+                    );
                 }
                 
                 // Refresh list
@@ -92,22 +113,10 @@ export default function ShippingPage() {
         try {
             const res = await getManifestPdf(id);
             if (res.success && res.pdfBase64) {
-                const byteCharacters = atob(res.pdfBase64.replace(/\s/g, ''));
-                const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNumbers);
-                const blob = new Blob([byteArray], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `PXP_Gyujtolista_${new Date(dateStr).toISOString().split('T')[0]}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                triggerDownload(
+                    res.pdfBase64, 
+                    `PXP_Gyujtolista_${new Date(dateStr).toISOString().split('T')[0]}.pdf`
+                );
             } else {
                 setMessage({ type: 'error', text: res.error || "Nem sikerült letölteni a PDF-et." });
             }
@@ -124,22 +133,10 @@ export default function ShippingPage() {
         try {
             const res = await getBulkShippingLabels(trackingNumbers);
             if (res.success && res.pdfBase64) {
-                const byteCharacters = atob(res.pdfBase64.replace(/\s/g, ''));
-                const byteNumbers = new Array(byteCharacters.length);
-                for (let i = 0; i < byteCharacters.length; i++) {
-                    byteNumbers[i] = byteCharacters.charCodeAt(i);
-                }
-                const byteArray = new Uint8Array(byteNumbers);
-                const blob = new Blob([byteArray], { type: 'application/pdf' });
-                const url = URL.createObjectURL(blob);
-
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `PXP_Osszes_Cimke_${new Date().toISOString().split('T')[0]}.pdf`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                URL.revokeObjectURL(url);
+                triggerDownload(
+                    res.pdfBase64, 
+                    `PXP_Osszes_Cimke_${new Date().toISOString().split('T')[0]}.pdf`
+                );
                 setMessage({ type: 'success', text: "Tömeges címke letöltés sikeres!" });
             } else {
                 setMessage({ type: 'error', text: res.error || "Nem sikerült a tömeges címke letöltés." });
@@ -180,7 +177,7 @@ export default function ShippingPage() {
                         </button>
 
                         <button
-                            onClick={handleManifest}
+                            onClick={() => setShowConfirmModal(true)}
                             disabled={isClosing || isPrinting}
                             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
                         >
@@ -190,6 +187,123 @@ export default function ShippingPage() {
                     </div>
                 )}
             </div>
+
+            <AnimatePresence>
+                {showConfirmModal && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-gray-900/60 backdrop-blur-sm"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.95, opacity: 0 }}
+                            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl space-y-6"
+                        >
+                            <div className="flex items-start justify-between">
+                                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600">
+                                    <Printer className="w-6 h-6" />
+                                </div>
+                                <button 
+                                    onClick={() => setShowConfirmModal(false)}
+                                    className="p-2 hover:bg-gray-100 rounded-full text-gray-400 transition-colors"
+                                >
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-bold text-gray-900">Biztosan lezárod a napot?</h3>
+                                <p className="text-gray-500 leading-relaxed">
+                                    Ez a folyamat összesíti a mai <span className="font-bold text-blue-600">{orders.length} db</span> csomagot, és elküldi a PannonXP-nek. Ezután generálódik a gyűjtőlista.
+                                </p>
+                            </div>
+                            <div className="flex flex-col gap-3 pt-4">
+                                <button
+                                    onClick={handleManifest}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95"
+                                >
+                                    IGEN, ZÁRÁS INDÍTÁSA
+                                </button>
+                                <button
+                                    onClick={() => setShowConfirmModal(false)}
+                                    className="w-full bg-gray-50 hover:bg-gray-100 text-gray-600 py-4 rounded-2xl font-bold transition-all"
+                                >
+                                    MÉGSEM
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {manifestResult && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-emerald-900/60 backdrop-blur-sm"
+                    >
+                        <motion.div 
+                            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                            animate={{ scale: 1, opacity: 1, y: 0 }}
+                            exit={{ scale: 0.95, opacity: 0, y: 20 }}
+                            className="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl text-center space-y-6"
+                        >
+                            <div className="w-20 h-20 bg-emerald-50 rounded-full flex items-center justify-center text-emerald-600 mx-auto">
+                                <CheckCircle2 className="w-10 h-10" />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-bold text-gray-900">Sikeres napi zárás!</h3>
+                                <p className="text-gray-500">
+                                    <span className="font-bold text-emerald-600">{manifestResult.count} db</span> rendelés állapota "Kiszállítás alatt"-ra váltott.
+                                </p>
+                            </div>
+                            
+                            <div className="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 text-emerald-800 text-sm flex items-start gap-3 text-left">
+                                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                                <p>A gyűjtőlista letöltése elindult. Ha nem látod a letöltést, kattints az alábbi gombra!</p>
+                            </div>
+
+                            <div className="flex flex-col gap-3 pt-4">
+                                <button
+                                    onClick={() => triggerDownload(manifestResult.pdfBase64, `PXP_Gyujtolista_${new Date().toISOString().split('T')[0]}.pdf`)}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
+                                >
+                                    <Download className="w-5 h-5" />
+                                    PDF LETÖLTÉSE ÚJRA
+                                </button>
+                                <button
+                                    onClick={() => setManifestResult(null)}
+                                    className="w-full bg-gray-50 hover:bg-gray-100 text-gray-600 py-4 rounded-2xl font-bold transition-all"
+                                >
+                                    RENDBEN
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+
+                {isClosing && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[110] flex items-center justify-center bg-white/80 backdrop-blur-md cursor-wait"
+                    >
+                        <div className="flex flex-col items-center gap-6 text-center">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-blue-500/20 blur-2xl rounded-full animate-pulse" />
+                                <Loader2 className="w-20 h-20 text-blue-600 animate-spin relative z-10" />
+                            </div>
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-bold text-gray-900">Napi zárás folyamatban...</h3>
+                                <p className="text-gray-500 font-medium">Kapcsolódás a PannonXP szerveréhez. Kérjük ne zárd be az ablakot!</p>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {message && (
                 <div className={`p-4 rounded-2xl flex items-center gap-3 border ${
