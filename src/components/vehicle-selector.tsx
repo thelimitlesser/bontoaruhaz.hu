@@ -171,7 +171,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                     <button
                         onClick={() => setActiveTab("manual")}
                         className={clsx(
-                            "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
+                            "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0 active:scale-95",
                             activeTab === "manual" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
                         )}
                     >
@@ -181,7 +181,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                     <button
                         onClick={() => setActiveTab("code")}
                         className={clsx(
-                            "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0",
+                            "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0 active:scale-95",
                             activeTab === "code" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
                         )}
                     >

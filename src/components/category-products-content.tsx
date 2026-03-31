@@ -250,7 +250,7 @@ export function CategoryProductsContent({
                     <div className="flex flex-wrap gap-2 pb-2">
                         <Link
                             href={`/brand/${brand.slug}/${model.slug}/${category.slug}`}
-                            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${!currentSubcategory ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
+                            className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 active:scale-95 ${!currentSubcategory ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
                         >
                             Összes
                         </Link>
@@ -258,7 +258,7 @@ export function CategoryProductsContent({
                             <Link
                                 key={subcat.id}
                                 href={`?subcat=${subcat.slug}`}
-                                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${currentSubcategory?.id === subcat.id ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
+                                className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 active:scale-95 ${currentSubcategory?.id === subcat.id ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
                             >
                                 {subcat.name}
                             </Link>
@@ -277,7 +277,7 @@ export function CategoryProductsContent({
                                 <div className="flex flex-wrap gap-2 pb-2">
                                     <Link
                                         href={`?subcat=${currentSubcategory.slug}`}
-                                        className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${!currentPartItem ? 'bg-gray-900 text-white shadow-md' : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
+                                        className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 active:scale-95 ${!currentPartItem ? 'bg-gray-900 text-white shadow-md' : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
                                     >
                                         Bármelyik
                                     </Link>
@@ -285,7 +285,7 @@ export function CategoryProductsContent({
                                         <Link
                                             key={item.id}
                                             href={`?subcat=${currentSubcategory.slug}&item=${item.slug}`}
-                                            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 ${currentPartItem?.id === item.id ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
+                                            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 active:scale-95 ${currentPartItem?.id === item.id ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
                                         >
                                             {item.name}
                                         </Link>

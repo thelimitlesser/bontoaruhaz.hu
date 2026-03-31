@@ -30,7 +30,7 @@ export function BrandSelector({ brands }: BrandSelectorProps) {
                         <Link
                             key={brand.id}
                             href={`/brand/${brand.slug}`}
-                            className="group relative flex flex-col items-center justify-center gap-2 sm:gap-4 p-3 sm:p-6 rounded-xl sm:rounded-2xl bg-foreground/5 border border-foreground/10 hover:border-[var(--color-primary)]/50 hover:bg-foreground/10 transition-all duration-300 hover:-translate-y-1" >
+                            className="group relative flex flex-col items-center justify-center gap-2 sm:gap-4 p-3 sm:p-6 rounded-xl sm:rounded-2xl bg-foreground/5 border border-foreground/10 hover:border-[var(--color-primary)]/50 hover:bg-foreground/10 transition-all duration-300 hover:-translate-y-1 active:scale-95" >
                             {/* Icon / Logo Container - Fixed Scaling */}
                             <div className="relative w-9 h-9 sm:w-14 sm:h-14 flex items-center justify-center p-1.5 sm:p-2 transition-all duration-300 group-hover:scale-105">
                                 <Image
