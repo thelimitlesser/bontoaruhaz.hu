@@ -488,10 +488,7 @@ export default function CheckoutView() {
                             {paymentMethod === 'card' ? (
                                 clientSecret ? (
                                     <div className="space-y-6">
-                                        <div className="p-8 border border-dashed border-border rounded-xl text-center text-muted italic">
-                                            Stripe form ideiglenesen kikapcsolva hibakereséshez.
-                                        </div>
-                                        {/* <Elements stripe={stripePromise} options={{ clientSecret }}>
+                                        <Elements stripe={stripePromise} options={{ clientSecret }}>
                                             <PaymentForm 
                                                 formData={formData} 
                                                 totalAmount={grandTotal} 
@@ -500,7 +497,7 @@ export default function CheckoutView() {
                                                 billingSameAsShipping={billingSameAsShipping}
                                                 clientSecret={clientSecret}
                                             />
-                                        </Elements> */}
+                                        </Elements>
                                     </div>
                                 ) : (
                                     <div className="space-y-4">
