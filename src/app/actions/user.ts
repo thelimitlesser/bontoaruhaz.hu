@@ -183,13 +183,13 @@ export async function syncAndGetUserRole() {
             select: { role: true }
         });
 
+        const adminEmails = process.env.ADMIN_EMAILS ?
+            process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
+            ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu'];
+
+        const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
+
         if (!dbUser) {
-            const adminEmails = process.env.ADMIN_EMAILS ?
-                process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
-                ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu'];
-
-            const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
-
             await prisma.user.create({
                 data: {
                     id: user.id,
@@ -199,6 +199,15 @@ export async function syncAndGetUserRole() {
                 }
             });
             return isAdminEmail ? 'ADMIN' : 'CUSTOMER';
+        }
+
+        // Proactive sync: If email is in admin list but role is not ADMIN, update it
+        if (isAdminEmail && dbUser.role !== 'ADMIN') {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { role: 'ADMIN' }
+            });
+            return 'ADMIN';
         }
 
         return dbUser.role;
