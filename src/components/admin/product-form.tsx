@@ -247,14 +247,18 @@ export function ProductForm({
                 if (!img.isExisting && img.file) formData.append('imageFiles', img.file);
             });
 
-            // Reconstruct final description
+            // Reconstruct final description with direct DOM values to prevent state loss
+            const domName = formData.get('name')?.toString() || productName;
+            const domHeader = formData.get('descriptionHeader')?.toString() || descriptionHeader;
+            const domManual = formData.get('manualDescription')?.toString() || manualDescription;
+
             const finalDescriptionParts = [];
-            if (descriptionHeader.trim()) finalDescriptionParts.push(descriptionHeader.trim());
-            if (manualDescription.trim()) finalDescriptionParts.push(manualDescription.trim());
+            if (domHeader.trim()) finalDescriptionParts.push(domHeader.trim());
+            if (domManual.trim()) finalDescriptionParts.push(domManual.trim());
             finalDescriptionParts.push(`A hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!\nHivatkozási szám: (${autoRef})`);
 
             formData.set('description', finalDescriptionParts.join('\n\n'));
-            formData.set('name', productName);
+            formData.set('name', domName);
             formData.set('brandId', selectedBrand);
             formData.set('modelId', selectedModel);
             formData.set('partItemId', selectedPartItem);

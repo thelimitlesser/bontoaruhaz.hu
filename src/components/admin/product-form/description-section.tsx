@@ -77,6 +77,7 @@ export function DescriptionSection({
                         
                         <input
                             id="descriptionHeader"
+                            name="descriptionHeader"
                             type="text"
                             value={descriptionHeader}
                             onChange={(e) => setDescriptionHeader(e.target.value)}
