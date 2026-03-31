@@ -69,7 +69,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 - Strong Neon Border & Shadow
             */}
             <div
-                className="relative w-full h-[350px] md:h-[500px] bg-white overflow-hidden group transition-all duration-300 cursor-zoom-in touch-pan-y" style={{
+                className="relative w-full aspect-[4/3] bg-zinc-100 dark:bg-zinc-900 overflow-hidden group transition-all duration-300 cursor-zoom-in touch-pan-y" style={{
                     borderRadius: '50px',
                     border: '1px solid var(--color-border)',
                 }}
@@ -78,10 +78,25 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
 
                 {/* Skeleton Loader */}
                 {!isLoaded && (
-                    <div className="absolute inset-0 bg-muted animate-pulse" style={{ borderRadius: '46px' }} />
+                    <div className="absolute inset-0 bg-muted animate-pulse z-20" style={{ borderRadius: '46px' }} />
                 )}
 
-                {/* Standard Image Tag replaced with Next.js Image for performance */}
+                {/* Blurred Background Layer */}
+                <div className="absolute inset-0 overflow-hidden">
+                    <Image
+                        key={`${selectedImage}-bg`}
+                        src={selectedImage}
+                        alt=""
+                        fill
+                        className={clsx(
+                            "object-cover blur-2xl scale-110 opacity-60 transition-opacity duration-500",
+                            isLoaded ? "opacity-60" : "opacity-0"
+                        )}
+                    />
+                    <div className="absolute inset-0 bg-white/30 dark:bg-black/30 backdrop-blur-sm" />
+                </div>
+
+                {/* Foreground Sharp Image */}
                 <Image
                     key={selectedImage}
                     src={selectedImage}
@@ -90,13 +105,13 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                     fill
                     priority={true}
                     className={clsx(
-                        "object-cover transition-opacity duration-300",
+                        "object-contain z-10 p-4 transition-transform duration-500 hover:scale-105 drop-shadow-2xl",
                         isLoaded ? "opacity-100" : "opacity-0"
                     )}
                 />
 
                 {/* Glass reflection effect */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-20 pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent opacity-30 pointer-events-none z-20" />
 
 
                 {/* Main View Navigation Arrows */}

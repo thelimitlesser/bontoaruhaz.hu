@@ -64,22 +64,40 @@ export function ProductCard({ product }: { product: Product | any }) {
                     )}
                 </div>
 
-                {/* Image Container */}
-                <div className="relative h-48 w-full mb-4 rounded-xl overflow-hidden bg-muted/20">
+                {/* Image Container (4:3 aspect ratio) */}
+                <div className="relative w-full aspect-[4/3] mb-4 overflow-hidden rounded-t-[inherit] bg-zinc-100 dark:bg-zinc-900 group border-b border-border/50">
                     {!isLoaded && (
-                        <div className="absolute inset-0 bg-muted/20 animate-pulse" />
+                        <div className="absolute inset-0 bg-muted/20 animate-pulse z-10" />
                     )}
+                    
+                    {/* Blurred Background Layer */}
+                    <div className="absolute inset-0 overflow-hidden">
+                        <Image
+                            src={mainImage}
+                            alt=""
+                            fill
+                            className={clsx(
+                                "object-cover blur-xl scale-110 opacity-60 transition-opacity duration-500",
+                                isLoaded ? "opacity-60" : "opacity-0"
+                            )}
+                        />
+                        <div className="absolute inset-0 bg-white/30 dark:bg-black/30 backdrop-blur-sm" />
+                    </div>
+
+                    {/* Foreground Sharp Image */}
                     <Image
                         src={mainImage}
                         alt={product.name}
                         fill
                         onLoadingComplete={() => setIsLoaded(true)}
                         className={clsx(
-                            "object-cover transition-all duration-500 group-hover:scale-110",
+                            "object-contain z-10 transition-transform duration-700 ease-out group-hover:scale-105 drop-shadow-xl p-2",
                             isLoaded ? "opacity-100" : "opacity-0"
-                        )} />
-                    {/* Scanline overlay on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        )} 
+                    />
+                    
+                    {/* Dark gradient overlay on hover */}
+                    <div className="absolute inset-0 z-20 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                 </div>
 
                 {/* Content */}
