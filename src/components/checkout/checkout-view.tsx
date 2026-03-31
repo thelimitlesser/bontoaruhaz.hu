@@ -81,7 +81,12 @@ export default function CheckoutView() {
                 setPaymentIntentError(null);
                 try {
                     const res = await createPaymentIntent(grandTotal);
-                    setClientSecret(res.clientSecret);
+                    if (res.error) {
+                        throw new Error(res.error);
+                    }
+                    if (res.clientSecret) {
+                        setClientSecret(res.clientSecret);
+                    }
                     setLastIntentAmount(grandTotal);
                 } catch (err: any) {
                     console.error("Failed to fetch client secret:", err);

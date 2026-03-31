@@ -10,7 +10,7 @@ export async function createPaymentIntent(amount: number) {
     // Existing check for stripe
     if (!stripe) {
         console.error("Stripe initialization failed: stripe object is null. Check STRIPE_SECRET_KEY.");
-        throw new Error("Stripe beállítások hiányoznak a szerveren. Kérjük add meg a STRIPE_SECRET_KEY-t a Vercelen!");
+        return { error: "Stripe beállítások hiányoznak a szerveren. Kérjük add meg a STRIPE_SECRET_KEY-t a Vercelen, majd telepítsd újra (Redeploy) a weboldalt!" };
     }
 
     try {
@@ -42,9 +42,9 @@ export async function createPaymentIntent(amount: number) {
         });
         
         if (error.type === 'StripeAuthenticationError') {
-            throw new Error("Stripe hitelesítési hiba. Kérjük ellenőrizd a STRIPE_SECRET_KEY-t a Vercelen!");
+            return { error: "Stripe hitelesítési hiba. Kérjük ellenőrizd a STRIPE_SECRET_KEY-t a Vercelen (Redeploy szükséges lehet)!" };
         }
         
-        throw new Error(`Stripe hiba: ${error.message || "Hiba történt a fizetés indítása közben."}`);
+        return { error: `Stripe hiba: ${error.message || "Hiba történt a fizetés indítása közben."}` };
     }
 }
