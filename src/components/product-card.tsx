@@ -109,14 +109,16 @@ export function ProductCard({ product }: { product: Product | any }) {
                         </span>
                     </div>
 
-                    <h3 className="text-lg font-bold text-foreground mb-1 leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-2">
+                    <h3 className={clsx("text-lg font-bold text-foreground leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-2", (!product?.sku || product.sku === "SKU-HIÁNY") ? "mb-5" : "mb-1")}>
                         {product?.name || "Név nélküli termék"}
                     </h3>
-                    <p className="text-xs text-muted mb-4 font-mono">{product?.sku || "SKU-HIÁNY"}</p>
+                    {product?.sku && product.sku !== "SKU-HIÁNY" && (
+                        <p className="text-xs text-muted mb-4 font-mono">{product.sku}</p>
+                    )}
 
                     <div className="mt-auto flex items-end justify-between">
                         <div className="flex flex-col">
-                            <span className="text-xs text-muted">Bruttó ár:</span>
+                            <span className="text-xs text-muted">Vételár:</span>
                             <span className="text-xl font-bold text-foreground group-hover:text-[var(--color-primary)] transition-colors">
                                 {displayPrice?.toLocaleString('hu-HU')} {displayCurrency}
                             </span>
