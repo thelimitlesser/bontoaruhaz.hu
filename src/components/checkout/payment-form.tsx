@@ -7,7 +7,7 @@ import {
     useElements
 } from "@stripe/react-stripe-js";
 import { CreditCard, Loader2, AlertCircle, Truck, ShoppingBag } from "lucide-react";
-import { createOrder } from "@/app/actions/order";
+import { createOrder, createPendingOrder } from "@/app/actions/order";
 import { validateCartReservations } from "@/app/actions/reservation";
 import { useCart } from "@/context/cart-context";
 import { useRouter } from "next/navigation";
@@ -67,9 +67,6 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, b
         // This ensures that even if Stripe redirects the user to their bank for 3D Secure,
         // we have a record of the order waiting for payment.
         try {
-            // Import dynamically or ensure it's imported at the top. We'll use fetch or server action directly.
-            // Wait, we need to import createPendingOrder at the top.
-            const { createPendingOrder } = await import('@/app/actions/order');
             await createPendingOrder({
                 items,
                 customerData: formData,
