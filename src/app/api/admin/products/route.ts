@@ -9,6 +9,7 @@ export async function POST(req: Request) {
     try {
         const formData = await req.formData();
         const rawFormData = parseProductFormData(formData);
+        console.log("POST /api/admin/products - rawFormData.sku:", rawFormData.sku);
         const productId = formData.get('id') as string | null;
 
         // 1. Validation
