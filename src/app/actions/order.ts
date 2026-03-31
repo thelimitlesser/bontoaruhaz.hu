@@ -130,8 +130,11 @@ export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: s
 
         revalidatePath('/admin/orders');
         revalidatePath('/', 'layout'); // Ensure public pages reflect the new stock immediately
+        // @ts-ignore
         revalidateTag('products'); // Clear unstable_cache for products
+        // @ts-ignore
         revalidateTag('parts');
+        // @ts-ignore
         revalidateTag('search');
         return { success: true };
     }
@@ -238,8 +241,11 @@ export async function createOrder(data: {
 
     revalidatePath('/admin/orders');
     revalidatePath('/', 'layout'); // Ensure public pages reflect the new stock immediately
+    // @ts-ignore
     revalidateTag('products'); // Clear unstable_cache for products
+    // @ts-ignore
     revalidateTag('parts');
+    // @ts-ignore
     revalidateTag('search');
     return order;
 }

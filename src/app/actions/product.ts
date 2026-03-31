@@ -791,16 +791,17 @@ export const getRelatedProducts = unstable_cache(
                 where: {
                     id: { not: currentProductId },
                     stock: { gt: 0 },
+                    brandId: brandId, // MUST match the current brand
                     OR: [
-                        { modelId: modelId },
-                        { brandId: brandId },
+                        { modelId: modelId }, // Prefer same model
                         { isUniversal: true }
                     ]
                 },
                 take: take,
-                orderBy: {
-                    createdAt: 'desc'
-                },
+                orderBy: [
+                    { modelId: 'desc' }, // Sort to put exact model matches first (if modelId matches, it will be grouped)
+                    { createdAt: 'desc' }
+                ],
                 select: {
                     id: true,
                     name: true,

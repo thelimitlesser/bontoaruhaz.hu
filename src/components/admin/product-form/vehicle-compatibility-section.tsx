@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
 import { SearchableSelect } from "@/components/ui/searchable-select";
+import { YearSelect } from "@/components/ui/year-select";
 import clsx from "clsx";
 
 interface VehicleCompatibilitySectionProps {
@@ -106,20 +107,22 @@ export function VehicleCompatibilitySection({
                             </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Évjárat (mettől)</label>
-                                <input
-                                    name="yearFrom" type="number"
-                                    value={yearFrom} onChange={(e) => setYearFrom(e.target.value)}
-                                    placeholder="pl. 2012" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-700">Évjárat (meddig)</label>
-                                <input
-                                    name="yearTo" type="number"
-                                    value={yearTo} onChange={(e) => setYearTo(e.target.value)}
-                                    placeholder="pl. 2020" className="w-full bg-white border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" />
-                            </div>
+                            <YearSelect 
+                                label="Évjárat (mettől)"
+                                value={yearFrom} 
+                                onChange={setYearFrom}
+                                placeholder="Válassz évet..." 
+                                minYear={2000}
+                                maxYear={2030}
+                            />
+                            <YearSelect 
+                                label="Évjárat (meddig)"
+                                value={yearTo} 
+                                onChange={setYearTo}
+                                placeholder="Válassz évet..." 
+                                minYear={2000}
+                                maxYear={2030}
+                            />
                         </div>
                     </div>
 
@@ -170,11 +173,27 @@ export function VehicleCompatibilitySection({
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Mettől</label>
-                                    <input type="number" placeholder="Év" value={addYearFrom} onChange={e => setAddYearFrom(e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-green-500 shadow-sm text-gray-900" style={{ height: '46px' }} />
+                                    <div className="relative" style={{ height: '46px' }}>
+                                        <YearSelect 
+                                            value={addYearFrom} 
+                                            onChange={setAddYearFrom}
+                                            placeholder="Év" 
+                                            minYear={2000}
+                                            maxYear={2030}
+                                        />
+                                    </div>
                                 </div>
                                 <div className="md:col-span-2">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Meddig</label>
-                                    <input type="number" placeholder="Év" value={addYearTo} onChange={e => setAddYearTo(e.target.value)} className="w-full bg-white border border-gray-200 rounded-lg px-3 py-3 text-sm focus:outline-none focus:border-green-500 shadow-sm text-gray-900" style={{ height: '46px' }} />
+                                    <div className="relative" style={{ height: '46px' }}>
+                                        <YearSelect 
+                                            value={addYearTo} 
+                                            onChange={setAddYearTo}
+                                            placeholder="Év" 
+                                            minYear={2000}
+                                            maxYear={2030}
+                                        />
+                                    </div>
                                 </div>
                                 <div className="md:col-span-2">
                                     <button

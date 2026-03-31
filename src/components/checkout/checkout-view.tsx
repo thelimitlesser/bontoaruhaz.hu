@@ -487,16 +487,21 @@ export default function CheckoutView() {
                             {/* Stripe Payment Form */}
                             {paymentMethod === 'card' ? (
                                 clientSecret ? (
-                                    <Elements stripe={stripePromise} options={{ clientSecret }}>
-                                        <PaymentForm 
-                                            formData={formData} 
-                                            totalAmount={grandTotal} 
-                                            shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'} 
-                                            isCompany={isCompany}
-                                            billingSameAsShipping={billingSameAsShipping}
-                                            clientSecret={clientSecret}
-                                        />
-                                    </Elements>
+                                    <div className="space-y-6">
+                                        <div className="p-8 border border-dashed border-border rounded-xl text-center text-muted italic">
+                                            Stripe form ideiglenesen kikapcsolva hibakereséshez.
+                                        </div>
+                                        {/* <Elements stripe={stripePromise} options={{ clientSecret }}>
+                                            <PaymentForm 
+                                                formData={formData} 
+                                                totalAmount={grandTotal} 
+                                                shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'} 
+                                                isCompany={isCompany}
+                                                billingSameAsShipping={billingSameAsShipping}
+                                                clientSecret={clientSecret}
+                                            />
+                                        </Elements> */}
+                                    </div>
                                 ) : (
                                     <div className="space-y-4">
                                         <button

@@ -33,7 +33,17 @@ export async function createPaymentIntent(amount: number) {
             paymentIntentId: paymentIntent.id
         };
     } catch (error: any) {
-        console.error("Stripe PaymentIntent Error:", error);
-        throw new Error("Hiba történt a fizetés indítása közben.");
+        console.error("DEBUG - Stripe PaymentIntent Error Details:", {
+            message: error.message,
+            code: error.code,
+            type: error.type,
+            stack: error.stack
+        });
+        
+        if (error.type === 'StripeAuthenticationError') {
+            throw new Error("Stripe hitelesítési hiba. Kérjük ellenőrizd a STRIPE_SECRET_KEY-t a Vercelen!");
+        }
+        
+        throw new Error(`Stripe hiba: ${error.message || "Hiba történt a fizetés indítása közben."}`);
     }
 }

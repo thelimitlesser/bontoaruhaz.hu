@@ -12,7 +12,7 @@ export async function POST(req: Request) {
         const productId = formData.get('id') as string | null;
 
         // 1. Validation
-        if (!rawFormData.name || !rawFormData.sku || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice) || 
+        if (!rawFormData.name || !rawFormData.priceGross || rawFormData.shippingPrice === null || isNaN(rawFormData.shippingPrice) || 
             !rawFormData.weight || !rawFormData.length || !rawFormData.width || !rawFormData.height) {
             return NextResponse.json({ error: "Hiányzó kötelező mezők!" }, { status: 400 });
         }
@@ -94,7 +94,7 @@ export async function POST(req: Request) {
 
         const productData: any = {
             name: rawFormData.name,
-            sku: rawFormData.sku,
+            sku: rawFormData.sku ? rawFormData.sku : null,
             engineCode: rawFormData.engineCode,
             productCode: rawFormData.productCode,
             description: rawFormData.description,
