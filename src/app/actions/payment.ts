@@ -9,6 +9,7 @@ export async function createPaymentIntent(amount: number) {
 
     // Existing check for stripe
     if (!stripe) {
+        console.error("Stripe initialization failed: stripe object is null. Check STRIPE_SECRET_KEY.");
         throw new Error("Stripe beállítások hiányoznak a szerveren. Kérjük add meg a STRIPE_SECRET_KEY-t a Vercelen!");
     }
 
