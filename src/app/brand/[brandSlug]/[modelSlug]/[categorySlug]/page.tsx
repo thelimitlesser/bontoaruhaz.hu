@@ -15,9 +15,14 @@ export default async function CategoryProductsPage({
     const resolvedParams = await params;
     const { brandSlug, modelSlug, categorySlug } = resolvedParams;
 
-    const brand = await prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } });
-    const model = await prisma.vehicleModel.findFirst({ where: { slug: modelSlug, brandId: brand?.id } });
-    const category = await prisma.partCategory.findUnique({ where: { slug: categorySlug } });
+    const [brand, category] = await Promise.all([
+        prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } }),
+        prisma.partCategory.findUnique({ where: { slug: categorySlug } })
+    ]);
+
+    const model = brand 
+        ? await prisma.vehicleModel.findFirst({ where: { slug: modelSlug, brandId: brand.id } })
+        : null;
 
     if (!brand || !model || !category) {
         notFound();

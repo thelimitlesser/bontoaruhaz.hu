@@ -88,7 +88,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
     brandName: comp.VehicleModel.VehicleBrand.name,
     modelName: comp.VehicleModel.name
   }));
-  const relatedProducts = await getRelatedProducts(dbPart.id, dbPart.modelId, dbPart.brandId, 4);
+
 
   const normalizedCondition = (dbPart.condition || "USED").toUpperCase();
   const conditionMap: Record<string, string> = { 

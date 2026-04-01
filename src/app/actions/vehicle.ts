@@ -76,27 +76,38 @@ export const getModelsByBrandAction = unstable_cache(
 
 export const getActivePartOptionsAction = unstable_cache(
     async (brandId?: string, modelId?: string) => {
+        // Step 1: Find all distinct PartItem IDs associated with active parts for this brand/model
+        // Using distinct on Part is faster than nested 'some' joins on PartItem for large datasets
+        const parts = await prisma.part.findMany({
+            where: {
+                stock: { gt: 0 },
+                AND: [
+                    brandId ? {
+                        OR: [
+                            { brandId: brandId },
+                            { compatibilities: { some: { brandId: brandId } } }
+                        ]
+                    } : {},
+                    modelId ? {
+                        OR: [
+                            { modelId: modelId },
+                            { compatibilities: { some: { modelId: modelId } } }
+                        ]
+                    } : {}
+                ]
+            },
+            distinct: ['partItemId'],
+            select: { partItemId: true }
+        });
+
+        const activePartItemIds = parts.map(p => p.partItemId).filter(Boolean) as string[];
+
+        if (activePartItemIds.length === 0) return [];
+
+        // Step 2: Fetch the actual PartItem details
         const activePartItems = await prisma.partItem.findMany({
             where: {
-                Part: {
-                    some: {
-                        stock: { gt: 0 },
-                        AND: [
-                            brandId ? {
-                                OR: [
-                                    { brandId: brandId },
-                                    { compatibilities: { some: { brandId: brandId } } }
-                                ]
-                            } : {},
-                            modelId ? {
-                                OR: [
-                                    { modelId: modelId },
-                                    { compatibilities: { some: { modelId: modelId } } }
-                                ]
-                            } : {}
-                        ]
-                    }
-                }
+                id: { in: activePartItemIds }
             },
             include: {
                 PartSubcategory: {
@@ -104,7 +115,8 @@ export const getActivePartOptionsAction = unstable_cache(
                         PartCategory: true
                     }
                 }
-            }
+            },
+            orderBy: { name: 'asc' }
         });
 
         return activePartItems.map(item => ({
@@ -207,18 +219,10 @@ export const getActivePartItemsForModelAction = unstable_cache(
 export const getVehicleSelectorDataAction = unstable_cache(
     async () => {
         const brands = await getBrandsAction();
-        // Parallel fetch models for all brands to pre-warm the cache
-        const modelsPromises = brands.map(brand => getModelsByBrandAction(brand.id));
-        const allModels = await Promise.all(modelsPromises);
         
-        const modelsMap: Record<string, any[]> = {};
-        brands.forEach((brand, index) => {
-            modelsMap[brand.id] = allModels[index];
-        });
-
         return {
             brands,
-            modelsMap
+            modelsMap: {} // We fetch models on demand now to improve initial home page speed
         };
     },
     ["vehicle-selector-bootstrap"],
