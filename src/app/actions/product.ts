@@ -901,7 +901,11 @@ export async function getProductPageDataAction(id: string) {
                     PartItem: true,
                     compatibilities: {
                         include: {
-                            VehicleModel: true
+                            VehicleModel: {
+                                include: {
+                                    VehicleBrand: true
+                                }
+                            }
                         }
                     },
                     reservations: {
