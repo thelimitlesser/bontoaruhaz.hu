@@ -16,7 +16,7 @@ export async function sendContactEmail(formData: FormData) {
         const resend = new Resend(process.env.RESEND_API_KEY!);
 
         const { data, error } = await resend.emails.send({
-            from:"Kapcsolat <onboarding@resend.dev>", // Or your domain: noreply@bontoaruhaz.hu
+            from: "Bontóáruház Kapcsolat <info@bontoaruhaz.hu>",
             to: ["info@bontoaruhaz.hu"],
             subject:`Új üzenet a BONTÓÁRUHÁZ kapcsolat oldaláról: ${subject}`,
             html:` <h2>Új üzenet érkezett!</h2>

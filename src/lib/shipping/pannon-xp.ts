@@ -378,23 +378,23 @@ export async function performPxpManifest(trackingNumbers?: string[]) {
     const cserekulcs = (process.env.PXP_CSEREKULCS || PXP_CONFIG.cserekulcs).trim();
 
     try {
-        let manifestRequest: any = {
-            ugyfelkod: ugyfelkod,
-            napizaras: true
-        };
-
-        // If specific tracking numbers are provided, nest them inside napizaras
-        if (trackingNumbers && trackingNumbers.length > 0) {
-            manifestRequest.napizaras = {};
-            trackingNumbers.forEach((tn, index) => {
-                manifestRequest.napizaras[index.toString()] = {
-                    kuldemenyszam: tn,
-                    ugyfelkod: ugyfelkod
-                };
-            });
+        if (!trackingNumbers || trackingNumbers.length === 0) {
+            return { success: false, error: "Nincs lezárható követési szám megadva." };
         }
 
-        console.log("Sending PXP Manifest Request (sample):", JSON.stringify(manifestRequest).slice(0, 200));
+        let manifestRequest: any = {
+            ugyfelkod: ugyfelkod,
+            napizaras: {}
+        };
+
+        trackingNumbers.forEach((tn, index) => {
+            manifestRequest.napizaras[index.toString()] = {
+                kuldemenyszam: tn,
+                ugyfelkod: ugyfelkod
+            };
+        });
+
+        console.log(`Sending PXP Manifest Request for ${trackingNumbers.length} items...`);
 
         const encryptedRequest = encryptData(manifestRequest, cserekulcs);
 

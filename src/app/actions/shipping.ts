@@ -84,6 +84,11 @@ export async function closePxpDay() {
             select: { trackingNumber: true }
         });
         const trackingNumbers = ordersToManifest.map(o => o.trackingNumber as string);
+        
+        if (trackingNumbers.length === 0) {
+            return { success: false, error: "Nincs lezárható (fuvarlevéllel rendelkező) csomag a listában." };
+        }
+
         console.log("Orders attempting to manifest:", trackingNumbers);
 
         const result = await performPxpManifest(trackingNumbers);
@@ -94,7 +99,8 @@ export async function closePxpDay() {
             if (trackingNumbers.length > 0) {
                 const updateRes = await prisma.order.updateMany({
                     where: {
-                        trackingNumber: { in: trackingNumbers }
+                        trackingNumber: { in: trackingNumbers },
+                        status: 'PROCESSING'
                     },
                     data: {
                         status: 'SHIPPED'

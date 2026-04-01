@@ -1,12 +1,11 @@
-import { getRelatedProducts, getProductPageDataAction } from "@/app/actions/product";
+import { getRelatedProducts, getProductPageDataAction, getProductMetadataAction } from "@/app/actions/product";
 import { extractIdFromSlug, getProductSlug, getProductUrl } from "@/utils/slug";
 import { redirect } from "next/navigation";
 import { ArrowLeft, CheckCircle2, ShieldCheck, Truck, Star, Settings, Calendar, Hash, Factory, Info, Phone, HelpCircle, Globe, ChevronRight, Box } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import Image from "next/image";
 import { ProductGallery } from "@/components/product-gallery";
-import { CompatibilityTable } from "@/components/compatibility-table";
+import { CompatibilityWrapper } from "@/components/compatibility-wrapper";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Product } from "@/lib/mock-data";
 import { RelatedProductsWrapper } from "@/components/related-products-wrapper";
@@ -16,13 +15,10 @@ export const revalidate = 3600; // Enable ISR
 export async function generateMetadata({ params }: { params: Promise<{ slug_id: string }> }): Promise<import("next").Metadata> {
   const { slug_id } = await params;
   const id = extractIdFromSlug(slug_id);
-  const data = await getProductPageDataAction(id);
+  const data = await getProductMetadataAction(id);
   if (!data) return { title: "Termék nem található" };
 
-  const { dbPart, brandObj, modelObj } = data;
-
-  const brandName = brandObj?.name || dbPart.brandId || "";
-  const modelName = modelObj?.name || dbPart.modelId || "";
+  const { dbPart, brandName, modelName } = data;
   
   const title = `[Bontott] ${brandName} ${modelName} ${dbPart.name} | Bontóáruház`;
   const description = dbPart.description 
@@ -81,13 +77,6 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
   if (slug_id !== canonicalSlugId) {
     redirect(`/product/${canonicalSlugId}`);
   }
-
-  // Format extra compatibilities with names
-  const enhancedCompatibilities = dbPart.compatibilities.map(comp => ({
-    ...comp,
-    brandName: comp.VehicleModel.VehicleBrand.name,
-    modelName: comp.VehicleModel.name
-  }));
 
 
   const normalizedCondition = (dbPart.condition || "USED").toUpperCase();
@@ -331,13 +320,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
 
               {/* Compatibility Area */}
               <div className="px-6 pb-6 pt-2 md:px-8 md:pb-8 md:pt-4 bg-foreground/[0.01]">
-                <CompatibilityTable
+                <CompatibilityWrapper
+                  partId={dbPart.id}
                   brand={product.brand}
                   model={product.model}
                   yearFrom={dbPart?.yearFrom}
                   yearTo={dbPart?.yearTo}
                   isUniversal={dbPart?.isUniversal}
-                  extraCompatibilities={enhancedCompatibilities}
                 />
               </div>
             </div>

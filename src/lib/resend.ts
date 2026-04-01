@@ -26,7 +26,7 @@ export async function sendOrderReceivedEmail(order: any, customerEmail: string) 
 
     try {
         const result = await resend.emails.send({
-            from: 'Bontóáruház <no-reply@bontoaruhaz.hu>',
+            from: 'Bontóáruház <info@bontoaruhaz.hu>',
             to: customerEmail,
             subject: 'Rendelésedet megkaptuk - Ellenőrzés alatt',
             html: `
@@ -121,7 +121,7 @@ export async function sendOrderConfirmedEmail(order: any, customerEmail: string,
 
     try {
         await resend.emails.send({
-            from: 'Bontóáruház <no-reply@bontoaruhaz.hu>',
+            from: 'Bontóáruház <info@bontoaruhaz.hu>',
             to: customerEmail,
             subject: 'Rendelésedet jóváhagytuk! - Bontóáruház',
             html: `
@@ -222,7 +222,7 @@ export async function sendOrderReadyForPickupEmail(order: any, customerEmail: st
 
     try {
         await resend.emails.send({
-            from: 'Bontóáruház <no-reply@bontoaruhaz.hu>',
+            from: 'Bontóáruház <info@bontoaruhaz.hu>',
             to: customerEmail,
             subject: 'Rendelésed átvehető! - Bontóáruház',
             html: `

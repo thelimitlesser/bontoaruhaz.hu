@@ -888,6 +888,37 @@ export async function getDirectMatchAction(query: string) {
         { revalidate: 3600, tags: ["search"] }
     )(query);
 }
+export const getProductMetadataAction = cache(async (id: string) => {
+    return unstable_cache(
+        async (id: string) => {
+            const dbPart = await prisma.part.findUnique({
+                where: { id },
+                select: {
+                    id: true,
+                    name: true,
+                    description: true,
+                    images: true,
+                    sku: true,
+                    brandId: true,
+                    modelId: true,
+                    VehicleBrand: { select: { name: true } },
+                    VehicleModel: { select: { name: true } }
+                }
+            });
+
+            if (!dbPart) return null;
+
+            return {
+                dbPart,
+                brandName: dbPart.VehicleBrand?.name || dbPart.brandId || "",
+                modelName: dbPart.VehicleModel?.name || dbPart.modelId || "",
+            };
+        },
+        ["product-metadata", id],
+        { revalidate: 3600, tags: ["products"] }
+    )(id);
+});
+
 export const getProductPageDataAction = cache(async (id: string) => {
     return unstable_cache(
         async (id: string) => {
@@ -899,15 +930,6 @@ export const getProductPageDataAction = cache(async (id: string) => {
                     PartCategory: true,
                     PartSubcategory: true,
                     PartItem: true,
-                    compatibilities: {
-                        include: {
-                            VehicleModel: {
-                                include: {
-                                    VehicleBrand: true
-                                }
-                            }
-                        }
-                    },
                     reservations: {
                         where: { expiresAt: { gt: new Date() } }
                     }
@@ -925,9 +947,34 @@ export const getProductPageDataAction = cache(async (id: string) => {
                 partItemObj: dbPart.PartItem
             };
         },
-        ["product-page-data", id],
+        ["product-page-data-v2", id],
         { revalidate: 3600, tags: ["products"] }
     )(id);
+});
+
+export const getProductCompatibilitiesAction = cache(async (partId: string) => {
+    return unstable_cache(
+        async (partId: string) => {
+            const compatibilities = await prisma.partCompatibility.findMany({
+                where: { partId },
+                include: {
+                    VehicleModel: {
+                        include: {
+                            VehicleBrand: true
+                        }
+                    }
+                }
+            });
+
+            return compatibilities.map(comp => ({
+                ...comp,
+                brandName: comp.VehicleModel?.VehicleBrand?.name || "Ismeretlen",
+                modelName: comp.VehicleModel?.name || "Ismeretlen"
+            }));
+        },
+        ["product-compatibilities", partId],
+        { revalidate: 3600, tags: ["products"] }
+    )(partId);
 });
 
 /**
