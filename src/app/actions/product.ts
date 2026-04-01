@@ -888,7 +888,7 @@ export async function getDirectMatchAction(query: string) {
         { revalidate: 3600, tags: ["search"] }
     )(query);
 }
-export async function getProductPageDataAction(id: string) {
+export const getProductPageDataAction = cache(async (id: string) => {
     return unstable_cache(
         async (id: string) => {
             const dbPart = await prisma.part.findUnique({
@@ -928,7 +928,7 @@ export async function getProductPageDataAction(id: string) {
         ["product-page-data", id],
         { revalidate: 3600, tags: ["products"] }
     )(id);
-}
+});
 
 /**
  * Consolidated fetcher for the category products page to eliminate waterfall loading.
