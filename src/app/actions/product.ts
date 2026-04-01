@@ -362,7 +362,7 @@ You can now specify the **Motorkód** during product upload:
 
 ![Engine Code Field in Admin Form](/filled_motorkod_field_1773423123942.png)
 */
-export const getSearchProducts = (params: {
+export async function getSearchProducts(params: {
     brand?: string;
     model?: string;
     category?: string;
@@ -375,8 +375,10 @@ export const getSearchProducts = (params: {
     take?: number;
     skip?: number;
     sortBy?: string;
-}) => unstable_cache(
-    async (params) => {
+}) {
+    return unstable_cache(
+        async (params) => {
+            // ... (rest of logic)
         let { query, year: searchYear } = params;
         const { brand, model, category, subcategory, partItem, minPrice, maxPrice, take = 20, skip = 0, sortBy = 'newest' } = params;
         // ... (rest of search logic remains same)
@@ -442,12 +444,12 @@ export const getSearchProducts = (params: {
 
         if (query) {
             const queryLower = query.toLowerCase();
-            const queryWords = queryLower.split(/\s+/).filter(w => w.length > 2);
+            const queryWords = queryLower.split(/\s+/).filter((w: string) => w.length > 2);
 
             const synonymsToSearch = new Set<string>();
-            queryWords.forEach(word => {
+            queryWords.forEach((word: string) => {
                 if (partSynonyms[word]) {
-                    partSynonyms[word].forEach(s => synonymsToSearch.add(s));
+                    partSynonyms[word].forEach((s: string) => synonymsToSearch.add(s));
                 }
             });
 
@@ -632,23 +634,24 @@ export const getSearchProducts = (params: {
             partItem ? prisma.partItem.findUnique({ where: { id: partItem }, select: { name: true } }) : null
         ]);
 
-        return {
-            parts: enhancedParts,
-            total,
-            meta: {
-                detectedYear: searchYear,
-                detectedBrand: matchingBrands[0]?.name,
-                detectedModel: detectedModelLabel,
-                suggestion,
-                categoryName: activeCat?.name,
-                subcategoryName: activeSubcat?.name,
-                partItemName: activeItem?.name
-            }
-        };
-    },
-    ["product-search", JSON.stringify(params)],
-    { revalidate: 3600, tags: ["products"] }
-)(params);
+            return {
+                parts: enhancedParts,
+                total,
+                meta: {
+                    detectedYear: searchYear,
+                    detectedBrand: matchingBrands[0]?.name,
+                    detectedModel: detectedModelLabel,
+                    suggestion,
+                    categoryName: activeCat?.name,
+                    subcategoryName: activeSubcat?.name,
+                    partItemName: activeItem?.name
+                }
+            };
+        },
+        ["product-search", JSON.stringify(params)],
+        { revalidate: 3600, tags: ["products"] }
+    )(params);
+}
 
 
 
@@ -784,107 +787,108 @@ export async function checkDuplicateProduct(name: string, excludeId?: string) {
     }
 }
 
-export const getRelatedProducts = (currentProductId: string, modelId: string | null, brandId: string | null, take: number = 4) => unstable_cache(
-    async (currentProductId: string, modelId: string | null, brandId: string | null, take: number) => {
-        try {
-            const products = await prisma.part.findMany({
-                where: {
-                    id: { not: currentProductId },
-                    stock: { gt: 0 },
-                    brandId: brandId, // MUST match the current brand
-                    OR: [
-                        { modelId: modelId }, // Prefer same model
-                        { isUniversal: true }
-                    ]
-                },
-                take: take,
-                orderBy: [
-                    { modelId: 'desc' }, // Sort to put exact model matches first (if modelId matches, it will be grouped)
-                    { createdAt: 'desc' }
-                ],
-                select: {
-                    id: true,
-                    name: true,
-                    priceGross: true,
-                    images: true,
-                    sku: true,
-                    brandId: true,
-                    modelId: true
-                }
-            });
+export async function getRelatedProducts(currentProductId: string, modelId: string | null, brandId: string | null, take: number = 4) {
+    return unstable_cache(
+        async (currentProductId: string, modelId: string | null, brandId: string | null, take: number) => {
+            try {
+                const products = await prisma.part.findMany({
+                    where: {
+                        id: { not: currentProductId },
+                        stock: { gt: 0 },
+                        brandId: brandId,
+                        OR: [
+                            { modelId: modelId },
+                            { isUniversal: true }
+                        ]
+                    },
+                    take: take,
+                    orderBy: [
+                        { modelId: 'desc' },
+                        { createdAt: 'desc' }
+                    ],
+                    select: {
+                        id: true,
+                        name: true,
+                        priceGross: true,
+                        images: true,
+                        sku: true,
+                        brandId: true,
+                        modelId: true
+                    }
+                });
 
-            // Add brand/model names from DB
-            const [dbBrands, dbModels] = await Promise.all([
-                prisma.vehicleBrand.findMany({ where: { id: { in: products.map(p => p.brandId).filter(Boolean) as string[] } } }),
-                prisma.vehicleModel.findMany({ where: { id: { in: products.map(p => p.modelId).filter(Boolean) as string[] } } })
-            ]);
+                const [dbBrands, dbModels] = await Promise.all([
+                    prisma.vehicleBrand.findMany({ where: { id: { in: products.map(p => p.brandId).filter(Boolean) as string[] } } }),
+                    prisma.vehicleModel.findMany({ where: { id: { in: products.map(p => p.modelId).filter(Boolean) as string[] } } })
+                ]);
 
-            return products.map(p => ({
-                ...p,
-                brandName: dbBrands.find(b => b.id === p.brandId)?.name || p.brandId,
-                modelName: dbModels.find(m => m.id === p.modelId)?.name || p.modelId
-            }));
-        } catch (error) {
-            console.error("Error fetching related products:", error);
-            return [];
-        }
-    },
-    ["related-products", currentProductId],
-    { revalidate: 3600, tags: ["products"] }
-)(currentProductId, modelId, brandId, take);
+                return products.map(p => ({
+                    ...p,
+                    brandName: dbBrands.find(b => b.id === p.brandId)?.name || p.brandId,
+                    modelName: dbModels.find(m => m.id === p.modelId)?.name || p.modelId
+                }));
+            } catch (error) {
+                console.error("Error fetching related products:", error);
+                return [];
+            }
+        },
+        ["related-products", currentProductId],
+        { revalidate: 3600, tags: ["products"] }
+    )(currentProductId, modelId, brandId, take);
+}
 
 /**
  * Checks if a search query matches exactly one product by SKU or Product Code.
  * Returns the product ID if a single unique match is found, or if there is 
  * an exact SKU/Product Code match despite other partial matches.
  */
-export const getDirectMatchAction = (query: string) => unstable_cache(
-    async (query: string) => {
-        if (!query || query.trim().length < 3) return null;
+export async function getDirectMatchAction(query: string) {
+    return unstable_cache(
+        async (query: string) => {
+            if (!query || query.trim().length < 3) return null;
 
-        const cleanQuery = query.trim();
+            const cleanQuery = query.trim();
 
-        try {
-            const parts = await prisma.part.findMany({
-                where: {
-                    stock: { gt: 0 },
-                    OR: [
-                        { sku: { equals: cleanQuery, mode: 'insensitive' } },
-                        { productCode: { equals: cleanQuery, mode: 'insensitive' } },
-                        { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } }
-                    ]
-                },
-                select: { id: true, sku: true, productCode: true },
-                take: 5 // Take a few to check for exactness
-            });
+            try {
+                const parts = await prisma.part.findMany({
+                    where: {
+                        stock: { gt: 0 },
+                        OR: [
+                            { sku: { equals: cleanQuery, mode: 'insensitive' } },
+                            { productCode: { equals: cleanQuery, mode: 'insensitive' } },
+                            { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } }
+                        ]
+                    },
+                    select: { id: true, sku: true, productCode: true },
+                    take: 5
+                });
 
-            if (parts.length === 0) return null;
+                if (parts.length === 0) return null;
 
-            // 1. Look for exact SKU or Product Code match (highest priority)
-            const strictMatch = parts.find(p => 
-                (p.sku && p.sku.toLowerCase() === cleanQuery.toLowerCase()) || 
-                (p.productCode && p.productCode.toLowerCase() === cleanQuery.toLowerCase())
-            );
+                const strictMatch = parts.find(p => 
+                    (p.sku && p.sku.toLowerCase() === cleanQuery.toLowerCase()) || 
+                    (p.productCode && p.productCode.toLowerCase() === cleanQuery.toLowerCase())
+                );
 
-            if (strictMatch) {
-                return strictMatch.id;
+                if (strictMatch) {
+                    return strictMatch.id;
+                }
+
+                if (parts.length === 1) {
+                    return parts[0].id;
+                }
+
+                return null;
+            } catch (error) {
+                console.error("Direct match check error:", error);
+                return null;
             }
-
-            // 2. If exactly one result found (even if partial/OEM contains), redirect
-            if (parts.length === 1) {
-                return parts[0].id;
-            }
-
-            return null;
-        } catch (error) {
-            console.error("Direct match check error:", error);
-            return null;
-        }
-    },
-    ["direct-match", query],
-    { revalidate: 3600, tags: ["search"] }
-)(query);
-export const getProductPageDataAction = cache(async (id: string) => {
+        },
+        ["direct-match", query],
+        { revalidate: 3600, tags: ["search"] }
+    )(query);
+}
+export async function getProductPageDataAction(id: string) {
     return unstable_cache(
         async (id: string) => {
             const dbPart = await prisma.part.findUnique({
@@ -920,12 +924,12 @@ export const getProductPageDataAction = cache(async (id: string) => {
         ["product-page-data", id],
         { revalidate: 3600, tags: ["products"] }
     )(id);
-});
+}
 
 /**
  * Consolidated fetcher for the category products page to eliminate waterfall loading.
  */
-export const getCategoryPageDataAction = (params: {
+export async function getCategoryPageDataAction(params: {
     brandId: string;
     modelId: string;
     categoryId: string;
@@ -934,48 +938,44 @@ export const getCategoryPageDataAction = (params: {
     year?: number | null;
     page?: number;
     sortBy?: string;
-}) => unstable_cache(
-    async (params) => {
-        const { brandId, modelId, categoryId, subcatSlug, partItemSlug, year, page = 0, sortBy = 'newest' } = params;
-        const perPage = 24;
+}) {
+    return unstable_cache(
+        async (params) => {
+            const { brandId, modelId, categoryId, subcatSlug, partItemSlug, year, page = 0, sortBy = 'newest' } = params;
+            const perPage = 24;
 
-        // 1. Fetch subcategories
-        const subcategories = await getActiveSubcategoriesForModelAction(brandId, modelId, categoryId);
-        
-        // 2. Find current subcategory if slug provided
-        const currentSubcat = subcatSlug ? subcategories.find(s => s.slug === subcatSlug) : null;
-        
-        // 3. Fetch part items if subcat is active
-        let activeItems: any[] = [];
-        if (currentSubcat) {
-            activeItems = await getActivePartItemsForModelAction(brandId, modelId, currentSubcat.id);
-        }
-        
-        // 4. Find current part item if slug provided
-        const currentPartItem = partItemSlug ? activeItems.find(i => i.slug === partItemSlug) : null;
+            const subcategories = await getActiveSubcategoriesForModelAction(brandId, modelId, categoryId);
+            const currentSubcat = subcatSlug ? subcategories.find(s => s.slug === subcatSlug) : null;
+            
+            let activeItems: any[] = [];
+            if (currentSubcat) {
+                activeItems = await getActivePartItemsForModelAction(brandId, modelId, currentSubcat.id);
+            }
+            
+            const currentPartItem = partItemSlug ? activeItems.find(i => i.slug === partItemSlug) : null;
 
-        // 5. Fetch initial products with pagination
-        const productsResponse = await getSearchProducts({
-            brand: brandId,
-            model: modelId,
-            category: categoryId,
-            subcategory: currentSubcat?.id,
-            partItem: currentPartItem?.id,
-            year: year || undefined,
-            take: perPage,
-            skip: page * perPage,
-            sortBy
-        });
+            const productsResponse = await getSearchProducts({
+                brand: brandId,
+                model: modelId,
+                category: categoryId,
+                subcategory: currentSubcat?.id,
+                partItem: currentPartItem?.id,
+                year: year || undefined,
+                take: perPage,
+                skip: page * perPage,
+                sortBy
+            });
 
-        return {
-            subcategories,
-            activeItems,
-            initialProducts: productsResponse.parts,
-            totalCount: productsResponse.total,
-            page,
-            perPage
-        };
-    },
-    ["category-page-data", JSON.stringify(params)],
-    { revalidate: 3600, tags: ["automotive", "parts", "categories"] }
-)(params);
+            return {
+                subcategories,
+                activeItems,
+                initialProducts: productsResponse.parts,
+                totalCount: productsResponse.total,
+                page,
+                perPage
+            };
+        },
+        ["category-page-data", JSON.stringify(params)],
+        { revalidate: 3600, tags: ["automotive", "parts", "categories"] }
+    )(params);
+}
