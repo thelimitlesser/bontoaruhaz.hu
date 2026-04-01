@@ -897,11 +897,7 @@ export const getProductPageDataAction = cache(async (id: string) => {
                     PartItem: true,
                     compatibilities: {
                         include: {
-                            VehicleModel: {
-                                include: {
-                                    VehicleBrand: true
-                                }
-                            }
+                            VehicleModel: true
                         }
                     },
                     reservations: {
