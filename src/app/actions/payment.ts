@@ -48,3 +48,31 @@ export async function createPaymentIntent(amount: number) {
         return { error: `Stripe hiba: ${error.message || "Hiba történt a fizetés indítása közben."}` };
     }
 }
+
+export async function updatePaymentIntent(id: string, amount: number) {
+    if (!id || !amount || amount < 1) {
+        throw new Error("Érvénytelen adatok");
+    }
+
+    if (!stripe) {
+        console.error("Stripe initialization failed.");
+        return { error: "Stripe hiba." };
+    }
+
+    try {
+        console.log("Updating Stripe PaymentIntent:", id, "for amount:", amount);
+        const stripeAmount = Math.round(amount * 100);
+
+        const paymentIntent = await stripe.paymentIntents.update(id, {
+            amount: stripeAmount,
+        });
+
+        return {
+            clientSecret: paymentIntent.client_secret,
+            paymentIntentId: paymentIntent.id
+        };
+    } catch (error: any) {
+        console.error("DEBUG - Stripe PaymentIntent Update Error:", error);
+        return { error: `Stripe hiba: ${error.message || "Hiba történt a fizetés frissítése közben."}` };
+    }
+}

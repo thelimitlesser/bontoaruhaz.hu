@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { PaymentForm } from "./payment-form";
-import { createPaymentIntent } from "@/app/actions/payment";
+import { createPaymentIntent, updatePaymentIntent } from "@/app/actions/payment";
 import { calculateShippingPriceForItems } from "@/lib/shipping/pxp-rates";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
@@ -38,6 +38,7 @@ export default function CheckoutView() {
     const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
     const [shippingMethod, setShippingMethod] = useState<'delivery' | 'pickup'>('delivery');
     const [paymentMethod, setPaymentMethod] = useState<'card' | 'cod'>('card');
+    const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
 
@@ -59,51 +60,63 @@ export default function CheckoutView() {
 
     const validateTaxNumber = (tax: string) => /^\d{8}-\d{1}-\d{2}$/.test(tax);
 
-    const isFormValid = useCallback(() => {
-        const basicValid = formData.lastName && formData.firstName && formData.email && formData.phone && formData.postalCode && formData.city && formData.address;
-        const companyValid = !isCompany || (formData.companyName && formData.taxNumber && validateTaxNumber(formData.taxNumber));
-        const billingValid = billingSameAsShipping || (formData.billingPostalCode && formData.billingCity && formData.billingAddress);
-        return !!(basicValid && companyValid && billingValid);
-    }, [formData, isCompany, billingSameAsShipping]);
+    // Form validity check (computed every render)
+    const isCurrentlyValid = !!(
+        formData.lastName && 
+        formData.firstName && 
+        formData.email && 
+        formData.phone && 
+        formData.postalCode && 
+        formData.city && 
+        formData.address &&
+        (!isCompany || (formData.companyName && formData.taxNumber && validateTaxNumber(formData.taxNumber))) &&
+        (billingSameAsShipping || (formData.billingPostalCode && formData.billingCity && formData.billingAddress))
+    );
 
     const [lastIntentAmount, setLastIntentAmount] = useState(0);
     const [isFetchingSecret, setIsFetchingSecret] = useState(false);
     const [paymentIntentError, setPaymentIntentError] = useState<string | null>(null);
 
-    // Fetch PaymentIntent when the form becomes valid OR when the total changes
+    // Fetch or Update PaymentIntent when the form becomes valid OR when the total changes
     useEffect(() => {
-        if (isFormValid() && grandTotal > 0 && paymentMethod === 'card') {
-            // Only fetch if amount changed significanty or we don't have a secret
-            if (Math.abs(grandTotal - lastIntentAmount) < 1 && clientSecret) return;
+        if (isCurrentlyValid && grandTotal > 0 && paymentMethod === 'card' && !isFetchingSecret) {
+            // If we have an ID AND amount is the same, do nothing
+            if (paymentIntentId && Math.abs(grandTotal - lastIntentAmount) < 1) return;
 
-            const fetchSecret = async () => {
+            const syncSecret = async () => {
                 setIsFetchingSecret(true);
                 setPaymentIntentError(null);
                 try {
-                    const res = await createPaymentIntent(grandTotal);
-                    if (res.error) {
-                        throw new Error(res.error);
-                    }
+                    console.log(paymentIntentId ? "UPDATING" : "FETCHING", "PAYMENT INTENT for amount:", grandTotal);
+                    
+                    const res = paymentIntentId 
+                        ? await updatePaymentIntent(paymentIntentId, grandTotal)
+                        : await createPaymentIntent(grandTotal);
+
+                    if (res.error) throw new Error(res.error);
+                    
                     if (res.clientSecret) {
                         setClientSecret(res.clientSecret);
+                        setPaymentIntentId(res.paymentIntentId || null);
+                        setLastIntentAmount(grandTotal);
                     }
-                    setLastIntentAmount(grandTotal);
                 } catch (err: any) {
-                    console.error("Failed to fetch client secret:", err);
+                    console.error("Failed to sync client secret:", err);
                     setPaymentIntentError(err.message || "Hiba történt a fizetés előkészítésekor.");
                 } finally {
                     setIsFetchingSecret(false);
                 }
             };
             
-            const timer = setTimeout(fetchSecret, 500); // Small debounce
+            const timer = setTimeout(syncSecret, 800); 
             return () => clearTimeout(timer);
         } else if (paymentMethod !== 'card') {
             setClientSecret(null);
+            setPaymentIntentId(null);
             setLastIntentAmount(0);
             setPaymentIntentError(null);
         }
-    }, [isFormValid, grandTotal, paymentMethod, clientSecret, lastIntentAmount]);
+    }, [isCurrentlyValid, grandTotal, paymentMethod, paymentIntentId, lastIntentAmount, isFetchingSecret]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -521,7 +534,7 @@ export default function CheckoutView() {
                                             </div>
                                         )}
 
-                                        {!isFormValid() && !isFetchingSecret && !paymentIntentError && (
+                                        {!isCurrentlyValid && !isFetchingSecret && !paymentIntentError && (
                                             <p className="text-xs text-center text-muted italic">
                                                 Kérjük töltsd ki az összes kötelező szállítási mezőt a fizetés megkezdéséhez.
                                             </p>
@@ -535,7 +548,7 @@ export default function CheckoutView() {
                                         totalAmount={grandTotal} 
                                         shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'}
                                         paymentMethodOverride="COD"
-                                        isFormValid={isFormValid()}
+                                        isFormValid={isCurrentlyValid}
                                         isCompany={isCompany}
                                         billingSameAsShipping={billingSameAsShipping}
                                     />

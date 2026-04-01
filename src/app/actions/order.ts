@@ -77,23 +77,47 @@ export async function createPendingOrder(data: {
 }
 
 export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: string) {
+    console.log(`[FINALIZE] Triggered for Intent: ${paymentIntentId}`);
     if (!stripe) throw new Error("Stripe beállítások hiányoznak.");
 
+    // 1. Find the order first
     const order = await prisma.order.findFirst({
         where: { stripePaymentIntentId: paymentIntentId },
         include: { items: { include: { part: true } } }
     });
 
-    if (!order) return { success: false, error: "Order not found" };
+    if (!order) {
+        console.error(`[FINALIZE] Order not found for Intent: ${paymentIntentId}`);
+        return { success: false, error: "Order not found" };
+    }
     
-    // If order is already finalized, skip (idempotent)
+    // 2. Check if already finalized
     if (order.paymentStatus === 'AUTHORIZED' || order.paymentStatus === 'PAID') {
+        console.log(`[FINALIZE] Order ${order.id} already finalized (Status: ${order.paymentStatus}). Skipping.`);
         return { success: true, alreadyFinalized: true };
     }
 
     const intent = await stripe.paymentIntents.retrieve(paymentIntentId);
+    console.log(`[FINALIZE] Stripe Intent Status: ${intent.status}`);
     
     if (intent.status === 'succeeded' || intent.status === 'requires_capture') {
+        // 3. Atomically update status to AUTHORIZED to prevent double processing
+        // We use updateMany here to safely check the current state
+        const updateResult = await prisma.order.updateMany({
+            where: { 
+                id: order.id,
+                paymentStatus: 'PENDING' // Only update if still pending
+            },
+            data: { paymentStatus: 'AUTHORIZED' }
+        });
+
+        if (updateResult.count === 0) {
+            console.log(`[FINALIZE] Order ${order.id} was already updated by another process.`);
+            return { success: true, alreadyFinalized: true };
+        }
+
+        console.log(`[FINALIZE] Proceeding with fulfillment for Order: ${order.id}`);
+
         try {
             for (const item of order.items) {
                 // Decrement stock
@@ -110,7 +134,7 @@ export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: s
                 }
             }
         } catch (error) {
-            console.error("Error decrementing stock or clearing reservations after Stripe payment:", error);
+            console.error("[FINALIZE] Error decrementing stock or clearing reservations:", error);
         }
 
         // Send confirmation email
@@ -119,26 +143,22 @@ export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: s
         try {
             await sendOrderReceivedEmail(order as any, billingData.email);
         } catch (err) {
-            console.error("Email sending error:", err);
+            console.error("[FINALIZE] Email sending error:", err);
         }
 
-        // Mark as AUTHORIZED to indicate successful payment reservation but pending admin capture
-        await prisma.order.update({
-            where: { id: order.id },
-            data: { paymentStatus: 'AUTHORIZED' }
-        });
-
         revalidatePath('/admin/orders');
-        revalidatePath('/', 'layout'); // Ensure public pages reflect the new stock immediately
+        revalidatePath('/', 'layout');
         // @ts-ignore
-        revalidateTag('products'); // Clear unstable_cache for products
+        revalidateTag('products');
         // @ts-ignore
         revalidateTag('parts');
         // @ts-ignore
         revalidateTag('search');
+        
         return { success: true };
     }
 
+    console.warn(`[FINALIZE] Payment not confirmed for Intent: ${paymentIntentId}. Status: ${intent.status}`);
     return { success: false, error: "Payment not confirmed" };
 }
 
