@@ -2,152 +2,138 @@
 
 import { prisma } from "@/lib/prisma";
 
-import { unstable_cache } from "next/cache";
-
-export const getBrandsAction = unstable_cache(
-    async () => {
-        try {
-            // Only return brands that have at least one product with stock > 0
-            const activeBrands = await prisma.vehicleBrand.findMany({
-                where: {
-                    hidden: false,
-                    OR: [
-                        {
-                            Part: {
-                                some: { stock: { gt: 0 } }
-                            }
-                        },
-                        {
-                            VehicleModel: {
-                                some: {
-                                    PartCompatibility: {
-                                        some: {
-                                            part: { stock: { gt: 0 } }
-                                        }
+export async function getBrandsAction() {
+    try {
+        // Only return brands that have at least one product with stock > 0
+        const activeBrands = await prisma.vehicleBrand.findMany({
+            where: {
+                hidden: false,
+                OR: [
+                    {
+                        Part: {
+                            some: { stock: { gt: 0 } }
+                        }
+                    },
+                    {
+                        VehicleModel: {
+                            some: {
+                                PartCompatibility: {
+                                    some: {
+                                        part: { stock: { gt: 0 } }
                                     }
                                 }
                             }
                         }
-                    ]
-                },
-                select: { id: true, name: true, slug: true, logo: true }
-            });
-            
-            return activeBrands;
-        } catch (error) {
-            console.error("CRITICAL: getBrandsAction failed in production environment:", error);
-            return []; // Return empty array instead of crashing the whole page
-        }
-    },
-    ["brands-list"],
-    { revalidate: 60, tags: ["brands"] }
-);
-
-export const getModelsByBrandAction = unstable_cache(
-    async (brandId: string) => {
-        if (!brandId) return [];
+                    }
+                ]
+            },
+            select: { id: true, name: true, slug: true, logo: true }
+        });
         
-        try {
-            const activeModels = await prisma.vehicleModel.findMany({
-                where: {
-                    brandId: brandId,
-                    OR: [
-                        {
-                            Part: {
-                                some: { stock: { gt: 0 } }
-                            }
-                        },
-                        {
-                            PartCompatibility: {
-                                some: {
-                                    part: { stock: { gt: 0 } }
-                                }
-                            }
+        return activeBrands;
+    } catch (error) {
+        console.error("CRITICAL: getBrandsAction failed in production environment:", error);
+        return []; // Return empty array instead of crashing the whole page
+    }
+}
+
+export async function getModelsByBrandAction(brandId: string) {
+    if (!brandId) return [];
+    
+    try {
+        const activeModels = await prisma.vehicleModel.findMany({
+            where: {
+                brandId: brandId,
+                OR: [
+                    {
+                        Part: {
+                            some: { stock: { gt: 0 } }
                         }
-                    ]
-                },
-                select: { 
-                    id: true, 
-                    name: true, 
-                    slug: true,
-                    series: true 
-                }
-            });
-
-            return activeModels;
-        } catch (error) {
-            console.error(`ERROR: getModelsByBrandAction failed for brandId ${brandId} in Vercel environment:`, error);
-            return [];
-        }
-    },
-    ["models-by-brand"],
-    { revalidate: 60, tags: ["models"] }
-);
-
-export const getActivePartOptionsAction = unstable_cache(
-    async (brandId?: string, modelId?: string) => {
-        try {
-            // Step 1: Find all distinct PartItem IDs associated with active parts for this brand/model
-            const parts = await prisma.part.findMany({
-                where: {
-                    stock: { gt: 0 },
-                    AND: [
-                        brandId ? {
-                            OR: [
-                                { brandId: brandId },
-                                { compatibilities: { some: { brandId: brandId } } }
-                            ]
-                        } : {},
-                        modelId ? {
-                            OR: [
-                                { modelId: modelId },
-                                { compatibilities: { some: { modelId: modelId } } }
-                            ]
-                        } : {}
-                    ]
-                },
-                distinct: ['partItemId'],
-                select: { partItemId: true }
-            });
-
-            const activePartItemIds = parts.map(p => p.partItemId).filter(Boolean) as string[];
-
-            if (activePartItemIds.length === 0) return [];
-
-            // Step 2: Fetch the actual PartItem details
-            const activePartItems = await prisma.partItem.findMany({
-                where: {
-                    id: { in: activePartItemIds }
-                },
-                include: {
-                    PartSubcategory: {
-                        include: {
-                            PartCategory: true
+                    },
+                    {
+                        PartCompatibility: {
+                            some: {
+                                part: { stock: { gt: 0 } }
+                            }
                         }
                     }
-                },
-                orderBy: { name: 'asc' }
-            });
+                ]
+            },
+            select: { 
+                id: true, 
+                name: true, 
+                slug: true,
+                series: true 
+            }
+        });
 
-            return activePartItems.map(item => ({
-                value: item.id,
-                label: item.name,
-                group: item.PartSubcategory.PartCategory.name || "Egyéb",
-                slug: item.slug,
-                subcatSlug: item.PartSubcategory.slug,
-                categorySlug: item.PartSubcategory.PartCategory.slug
-            }));
-        } catch (error) {
-            console.error("ERROR: getActivePartOptionsAction failed. Database unreachable from Vercel runtime?", error);
-            return [];
-        }
-    },
-    ["active-part-options"],
-    { revalidate: 60, tags: ["automotive", "parts"] }
-);
+        return activeModels;
+    } catch (error) {
+        console.error(`ERROR: getModelsByBrandAction failed for brandId ${brandId} in Vercel environment:`, error);
+        return [];
+    }
+}
 
-export const getActiveCategoriesForModelAction = unstable_cache(
-    async (brandId: string, modelId: string) => {
+export async function getActivePartOptionsAction(brandId?: string, modelId?: string) {
+    try {
+        // Step 1: Find all distinct PartItem IDs associated with active parts for this brand/model
+        const parts = await prisma.part.findMany({
+            where: {
+                stock: { gt: 0 },
+                AND: [
+                    brandId ? {
+                        OR: [
+                            { brandId: brandId },
+                            { compatibilities: { some: { brandId: brandId } } }
+                        ]
+                    } : {},
+                    modelId ? {
+                        OR: [
+                            { modelId: modelId },
+                            { compatibilities: { some: { modelId: modelId } } }
+                        ]
+                    } : {}
+                ]
+            },
+            distinct: ['partItemId'],
+            select: { partItemId: true }
+        });
+
+        const activePartItemIds = parts.map(p => p.partItemId).filter(Boolean) as string[];
+
+        if (activePartItemIds.length === 0) return [];
+
+        // Step 2: Fetch the actual PartItem details
+        const activePartItems = await prisma.partItem.findMany({
+            where: {
+                id: { in: activePartItemIds }
+            },
+            include: {
+                PartSubcategory: {
+                    include: {
+                        PartCategory: true
+                    }
+                }
+            },
+            orderBy: { name: 'asc' }
+        });
+
+        return activePartItems.map(item => ({
+            value: item.id,
+            label: item.name,
+            group: item.PartSubcategory.PartCategory.name || "Egyéb",
+            slug: item.slug,
+            subcatSlug: item.PartSubcategory.slug,
+            categorySlug: item.PartSubcategory.PartCategory.slug
+        }));
+    } catch (error) {
+        console.error("ERROR: getActivePartOptionsAction failed. Database unreachable from Vercel runtime?", error);
+        return [];
+    }
+}
+
+export async function getActiveCategoriesForModelAction(brandId: string, modelId: string) {
+    try {
         // 1. Fetch all categories
         const allCategories = await prisma.partCategory.findMany({
             orderBy: { name: 'asc' },
@@ -179,13 +165,14 @@ export const getActiveCategoriesForModelAction = unstable_cache(
             ...cat,
             hasProducts: true
         }));
-    },
-    ["active-categories-for-model"],
-    { revalidate: 3600, tags: ["automotive", "categories"] }
-);
+    } catch (error) {
+        console.error("ERROR: getActiveCategoriesForModelAction failed:", error);
+        return [];
+    }
+}
 
-export const getActiveSubcategoriesForModelAction = unstable_cache(
-    async (brandId: string, modelId: string, categoryId: string) => {
+export async function getActiveSubcategoriesForModelAction(brandId: string, modelId: string, categoryId: string) {
+    try {
         const activeSubcats = await prisma.partSubcategory.findMany({
             where: {
                 Part: {
@@ -202,13 +189,14 @@ export const getActiveSubcategoriesForModelAction = unstable_cache(
             select: { id: true, name: true, slug: true }
         });
         return activeSubcats;
-    },
-    ["active-subcategories-for-model"],
-    { revalidate: 3600, tags: ["automotive", "categories"] }
-);
+    } catch (error) {
+        console.error("ERROR: getActiveSubcategoriesForModelAction failed:", error);
+        return [];
+    }
+}
 
-export const getActivePartItemsForModelAction = unstable_cache(
-    async (brandId: string, modelId: string, subcategoryId: string) => {
+export async function getActivePartItemsForModelAction(brandId: string, modelId: string, subcategoryId: string) {
+    try {
         const activeItems = await prisma.partItem.findMany({
             where: {
                 Part: {
@@ -225,20 +213,22 @@ export const getActivePartItemsForModelAction = unstable_cache(
             select: { id: true, name: true, slug: true }
         });
         return activeItems;
-    },
-    ["active-items-for-model"],
-    { revalidate: 3600, tags: ["automotive", "parts"] }
-);
+    } catch (error) {
+        console.error("ERROR: getActivePartItemsForModelAction failed:", error);
+        return [];
+    }
+}
 
-export const getVehicleSelectorDataAction = unstable_cache(
-    async () => {
+export async function getVehicleSelectorDataAction() {
+    try {
         const brands = await getBrandsAction();
         
         return {
             brands,
             modelsMap: {} // We fetch models on demand now to improve initial home page speed
         };
-    },
-    ["vehicle-selector-bootstrap"],
-    { revalidate: 3600, tags: ["automotive"] }
-);
+    } catch (error) {
+        console.error("ERROR: getVehicleSelectorDataAction failed:", error);
+        return { brands: [], modelsMap: {} };
+    }
+}

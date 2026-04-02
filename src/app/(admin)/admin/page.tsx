@@ -116,8 +116,7 @@ async function getStats(month?: number, year?: number) {
         trendingSearches,
         topSellers,
         targetMonth,
-        targetYear,
-        error: products === 0 && users === 0 && monthlyRevenue === 0 ? "Nem sikerült adatokat lekérni az adatbázisból. Kérjük, ellenőrizze a DATABASE_URL beállítást a Vercel-ben!" : null
+        targetYear
     };
 }
 
@@ -141,18 +140,6 @@ export default async function AdminDashboard({
                     <h1 className="text-3xl font-bold tracking-tight">Vezérlőpult</h1>
                     <p className="text-gray-500">Üzleti statisztikák és áttekintés</p>
                 </div>
-
-                {stats.error && (
-                    <div className="flex-1 max-w-lg bg-red-50 border-2 border-red-200 p-4 rounded-2xl flex items-center gap-4 animate-pulse">
-                        <div className="w-10 h-10 bg-red-500 rounded-full flex items-center justify-center text-white shrink-0">
-                            <ShoppingCart className="w-6 h-6" />
-                        </div>
-                        <div>
-                            <p className="text-red-700 font-bold text-sm">ADATBÁZIS KAPCSOLATI HIBA</p>
-                            <p className="text-red-600 text-xs">{stats.error}</p>
-                        </div>
-                    </div>
-                )}
 
                 <MaintenanceTrigger />
 
