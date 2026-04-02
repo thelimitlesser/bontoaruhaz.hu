@@ -156,6 +156,7 @@ export async function createBillingoInvoice(order: any, customerData: any) {
             conversion_rate: 1,
             language: 'hu',
             items: items,
+            paid: true,
             settings: {
                 mediated_service: false,
                 without_financial_fulfillment: false,
