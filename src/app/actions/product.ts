@@ -816,8 +816,6 @@ export const getProductMetadataAction = cache(async (id: string) => {
                     description: true,
                     images: true,
                     sku: true,
-                    brandId: true,
-                    modelId: true,
                     VehicleBrand: { select: { name: true } },
                     VehicleModel: { select: { name: true } }
                 }
@@ -826,13 +824,19 @@ export const getProductMetadataAction = cache(async (id: string) => {
             if (!dbPart) return null;
 
             return {
-                dbPart,
-                brandName: dbPart.VehicleBrand?.name || dbPart.brandId || "",
-                modelName: dbPart.VehicleModel?.name || dbPart.modelId || "",
+                dbPart: {
+                    id: dbPart.id,
+                    name: dbPart.name,
+                    description: dbPart.description,
+                    images: dbPart.images,
+                    sku: dbPart.sku
+                },
+                brandName: dbPart.VehicleBrand?.name || "",
+                modelName: dbPart.VehicleModel?.name || "",
             };
         },
-        ["product-metadata", id],
-        { revalidate: 3600, tags: ["products"] }
+        ["prod-meta-v3", id],
+        { revalidate: 86400, tags: ["products"] }
     )(id);
 });
 
