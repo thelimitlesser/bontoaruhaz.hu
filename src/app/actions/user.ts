@@ -202,41 +202,54 @@ export async function syncAndGetUserRole() {
             return null;
         }
 
-        let dbUser = await prisma.user.findUnique({
-            where: { id: user.id },
-            select: { role: true }
-        });
-
         const adminEmails = process.env.ADMIN_EMAILS ?
             process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
-            ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu'];
+            ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai'];
 
         const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
 
-        if (!dbUser) {
-            await prisma.user.create({
-                data: {
-                    id: user.id,
-                    email: user.email!,
-                    fullName: user.user_metadata?.full_name || user.user_metadata?.display_name || 'Új Vásárló',
-                    role: isAdminEmail ? 'ADMIN' : 'CUSTOMER'
-                }
+        try {
+            let dbUser = await prisma.user.findUnique({
+                where: { id: user.id },
+                select: { role: true }
             });
+
+            if (!dbUser) {
+                try {
+                    await prisma.user.create({
+                        data: {
+                            id: user.id,
+                            email: user.email!,
+                            fullName: user.user_metadata?.full_name || user.user_metadata?.display_name || 'Új Vásárló',
+                            role: isAdminEmail ? 'ADMIN' : 'CUSTOMER'
+                        }
+                    });
+                } catch (createError) {
+                    console.error("syncAndGetUserRole: Failed to auto-create user in fallback:", createError);
+                }
+                return isAdminEmail ? 'ADMIN' : 'CUSTOMER';
+            }
+
+            // Proactive sync: If email is in admin list but role is not ADMIN, update it
+            if (isAdminEmail && dbUser.role !== 'ADMIN') {
+                try {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { role: 'ADMIN' }
+                    });
+                } catch (updateError) {
+                    console.error("syncAndGetUserRole: Failed to sync ADMIN role to DB:", updateError);
+                }
+                return 'ADMIN';
+            }
+
+            return dbUser.role;
+        } catch (prismaError) {
+            console.error("syncAndGetUserRole: Database unreachable, falling back to email check:", prismaError);
             return isAdminEmail ? 'ADMIN' : 'CUSTOMER';
         }
-
-        // Proactive sync: If email is in admin list but role is not ADMIN, update it
-        if (isAdminEmail && dbUser.role !== 'ADMIN') {
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { role: 'ADMIN' }
-            });
-            return 'ADMIN';
-        }
-
-        return dbUser.role;
     } catch (e) {
-        console.error("Error in syncAndGetUserRole", e);
+        console.error("Error in syncAndGetUserRole general block", e);
         return 'CUSTOMER';
     }
 }

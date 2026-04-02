@@ -40,7 +40,7 @@ export const getBrandsAction = unstable_cache(
         }
     },
     ["brands-list"],
-    { revalidate: 3600, tags: ["brands"] }
+    { revalidate: 60, tags: ["brands"] }
 );
 
 export const getModelsByBrandAction = unstable_cache(
@@ -81,7 +81,7 @@ export const getModelsByBrandAction = unstable_cache(
         }
     },
     ["models-by-brand"],
-    { revalidate: 3600, tags: ["models"] }
+    { revalidate: 60, tags: ["models"] }
 );
 
 export const getActivePartOptionsAction = unstable_cache(
@@ -143,7 +143,7 @@ export const getActivePartOptionsAction = unstable_cache(
         }
     },
     ["active-part-options"],
-    { revalidate: 3600, tags: ["automotive", "parts"] }
+    { revalidate: 60, tags: ["automotive", "parts"] }
 );
 
 export const getActiveCategoriesForModelAction = unstable_cache(
