@@ -5,46 +5,76 @@ import { prisma } from "@/lib/prisma";
 // --- Vehicle Data Fetchers ---
 
 export async function getBrands() {
-    return await prisma.vehicleBrand.findMany({
-        where: { hidden: false },
-        orderBy: { name: 'asc' }
-    });
+    try {
+        return await prisma.vehicleBrand.findMany({
+            where: { hidden: false },
+            orderBy: { name: 'asc' }
+        });
+    } catch (error) {
+        console.error("catalog: getBrands failed:", error);
+        return [];
+    }
 }
 
 export async function getModelsByBrand(brandId: string) {
     if (!brandId) return [];
-    return await prisma.vehicleModel.findMany({
-        where: { brandId },
-        orderBy: { name: 'asc' }
-    });
+    try {
+        return await prisma.vehicleModel.findMany({
+            where: { brandId },
+            orderBy: { name: 'asc' }
+        });
+    } catch (error) {
+        console.error(`catalog: getModelsByBrand failed for ${brandId}:`, error);
+        return [];
+    }
 }
 
 // --- Part Catalog Fetchers ---
 
 export async function getCategories() {
-    return await prisma.partCategory.findMany({
-        orderBy: { name: 'asc' }
-    });
+    try {
+        return await prisma.partCategory.findMany({
+            orderBy: { name: 'asc' }
+        });
+    } catch (error) {
+        console.error("catalog: getCategories failed:", error);
+        return [];
+    }
 }
 
 export async function getSubcategoriesByCategory(categoryId: string) {
     if (!categoryId) return [];
-    return await prisma.partSubcategory.findMany({
-        where: { categoryId },
-        orderBy: { name: 'asc' }
-    });
+    try {
+        return await prisma.partSubcategory.findMany({
+            where: { categoryId },
+            orderBy: { name: 'asc' }
+        });
+    } catch (error) {
+        console.error(`catalog: getSubcategoriesByCategory failed for ${categoryId}:`, error);
+        return [];
+    }
 }
 
 export async function getPartItemsBySubcategory(subcategoryId: string) {
     if (!subcategoryId) return [];
-    return await prisma.partItem.findMany({
-        where: { subcategoryId },
-        orderBy: { name: 'asc' }
-    });
+    try {
+        return await prisma.partItem.findMany({
+            where: { subcategoryId },
+            orderBy: { name: 'asc' }
+        });
+    } catch (error) {
+        console.error(`catalog: getPartItemsBySubcategory failed for ${subcategoryId}:`, error);
+        return [];
+    }
 }
 
 export async function getAllPartItems() {
-    return await prisma.partItem.findMany({
-        orderBy: { name: 'asc' }
-    });
+    try {
+        return await prisma.partItem.findMany({
+            orderBy: { name: 'asc' }
+        });
+    } catch (error) {
+        console.error("catalog: getAllPartItems failed:", error);
+        return [];
+    }
 }

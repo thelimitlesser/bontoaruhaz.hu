@@ -40,25 +40,39 @@ export default async function InventoryPage({
 
 
     // 2. Fetch Dropdown Data from DB
-    const [dbBrands, dbCategories, dbPartItems, dbSubcategories, allModels] = await Promise.all([
-        getBrands(),
-        getCategories(),
-        getAllPartItems(),
-        prisma.partSubcategory.findMany(),
-        prisma.vehicleModel.findMany()
-    ]);
+    let dbBrands: any[] = [];
+    let dbCategories: any[] = [];
+    let dbPartItems: any[] = [];
+    let dbSubcategories: any[] = [];
+    let allModels: any[] = [];
+
+    try {
+        const [brands, cats, items, subcats, models] = await Promise.all([
+            getBrands(),
+            getCategories(),
+            getAllPartItems(),
+            prisma.partSubcategory.findMany(),
+            prisma.vehicleModel.findMany()
+        ]);
+        dbBrands = brands;
+        dbCategories = cats;
+        dbPartItems = items;
+        dbSubcategories = subcats;
+        allModels = models;
+    } catch (e) {
+        console.error("InventoryPage: Failed to fetch dropdown data:", e);
+    }
 
     const makeOptions = dbBrands
-        .map(b => ({ value: b.id, label: b.name }));
+        .map((b: any) => ({ value: b.id, label: b.name }));
 
     // For models, if a make is selected, provide its models
-    const availableModels = make ? allModels.filter(m => m.brandId === make) : [];
-    const modelOptions = availableModels.map(m => ({ 
+    const availableModels = make ? allModels.filter((m: any) => m.brandId === make) : [];
+    const modelOptions = availableModels.map((m: any) => ({ 
         value: m.id, 
         label: m.name,
         group: m.series || 'Egyéb'
     }));
-
 
     // 3. Pagination logic
     const pageSize = 50;
@@ -66,18 +80,27 @@ export default async function InventoryPage({
     const skip = (page - 1) * pageSize;
 
     // 4. Fetch Parts
-    const [parts, totalParts] = await Promise.all([
-        prisma.part.findMany({
-            where,
-            take: pageSize,
-            skip: skip,
-            orderBy: { createdAt: 'desc' },
-            include: {
-                compatibilities: true
-            }
-        }),
-        prisma.part.count({ where })
-    ]);
+    let parts: any[] = [];
+    let totalParts = 0;
+
+    try {
+        const [partsResult, countResult] = await Promise.all([
+            prisma.part.findMany({
+                where,
+                take: pageSize,
+                skip: skip,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    compatibilities: true
+                }
+            }),
+            prisma.part.count({ where })
+        ]);
+        parts = partsResult;
+        totalParts = countResult;
+    } catch (e) {
+        console.error("InventoryPage: Failed to fetch parts or count:", e);
+    }
 
     const totalPages = Math.ceil(totalParts / pageSize);
 
