@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 "use client";
 
 import { use, Suspense, useState, useEffect } from "react";

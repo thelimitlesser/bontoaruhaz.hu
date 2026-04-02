@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 "use client";
 
 import { Mail, Phone, MapPin, Loader2, CheckCircle2, AlertCircle } from"lucide-react";
