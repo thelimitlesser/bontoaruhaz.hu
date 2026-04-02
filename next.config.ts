@@ -4,10 +4,6 @@ import type { NextConfig } from "next";
 
 const nextConfig: any = {
   cacheComponents: false,
-  // Stable config
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     ignoreBuildErrors: true,
   },
