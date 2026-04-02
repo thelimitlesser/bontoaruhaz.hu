@@ -11,6 +11,7 @@ import { Product } from "@/lib/mock-data";
 import { RelatedProductsWrapper } from "@/components/related-products-wrapper";
 
 export const revalidate = 3600; // Enable ISR
+export const experimental_ppr = true;
 
 export async function generateMetadata({ params }: { params: Promise<{ slug_id: string }> }): Promise<import("next").Metadata> {
   const { slug_id } = await params;
