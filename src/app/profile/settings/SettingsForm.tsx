@@ -99,7 +99,7 @@ export default function SettingsPage({ user, dbUser }: { user: any, dbUser: any 
                                 <div className="relative">
                                     <input
                                         type="tel" name="phone" defaultValue={dbUser?.phoneNumber ||""}
-                                        placeholder="+36 30 123 4567" className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 transition-all text-base" />
+                                        placeholder="+36 70 612 1277" className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 transition-all text-base" />
                                     <Phone className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                 </div>
                             </div>

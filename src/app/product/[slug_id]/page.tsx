@@ -434,9 +434,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
 
             <div className="flex justify-center w-full">
               <a
-                href="tel:+36301234567" className="flex items-center justify-center gap-2.5 px-10 py-4 bg-[var(--color-primary)] text-white font-bold text-lg rounded-2xl hover:scale-105 transition-all shadow-xl shadow-[var(--color-primary)]/20" >
+                href="tel:+36706121277"
+                className="flex items-center justify-center gap-2.5 px-10 py-4 bg-[var(--color-primary)] text-white font-bold text-lg rounded-2xl hover:scale-105 transition-all shadow-xl shadow-[var(--color-primary)]/20"
+              >
                 <Phone className="w-5 h-5" />
-                +36 30 123 4567
+                +36 70 612 1277
               </a>
             </div>
           </div>

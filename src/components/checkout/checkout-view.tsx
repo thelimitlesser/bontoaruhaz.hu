@@ -205,7 +205,7 @@ export default function CheckoutView() {
                                         type="tel" name="phone" value={formData.phone}
                                         onChange={handleChange}
                                         required
-                                        className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="+36 30 123 4567" />
+                                        className="w-full bg-muted/5 border border-border rounded-lg px-4 py-3 text-foreground focus:outline-none focus:border-[var(--color-primary)] transition-colors" placeholder="+36 70 612 1277" />
                                 </div>
                             </div>
                         </section>
