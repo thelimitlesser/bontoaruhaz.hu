@@ -438,95 +438,27 @@ export async function getSearchProducts(params: {
             if (maxPrice) where.priceGross.lte = maxPrice;
         }
 
-        let matchingBrands: any[] = [];
-        let matchingModels: any[] = [];
         let suggestion: string | undefined;
 
         if (query) {
-            const queryLower = query.toLowerCase();
-            const queryWords = queryLower.split(/\s+/).filter((w: string) => w.length > 2);
-
-            const synonymsToSearch = new Set<string>();
-            queryWords.forEach((word: string) => {
-                if (partSynonyms[word]) {
-                    partSynonyms[word].forEach((s: string) => synonymsToSearch.add(s));
-                }
-            });
-
             const textSearch: any[] = [
                 { name: { contains: query, mode: 'insensitive' } },
                 { sku: { contains: query, mode: 'insensitive' } },
                 { oemNumbers: { contains: query, mode: 'insensitive' } },
+                // Include brand/model name search directly in the query
+                { VehicleBrand: { name: { contains: query, mode: 'insensitive' } } },
+                { VehicleModel: { name: { contains: query, mode: 'insensitive' } } },
+                { VehicleModel: { series: { contains: query, mode: 'insensitive' } } }
             ];
 
-            // Add synonyms to text search if any found
-            if (synonymsToSearch.size > 0) {
-                synonymsToSearch.forEach(synonym => {
-                    textSearch.push({ name: { contains: synonym, mode: 'insensitive' } });
-                });
-            }
-
-            // Check for Brand/Model matches in the query string
-            const [dbBrands, dbModels] = await Promise.all([
-                prisma.vehicleBrand.findMany({ 
-                    where: { 
-                        hidden: false,
-                        name: { contains: query, mode: 'insensitive' } 
-                    }, 
-                    select: { id: true, name: true } 
-                }),
-                prisma.vehicleModel.findMany({ 
-                    where: {
-                        OR: [
-                            { name: { contains: query, mode: 'insensitive' } },
-                            { series: { contains: query, mode: 'insensitive' } }
-                        ]
-                    },
-                    select: { id: true, name: true, series: true } 
-                })
-            ]);
-
-            matchingBrands = dbBrands.filter(b => queryLower.includes(b.name.toLowerCase()));
-            matchingModels = dbModels.filter(m => {
-                const mName = m.name.toLowerCase();
-                const cleanName = mName.replace(/[()]/g, '');
-                const mSeries = m.series?.toLowerCase() || '';
-
-                return queryLower.includes(cleanName) ||
-                    (mSeries && queryLower.includes(mSeries)) ||
-                    cleanName.split(/\s+\/\s+/).some(part => part.length > 1 && queryLower.includes(part.trim()));
-            });
-
-            if (matchingModels.length > 0) {
-                const narrowMatches = matchingModels.filter(m => queryLower.includes(m.name.toLowerCase().replace(/[()]/g, '')));
-                const seriesMatches = matchingModels.filter(m => m.series && queryLower.includes(m.series.toLowerCase()));
-
-                let finalModelIds: string[] = [];
-                if (seriesMatches.length > 0) {
-                    finalModelIds = [...new Set([...seriesMatches.map(m => m.id), ...narrowMatches.map(m => m.id)])];
-                } else if (narrowMatches.length > 0) {
-                    finalModelIds = narrowMatches.map(m => m.id);
-                } else {
-                    finalModelIds = matchingModels.map(m => m.id);
+            const queryWords = query.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2);
+            queryWords.forEach((word: string) => {
+                if (partSynonyms[word]) {
+                    partSynonyms[word].forEach((synonym: string) => {
+                        textSearch.push({ name: { contains: synonym, mode: 'insensitive' } });
+                    });
                 }
-
-                textSearch.push({
-                    OR: [
-                        { modelId: { in: finalModelIds } },
-                        { compatibilities: { some: { modelId: { in: finalModelIds } } } }
-                    ]
-                });
-            }
-
-            if (matchingBrands.length > 0) {
-                const brandIds = matchingBrands.map(b => b.id);
-                textSearch.push({
-                    OR: [
-                        { brandId: { in: brandIds } },
-                        { compatibilities: { some: { brandId: { in: brandIds } } } }
-                    ]
-                });
-            }
+            });
 
             if (where.OR) {
                 where.AND = [
@@ -545,7 +477,7 @@ export async function getSearchProducts(params: {
         if (sortBy === 'price_asc') orderBy = { priceGross: 'asc' };
         else if (sortBy === 'price_desc') orderBy = { priceGross: 'desc' };
 
-        const [parts, total] = await Promise.all([
+        const [parts, total, activeCat, activeSubcat, activeItem] = await Promise.all([
             prisma.part.findMany({
                 where,
                 take: take,
@@ -564,35 +496,26 @@ export async function getSearchProducts(params: {
                     productCode: true,
                     condition: true,
                     isUniversal: true,
+                    VehicleBrand: { select: { name: true } },
+                    VehicleModel: { select: { name: true, series: true } },
                     reservations: {
                         where: { expiresAt: { gt: new Date() } },
                         select: { id: true }
                     }
                 }
             }),
-            prisma.part.count({ where })
-        ]);
-
-        const resBrandIds = [...new Set(parts.map(p => p.brandId).filter(Boolean) as string[])];
-        const resModelIds = [...new Set(parts.map(p => p.modelId).filter(Boolean) as string[])];
-
-        const [dbBrandsRes, dbModelsRes] = await Promise.all([
-            prisma.vehicleBrand.findMany({ where: { id: { in: resBrandIds } }, select: { id: true, name: true } }),
-            prisma.vehicleModel.findMany({ where: { id: { in: resModelIds } }, select: { id: true, name: true } })
+            prisma.part.count({ where }),
+            category ? prisma.partCategory.findUnique({ where: { id: category }, select: { name: true } }) : Promise.resolve(null),
+            subcategory ? prisma.partSubcategory.findUnique({ where: { id: subcategory }, select: { name: true } }) : Promise.resolve(null),
+            partItem ? prisma.partItem.findUnique({ where: { id: partItem }, select: { name: true } }) : Promise.resolve(null)
         ]);
 
         const enhancedParts = parts.map(part => ({
             ...part,
             availableStock: part.stock - (part.reservations?.length || 0),
-            brandName: dbBrandsRes.find(b => b.id === part.brandId)?.name || part.brandId,
-            modelName: dbModelsRes.find(m => m.id === part.modelId)?.name || part.modelId
+            brandName: part.VehicleBrand?.name || part.brandId,
+            modelName: part.VehicleModel?.name || part.modelId
         }));
-
-        let detectedModelLabel = matchingModels[0]?.name;
-        const seriesNamesNames = new Set(matchingModels.map(m => m.series).filter(Boolean));
-        if (seriesNamesNames.size === 1) {
-            detectedModelLabel = Array.from(seriesNamesNames)[0] as string;
-        }
 
         // Fuzzy search logic if no results found
         if (enhancedParts.length === 0 && query && query.length > 2) {
@@ -628,25 +551,19 @@ export async function getSearchProducts(params: {
             }
         }
 
-        const [activeCat, activeSubcat, activeItem] = await Promise.all([
-            category ? prisma.partCategory.findUnique({ where: { id: category }, select: { name: true } }) : null,
-            subcategory ? prisma.partSubcategory.findUnique({ where: { id: subcategory }, select: { name: true } }) : null,
-            partItem ? prisma.partItem.findUnique({ where: { id: partItem }, select: { name: true } }) : null
-        ]);
-
-            return {
-                parts: enhancedParts,
-                total,
-                meta: {
-                    detectedYear: searchYear,
-                    detectedBrand: matchingBrands[0]?.name,
-                    detectedModel: detectedModelLabel,
-                    suggestion,
-                    categoryName: activeCat?.name,
-                    subcategoryName: activeSubcat?.name,
-                    partItemName: activeItem?.name
-                }
-            };
+        return {
+            parts: enhancedParts,
+            total,
+            meta: {
+                detectedYear: searchYear,
+                detectedBrand: parts[0]?.VehicleBrand?.name,
+                detectedModel: parts[0]?.VehicleModel?.name || parts[0]?.VehicleModel?.series,
+                suggestion,
+                categoryName: activeCat?.name,
+                subcategoryName: activeSubcat?.name,
+                partItemName: activeItem?.name
+            }
+        };
         },
         ["product-search", JSON.stringify(params)],
         { revalidate: 3600, tags: ["products"] }
@@ -995,27 +912,37 @@ export async function getCategoryPageDataAction(params: {
             const { brandId, modelId, categoryId, subcatSlug, partItemSlug, year, page = 0, sortBy = 'newest' } = params;
             const perPage = 24;
 
-            const subcategories = await getActiveSubcategoriesForModelAction(brandId, modelId, categoryId);
-            const currentSubcat = subcatSlug ? subcategories.find(s => s.slug === subcatSlug) : null;
-            
-            let activeItems: any[] = [];
-            if (currentSubcat) {
-                activeItems = await getActivePartItemsForModelAction(brandId, modelId, currentSubcat.id);
-            }
-            
-            const currentPartItem = partItemSlug ? activeItems.find(i => i.slug === partItemSlug) : null;
+            // Step 1: Parallelize metadata fetching
+            const [subcategories, currentSubcatObj, currentPartItemObj] = await Promise.all([
+                getActiveSubcategoriesForModelAction(brandId, modelId, categoryId),
+                subcatSlug ? prisma.partSubcategory.findFirst({ 
+                    where: { slug: subcatSlug, categoryId: categoryId }, 
+                    select: { id: true, slug: true } 
+                }) : Promise.resolve(null),
+                partItemSlug ? prisma.partItem.findFirst({ 
+                    where: { slug: partItemSlug }, 
+                    select: { id: true, slug: true } 
+                }) : Promise.resolve(null)
+            ]);
 
-            const productsResponse = await getSearchProducts({
-                brand: brandId,
-                model: modelId,
-                category: categoryId,
-                subcategory: currentSubcat?.id,
-                partItem: currentPartItem?.id,
-                year: year || undefined,
-                take: perPage,
-                skip: page * perPage,
-                sortBy
-            });
+            // Step 2: If we have a subcategory, fetch the active items for the sidebar in parallel with the products
+            // But we need to be careful about waterfalls. 
+            // We'll fetch the items for the sidebar separately or just use a combined fetch.
+            
+            const [activeItems, productsResponse] = await Promise.all([
+                currentSubcatObj ? getActivePartItemsForModelAction(brandId, modelId, currentSubcatObj.id) : Promise.resolve([]),
+                getSearchProducts({
+                    brand: brandId,
+                    model: modelId,
+                    category: categoryId,
+                    subcategory: currentSubcatObj?.id,
+                    partItem: currentPartItemObj?.id,
+                    year: year || undefined,
+                    take: perPage,
+                    skip: page * perPage,
+                    sortBy
+                })
+            ]);
 
             return {
                 subcategories,
@@ -1026,7 +953,7 @@ export async function getCategoryPageDataAction(params: {
                 perPage
             };
         },
-        ["category-page-data", JSON.stringify(params)],
+        ["category-page-data-v2", JSON.stringify(params)],
         { revalidate: 3600, tags: ["automotive", "parts", "categories"] }
     )(params);
 }
