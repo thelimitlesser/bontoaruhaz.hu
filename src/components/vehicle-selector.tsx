@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useTransition, useRef } from "react";
 import { Search, CarFront, Hash, Car, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
@@ -21,6 +21,14 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<SearchTab>("manual");
     const [isPending, startTransition] = useTransition();
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    // Scroll back to center on mobile after selection
+    const scrollToCenter = () => {
+        if (typeof window !== "undefined" && window.innerWidth < 768 && containerRef.current) {
+            containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+    };
 
     // Manual State
     const [selectedBrand, setSelectedBrand] = useState<string>("");
@@ -154,7 +162,10 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
     };
 
     return (
-        <div className="w-full max-w-5xl mx-auto rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] relative bg-white/95 backdrop-blur-xl border border-white/20 transform transition-all duration-500 hover:shadow-[0_48px_80px_-24px_rgba(219,81,60,0.25)]">
+        <div 
+            ref={containerRef}
+            className="w-full max-w-5xl mx-auto rounded-[2.5rem] shadow-[0_32px_64px_-16px_rgba(0,0,0,0.2)] relative bg-white/95 backdrop-blur-xl border border-white/20 transform transition-all duration-500 hover:shadow-[0_48px_80px_-24px_rgba(219,81,60,0.25)]"
+        >
 
             {/* Tab Switcher */}
             <div className="flex items-center justify-between p-1.5 bg-gray-100/50 rounded-t-[2.5rem] border-b border-gray-100">
@@ -196,6 +207,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                     onChange={(val) => {
                                         setSelectedBrand(val);
                                         setSelectedModel("");
+                                        if (val) scrollToCenter();
                                     }}
                                     hideAllOption={true}
                                 />
@@ -213,7 +225,10 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                         group: m.series || 'Egyéb'
                                     }))}
                                     value={selectedModel}
-                                    onChange={setSelectedModel}
+                                    onChange={(val) => {
+                                        setSelectedModel(val);
+                                        if (val) scrollToCenter();
+                                    }}
                                     hideAllOption={true}
                                 />
                             </div>
@@ -225,7 +240,10 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                     placeholder={isLoadingParts ? "Töltés..." : "Alkatrészek Neve"}
                                     options={currentPartOptions}
                                     value={selectedPartItem}
-                                    onChange={setSelectedPartItem}
+                                    onChange={(val) => {
+                                        setSelectedPartItem(val);
+                                        if (val) scrollToCenter();
+                                    }}
                                     hideAllOption={true}
                                     disabled={isLoadingParts}
                                 />
