@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-export const dynamic = "force-dynamic";
 import { Building2, Info, Server } from"lucide-react";
 
 export default function ImpressumPage() {

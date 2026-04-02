@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-export const dynamic = "force-dynamic";
 export default function AboutPage() {
     return (
         <div className="min-h-screen pt-32 px-6 max-w-4xl mx-auto">

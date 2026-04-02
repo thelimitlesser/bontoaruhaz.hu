@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-export const dynamic = "force-dynamic";
 import { HelpCircle } from"lucide-react";
 
 export default function FaqPage() {

@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { LayoutDashboard, Package, ShoppingCart, Users, RotateCcw } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";

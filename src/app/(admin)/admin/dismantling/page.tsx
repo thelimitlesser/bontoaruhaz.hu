@@ -3,7 +3,6 @@ import { Plus, Car } from"lucide-react";
 import Link from"next/link";
 import { prisma } from"@/lib/prisma";
 
-export const dynamic = "force-dynamic";
 
 export default async function DismantlingPage() {
     const vehicles = await prisma.donorVehicle.findMany({

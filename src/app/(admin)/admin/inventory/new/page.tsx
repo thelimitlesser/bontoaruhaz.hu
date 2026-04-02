@@ -1,5 +1,4 @@
 export const dynamic = "force-dynamic";
-export const dynamic = "force-dynamic";
 import { ProductForm } from "@/components/admin/product-form";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
