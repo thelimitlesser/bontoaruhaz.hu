@@ -153,7 +153,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                                             <td className="px-6 py-5 font-medium text-gray-600 dark:text-gray-400">
                                                 {new Date(order.createdAt).toLocaleDateString('hu-HU', { year: 'numeric', month: 'short', day: 'numeric' })}
                                             </td>
-                                            <td className="px-6 py-5 text-right">
+                                            <td className="px-6 py-5 text-right whitespace-nowrap">
                                                 <span className="text-base font-black text-gray-900 dark:text-white">
                                                     {order.totalAmount.toLocaleString('hu-HU')} Ft
                                                 </span>
