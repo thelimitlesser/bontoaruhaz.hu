@@ -123,33 +123,57 @@ export async function ensureUserExists() {
             return null; // Normal "not logged in" state
         }
 
-        const existingUser = await prisma.user.findUnique({
-            where: { id: user.id }
-        });
-
-        if (!existingUser) {
-            const adminEmails = process.env.ADMIN_EMAILS ?
-                process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
-                ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu'];
-
-            const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
-
-            // Create user in Prisma if not present
-            const newUser = await prisma.user.create({
-                data: {
-                    id: user.id,
-                    email: user.email!,
-                    fullName: user.user_metadata?.full_name || user.user_metadata?.display_name || 'Új Vásárló',
-                    role: isAdminEmail ? 'ADMIN' : 'CUSTOMER'
-                }
+        try {
+            const existingUser = await prisma.user.findUnique({
+                where: { id: user.id }
             });
-            return newUser;
-        }
 
-        return existingUser;
+            if (!existingUser) {
+                const adminEmails = process.env.ADMIN_EMAILS ?
+                    process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
+                    ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai'];
+
+                const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
+
+                // Create user in Prisma if not present
+                try {
+                    const newUser = await prisma.user.create({
+                        data: {
+                            id: user.id,
+                            email: user.email!,
+                            fullName: user.user_metadata?.full_name || user.user_metadata?.display_name || 'Új Vásárló',
+                            role: isAdminEmail ? 'ADMIN' : 'CUSTOMER'
+                        }
+                    });
+                    return newUser;
+                } catch (createError) {
+                    console.error("ensureUserExists: Failed to create user in DB:", createError);
+                    // Fallback: return a mock user object from Supabase data to allow UI to render
+                    return {
+                        id: user.id,
+                        email: user.email!,
+                        fullName: user.user_metadata?.full_name || 'Új Vásárló',
+                        role: isAdminEmail ? 'ADMIN' : 'CUSTOMER'
+                    } as any;
+                }
+            }
+
+            return existingUser;
+        } catch (prismaError) {
+            console.error("ensureUserExists: Prisma error during runtime:", prismaError);
+            // Return Supabase user data as a fallback to prevent crash
+            const adminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu'];
+            const isAdmin = user.email && adminEmails.includes(user.email.toLowerCase());
+            return {
+                id: user.id,
+                email: user.email!,
+                fullName: user.user_metadata?.full_name || 'Bejelentkezett Felhasználó',
+                role: isAdmin ? 'ADMIN' : 'CUSTOMER'
+            } as any;
+        }
     } catch (error: any) {
-        console.error("Error in ensureUserExists:", error);
-        throw new Error(error.message || String(error));
+        console.error("CRITICAL ERROR in ensureUserExists (General failure):", error);
+        return null; 
     }
 }
 

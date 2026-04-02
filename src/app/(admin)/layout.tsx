@@ -9,30 +9,43 @@ import { AdminSidebar } from "@/components/admin/admin-nav";
 
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-    const dbUser = await ensureUserExists();
+    try {
+        const dbUser = await ensureUserExists();
 
-    if (!dbUser) {
-        console.log("AdminLayout: No user found from ensureUserExists, redirecting to login");
-        redirect("/login");
+        if (!dbUser) {
+            console.log("AdminLayout: No user session found. Redirecting to login.");
+            redirect("/login");
+        }
+
+        console.log(`AdminLayout: Logged in as ${dbUser.email} (${dbUser.role})`);
+
+        if (dbUser.role !== 'ADMIN') {
+            console.warn(`AdminLayout: Unauthorized access attempt by ${dbUser.email}`);
+            redirect("/");
+        }
+
+        return (
+            <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-900 font-sans pt-16 lg:pt-0">
+                <AdminSidebar user={{ fullName: dbUser.fullName, email: dbUser.email }} />
+
+                {/* Main Content */}
+                <main className="flex-1 lg:pl-72 bg-gray-50 p-4 sm:p-8">
+                    {children}
+                </main>
+            </div>
+        );
+    } catch (error) {
+        console.error("ADMIN_LAYOUT_ERROR: Critical failure in admin shell:", error);
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6 text-center">
+                <div className="max-w-md bg-white p-8 rounded-2xl shadow-xl border border-red-100">
+                    <h1 className="text-xl font-bold text-red-600 mb-4">Hiba az Admin felület betöltésekor</h1>
+                    <p className="text-gray-500 mb-6">Az adatbázis vagy a bejelentkezési rendszer átmenetileg nem elérhető.</p>
+                    <Link href="/" className="bg-[var(--color-primary)] text-white px-6 py-2 rounded-lg font-bold">Vissza a főoldalra</Link>
+                </div>
+            </div>
+        );
     }
-
-    console.log(`AdminLayout: Found user ${dbUser.email} with role ${dbUser.role}`);
-
-    if (dbUser.role !== 'ADMIN') {
-        console.log(`AdminLayout: Access denied for ${dbUser.email}. Required: ADMIN, Found: ${dbUser.role}`);
-        redirect("/");
-    }
-
-    return (
-        <div className="flex flex-col lg:flex-row min-h-screen bg-white text-gray-900 font-sans pt-16 lg:pt-0">
-            <AdminSidebar user={{ fullName: dbUser.fullName, email: dbUser.email }} />
-
-            {/* Main Content */}
-            <main className="flex-1 lg:pl-72 bg-gray-50 p-4 sm:p-8">
-                {children}
-            </main>
-        </div>
-    );
 }
 
 // NavLink is now handled inside AdminSidebar as a client component
