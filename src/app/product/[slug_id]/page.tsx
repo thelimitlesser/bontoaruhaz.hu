@@ -46,6 +46,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug_id: 
   };
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function ProductPage({ params }: { params: Promise<{ slug_id: string }> }) {
   const { slug_id } = await params;
   const id = extractIdFromSlug(slug_id);
