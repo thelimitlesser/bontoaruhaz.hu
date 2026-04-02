@@ -5,7 +5,6 @@ import { redirect } from "next/navigation";
 import { ensureUserExists } from "@/app/actions/user";
 import { AdminSidebar } from "@/components/admin/admin-nav";
 
-export const dynamic = "force-dynamic";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
     const dbUser = await ensureUserExists();

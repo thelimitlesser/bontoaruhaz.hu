@@ -1,4 +1,3 @@
-export const dynamic = "force-dynamic";
 import { Plus } from "lucide-react";
 import Link from "next/link";
 import { prisma } from "@/lib/prisma";

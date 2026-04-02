@@ -11,7 +11,7 @@ export default function PrivacyPage() {
                         Adatvédelmi Tájékoztató
                     </h1>
                     <p className="text-muted text-sm border-l-2 border-[var(--color-primary)] pl-3">
-                        Hatályos: {new Date().toLocaleDateString('hu-HU')}
+                        Hatályos: 2026. 04. 02.
                     </p>
                 </div>
             </div>

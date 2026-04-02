@@ -16,6 +16,17 @@ const CheckoutView = dynamic(
   }
 );
 
+import { Suspense } from "react";
+
 export default function CheckoutPage() {
-  return <CheckoutView />;
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pt-32 pb-20 flex flex-col items-center justify-center text-center px-4">
+          <Loader2 className="w-12 h-12 text-[var(--color-primary)] animate-spin mb-4" />
+          <p className="text-gray-400 font-bold uppercase tracking-widest text-xs animate-pulse">Pénztár betöltése...</p>
+      </div>
+    }>
+      <CheckoutView />
+    </Suspense>
+  );
 }

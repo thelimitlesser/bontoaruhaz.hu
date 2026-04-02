@@ -2,10 +2,13 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { trackAndSyncShipment } from '@/app/actions/shipping';
 
-export const dynamic = 'force-dynamic';
+
+import { headers } from 'next/headers';
 
 export async function GET(request: Request) {
     try {
+        // Force dynamic behavior
+        headers();
         // Optional: add a basic authorization check using headers 
         const authHeader = request.headers.get('authorization');
         if (process.env.CRON_SECRET && authHeader !== `Bearer ${process.env.CRON_SECRET}`) {

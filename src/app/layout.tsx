@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -128,12 +129,20 @@ export default function RootLayout({
       >
         <CartProvider>
           <NextTopLoader color="#db513c" showSpinner={false} />
-          <Navbar />
-          <CartDrawer />
+          <Suspense fallback={<div className="h-16 bg-white border-b border-gray-100" />}>
+            <Navbar />
+          </Suspense>
+          <Suspense fallback={null}>
+            <CartDrawer />
+          </Suspense>
           <main className="flex-1">
-            {children}
+            <Suspense fallback={null}>
+              {children}
+            </Suspense>
           </main>
-          <Footer />
+          <Suspense fallback={<div className="h-20 bg-foreground" />}>
+            <Footer />
+          </Suspense>
         </CartProvider>
       </body>
     </html>

@@ -4,7 +4,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: any = {
   experimental: {
-    ppr: 'incremental',
+    cacheComponents: true,
     serverActions: {
       bodySizeLimit: '50mb',
     },

@@ -11,7 +11,7 @@ export default function TermsPage() {
                         Általános Szerződési Feltételek
                     </h1>
                     <p className="text-muted text-sm border-l-2 border-[var(--color-primary)] pl-3">
-                        Utolsó frissítés: {new Date().toLocaleDateString('hu-HU')}
+                        Utolsó frissítés: 2026. 04. 02.
                     </p>
                 </div>
             </div>

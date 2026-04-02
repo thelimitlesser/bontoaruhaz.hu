@@ -1,10 +1,13 @@
 import { bulkSyncPxpStatuses } from "@/app/actions/shipping";
 import { NextResponse } from "next/server";
 
-export const dynamic = 'force-dynamic';
+
+import { headers } from "next/headers";
 
 export async function GET(request: Request) {
     try {
+        // Force dynamic behavior
+        headers();
         // Optional: Add an API key check here for security
         // const { searchParams } = new URL(request.url);
         // if (searchParams.get('key') !== process.env.CRON_SECRET) return...
