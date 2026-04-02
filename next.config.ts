@@ -3,12 +3,13 @@ import type { NextConfig } from "next";
 
 
 const nextConfig: any = {
+  cacheComponents: false,
   experimental: {
-    cacheComponents: true,
     serverActions: {
       bodySizeLimit: '50mb',
     },
   },
+  // Keep these top-level but ignore lint warnings if Next.js 16 changed the structure
   eslint: {
     ignoreDuringBuilds: true,
   },
