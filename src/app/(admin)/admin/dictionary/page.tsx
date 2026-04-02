@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { getBrands, getModels, getCategories, getSubcategories, getPartItems } from "@/app/actions/dictionary";
 import { DictionaryEditor } from "./dictionary-editor";
 

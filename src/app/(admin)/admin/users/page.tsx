@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { Mail, Shield, User as UserIcon, Search, Users as UsersIcon, ShieldCheck, UserCheck } from "lucide-react";
 import { RoleUpdater } from "./role-updater";

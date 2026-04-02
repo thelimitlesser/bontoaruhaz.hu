@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { ArrowRight, Search } from "lucide-react";
 import { VehicleSelector } from "@/components/vehicle-selector";
 import { HeroBackground } from "@/components/hero-background";

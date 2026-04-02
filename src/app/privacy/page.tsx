@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { ShieldAlert, Info } from"lucide-react";
 import Link from"next/link";
 
