@@ -64,7 +64,7 @@ export function Footer() {
                         </div>
                         <div className="flex items-start gap-3 text-sm">
                             <MapPin className="w-5 h-5 text-[var(--color-primary)] shrink-0" />
-                            <span>2220 Vecsés,<br />Fő út 44.</span>
+                            <span>8111 Seregélyes-Jánosmajor</span>
                         </div>
                     </div>
 

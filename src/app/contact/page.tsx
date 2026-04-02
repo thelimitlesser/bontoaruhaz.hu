@@ -101,7 +101,7 @@ export default function ContactPage() {
                         </div>
                         <div>
                             <p className="text-muted text-sm">Központ</p>
-                            <p className="text-foreground font-bold text-lg">2220 Vecsés, Fő út 44.</p>
+                            <p className="text-foreground font-bold text-lg">8111 Seregélyes-Jánosmajor</p>
                         </div>
                     </div>
                 </div>

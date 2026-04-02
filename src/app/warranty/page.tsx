@@ -44,9 +44,7 @@ export default function WarrantyPage() {
                 </div>
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">2. Visszaküldés folyamata és szállítási költség</h2>
-                <p>
-                    Kérjük, amennyiben az alkatrész hibás, vedd fel velünk a kapcsolatot a probléma egyeztetése céljából, majd küldd vissza a terméket címünkre (2220 Vecsés, Fő út 44.).
-                </p>
+                    Kérjük, amennyiben az alkatrész hibás, vedd fel velünk a kapcsolatot a probléma egyeztetése céljából, majd küldd vissza a terméket címünkre (8111 Seregélyes-Jánosmajor).
                 <p>
                     <strong>Amennyiben a hibás termék megrendelése házhoz szállítással történt, úgy cégünk a termék visszaküldésének költségét is megtéríti.</strong> Ennek feltétele a hiba igazolása és az előzetes egyeztetés ügyfélszolgálatunkkal. Utánvéttel (portósan) feladott csomagokat azonban semmilyen esetben sem áll módunkban átvenni!
                 </p>

@@ -34,7 +34,7 @@ export default function ImpressumPage() {
                         </h2>
                         <ul className="list-none space-y-3 p-6 sm:p-8 bg-muted/5 rounded-2xl border border-border m-0">
                             <li><strong className="text-foreground block mb-1">Cégnév:</strong> [CÉGNÉV] (Kérjük, töltse ki)</li>
-                            <li><strong className="text-foreground block mb-1">Székhely és telephely:</strong> 2220 Vecsés, Fő út 44.</li>
+                            <li><strong className="text-foreground block mb-1">Székhely és telephely:</strong> 8111 Seregélyes-Jánosmajor</li>
                             <li><strong className="text-foreground block mb-1">Adószám:</strong> [ADÓSZÁM]</li>
                             <li><strong className="text-foreground block mb-1">Cégjegyzékszám:</strong> [CÉGJEGYZÉKSZÁM]</li>
                             <li><strong className="text-foreground block mb-1">Nyilvántartó bíróság:</strong> [BÍRÓSÁG NEVE]</li>

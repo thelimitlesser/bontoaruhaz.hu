@@ -29,7 +29,7 @@ export default function PrivacyPage() {
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">1. Az Adatkezelő adatai</h2>
                 <ul className="list-none space-y-2 p-6 sm:p-8 bg-muted/5 rounded-2xl border border-border m-0">
                     <li><strong className="text-foreground">Cégnév:</strong> [CÉGNÉV] (Kérjük, töltse ki hivatalos adataival)</li>
-                    <li><strong className="text-foreground">Székhely:</strong> 2220 Vecsés, Fő út 44.</li>
+                    <li><strong className="text-foreground">Székhely:</strong> 8111 Seregélyes-Jánosmajor</li>
                     <li><strong className="text-foreground">E-mail:</strong> info@bontoaruhaz.hu</li>
                     <li><strong className="text-foreground">Telefon:</strong> +36 70 612 1277</li>
                 </ul>

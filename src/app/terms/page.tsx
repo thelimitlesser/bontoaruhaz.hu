@@ -29,7 +29,7 @@ export default function TermsPage() {
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">1. Szolgáltató adatai</h2>
                 <ul className="list-none space-y-2 p-6 sm:p-8 bg-muted/5 rounded-2xl border border-border m-0">
                     <li><strong className="text-foreground">Cégnév:</strong> [CÉGNÉV] (Kérjük, töltse ki hivatalos adataival)</li>
-                    <li><strong className="text-foreground">Székhely:</strong> 2220 Vecsés, Fő út 44.</li>
+                    <li><strong className="text-foreground">Székhely:</strong> 8111 Seregélyes-Jánosmajor</li>
                     <li><strong className="text-foreground">Adószám:</strong> [ADÓSZÁM]</li>
                     <li><strong className="text-foreground">Cégjegyzékszám:</strong> [CÉGJEGYZÉKSZÁM]</li>
                     <li><strong className="text-foreground">E-mail cím:</strong> info@bontoaruhaz.hu</li>
@@ -61,9 +61,7 @@ export default function TermsPage() {
                 </p>
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">5. Szállítás és átvétel</h2>
-                <p>
-                    A megrendelt termékek kiszállítását a Pannon XP futárszolgálat végzi, vagy lehetőség van személyes átvételre a budapesti telephelyen. A szállítási díj a termék súlyától és térfogatától függően változhat, melyről a Pénztár folyamat során a rendszer pontos tájékoztatást ad.
-                </p>
+                    A megrendelt termékek kiszállítását a Pannon XP futárszolgálat végzi, vagy lehetőség van személyes átvételre telephelyünkön (8111 Seregélyes-Jánosmajor). A szállítási díj a termék súlyától és térfogatától függően változhat, melyről a Pénztár folyamat során a rendszer pontos tájékoztatást ad.
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">6. Elállási jog (14 napos visszavétel)</h2>
                 <p>

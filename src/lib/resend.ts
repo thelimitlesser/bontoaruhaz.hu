@@ -179,7 +179,7 @@ export async function sendOrderConfirmedEmail(order: any, customerEmail: string,
                         </h4>
                         
                         ${isPickup ? `
-                            <p style="margin-bottom: 5px;"><strong>Helyszín:</strong> 1152 Budapest, Városkapu utca 3.</p>
+                            <p style="margin-bottom: 5px;"><strong>Helyszín:</strong> 8111 Seregélyes-Jánosmajor</p>
                             <p style="margin-bottom: 0;"><strong>Nyitvatartás:</strong> H-P: 08:00 - 17:00</p>
                         ` : `
                             <p style="margin-bottom: 5px;"><strong>Szállító:</strong> PannonXP</p>
@@ -256,7 +256,7 @@ export async function sendOrderReadyForPickupEmail(order: any, customerEmail: st
 
                     <div style="margin: 30px 0; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px;">
                         <h4 style="margin-top: 0; color: #64748b; font-size: 12px; text-transform: uppercase;">Átvételi pont:</h4>
-                        <p style="margin-bottom: 5px;"><strong>Cím:</strong> 1152 Budapest, Városkapu utca 3.</p>
+                        <p style="margin-bottom: 5px;"><strong>Cím:</strong> 8111 Seregélyes-Jánosmajor</p>
                         <p style="margin-bottom: 0;"><strong>Nyitvatartás:</strong> H-P: 08:00 - 17:00</p>
                     </div>
 

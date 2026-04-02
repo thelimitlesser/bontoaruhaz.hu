@@ -283,7 +283,7 @@ export default function CheckoutView() {
                                         </div>
                                         <div>
                                             <h4 className="text-foreground font-bold text-sm">Személyes átvétel</h4>
-                                            <p className="text-muted text-xs">1152 Budapest, Városkapu utca 3.</p>
+                                            <p className="text-muted text-xs">8111 Seregélyes-Jánosmajor</p>
                                         </div>
                                     </div>
                                     <span className="text-[var(--color-primary)] font-bold text-sm">Ingyenes</span>

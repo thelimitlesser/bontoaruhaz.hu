@@ -69,9 +69,9 @@ export default function RootLayout({
     },
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Fő út 44.",
-      "addressLocality": "Vecsés",
-      "postalCode": "2220",
+      "streetAddress": "Jánosmajor",
+      "addressLocality": "Seregélyes",
+      "postalCode": "8111",
       "addressCountry": "HU"
     }
   };
@@ -86,15 +86,10 @@ export default function RootLayout({
     "telephone": "+36706121277",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Fő út 44.",
-      "addressLocality": "Vecsés",
-      "postalCode": "2220",
+      "streetAddress": "Jánosmajor",
+      "addressLocality": "Seregélyes",
+      "postalCode": "8111",
       "addressCountry": "HU"
-    },
-    "geo": {
-      "@type": "GeoCoordinates",
-      "latitude": 47.4116,
-      "longitude": 19.2635
     },
     "openingHoursSpecification": {
       "@type": "OpeningHoursSpecification",
