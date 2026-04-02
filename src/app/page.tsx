@@ -5,8 +5,6 @@ import { HeroBackground } from "@/components/hero-background";
 import { BrandSelector } from "@/components/brand-selector";
 import { getVehicleSelectorDataAction, getActivePartOptionsAction } from "@/app/actions/vehicle";
 
-export const dynamic = "force-dynamic";
-
 export default async function Home() {
   const { brands: activeBrands, modelsMap } = await getVehicleSelectorDataAction();
   const initialPartOptions = await getActivePartOptionsAction();

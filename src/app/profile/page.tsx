@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { Navbar } from "@/components/navbar";

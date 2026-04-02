@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 import { Search, ShoppingCart, Truck, CheckCircle } from"lucide-react";
 
 export default function HowItWorksPage() {

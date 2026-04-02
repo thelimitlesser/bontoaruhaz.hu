@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
 import { DollarSign, Package, ShoppingCart, Users, Calendar } from "lucide-react";
 import Link from "next/link";

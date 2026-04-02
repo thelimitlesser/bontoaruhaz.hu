@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 import { createClient } from"@/lib/supabase/server";
 import { prisma } from"@/lib/prisma";
 import { redirect } from"next/navigation";

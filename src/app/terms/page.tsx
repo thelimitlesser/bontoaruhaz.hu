@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 import { FileText, Info } from"lucide-react";
 import Link from"next/link";
 

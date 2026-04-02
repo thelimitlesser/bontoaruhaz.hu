@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 import { prisma } from"@/lib/prisma";
 import Link from"next/link";
 import { ArrowLeft, User, MapPin, Package, CreditCard, Truck } from"lucide-react";
