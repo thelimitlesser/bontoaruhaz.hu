@@ -8,64 +8,84 @@ import { Metadata } from "next";
 import Image from "next/image";
 
 export async function generateMetadata({ params }: { params: Promise<{ brandSlug: string }> }): Promise<Metadata> {
-    const { brandSlug } = await params;
-    const brand = await prisma.vehicleBrand.findUnique({
-        where: { slug: brandSlug }
-    });
-    
-    if (!brand) return { title: "Márka nem található" };
+    try {
+        const { brandSlug } = await params;
+        const brand = await prisma.vehicleBrand.findUnique({
+            where: { slug: brandSlug }
+        });
+        
+        if (!brand) return { title: "Márka nem található" };
 
-    const title = `Bontott ${brand.name} alkatrészek és típusok | Bontóáruház`;
-    const description = `Minőségi bontott autóalkatrészek széles választéka ${brand.name} gépjárművekhez. Keress modellszám vagy kategória alapján!`;
+        const title = `Bontott ${brand.name} alkatrészek és típusok | Bontóáruház`;
+        const description = `Minőségi bontott autóalkatrészek széles választéka ${brand.name} gépjárművekhez. Keress modellszám vagy kategória alapján!`;
 
-    return {
-        title,
-        description,
-        openGraph: {
+        return {
             title,
             description,
-            images: [brand.logo],
-        }
-    };
+            openGraph: {
+                title,
+                description,
+                images: [brand.logo],
+            }
+        };
+    } catch (error) {
+        console.error("META ERROR: Failed to fetch brand metadata from DB:", error);
+        return { title: "Alkatrészek | Bontóáruház" };
+    }
 }
 
 export default async function BrandPage({ params }: { params: Promise<{ brandSlug: string }> }) {
-    const { brandSlug } = await params;
+    try {
+        const { brandSlug } = await params;
 
-    const brand = await prisma.vehicleBrand.findUnique({
-        where: { slug: brandSlug }
-    });
+        const brand = await prisma.vehicleBrand.findUnique({
+            where: { slug: brandSlug }
+        });
 
-    if (!brand) {
-        notFound();
-    }
+        if (!brand) {
+            notFound();
+        }
 
-    const models = await prisma.vehicleModel.findMany({
-        where: {
-            brandId: brand.id,
-            OR: [
-                {
-                    Part: {
-                        some: { stock: { gt: 0 } }
-                    }
-                },
-                {
-                    PartCompatibility: {
-                        some: {
-                            part: { stock: { gt: 0 } }
+        const models = await prisma.vehicleModel.findMany({
+            where: {
+                brandId: brand.id,
+                OR: [
+                    {
+                        Part: {
+                            some: { stock: { gt: 0 } }
+                        }
+                    },
+                    {
+                        PartCompatibility: {
+                            some: {
+                                part: { stock: { gt: 0 } }
+                            }
                         }
                     }
-                }
-            ]
-        },
-        select: { 
-            id: true, 
-            name: true, 
-            slug: true,
-            series: true 
-        }
-    });
+                ]
+            },
+            select: { 
+                id: true, 
+                name: true, 
+                slug: true,
+                series: true 
+            }
+        });
 
+        return renderBrandPage(brand, models);
+    } catch (error) {
+        console.error("RUNTIME ERROR: Failed to fetch brand page data from DB. Displaying error state.", error);
+        return (
+            <div className="min-h-screen pt-40 text-center px-4">
+                <h1 className="text-xl font-bold text-gray-800 mb-4">Átmeneti hiba az adatok betöltésekor</h1>
+                <p className="text-gray-500 mb-8 max-w-md mx-auto">Az adatbázis jelenleg nem elérhető. Kérjük, frissítse az oldalt vagy próbálkozzon pár perc múlva.</p>
+                <Link href="/" className="bg-[var(--color-primary)] text-white px-6 py-2 rounded-lg font-bold">VISSZA A FŐOLDALRA</Link>
+            </div>
+        );
+    }
+}
+
+function renderBrandPage(brand: any, models: any[]) {
     const typedModels = models as any[]; // Cast to match BrandModelsList prop type
 
     const jsonLd = {
