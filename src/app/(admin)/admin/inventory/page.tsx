@@ -9,12 +9,13 @@ import { getBrands, getCategories, getAllPartItems } from "@/app/actions/catalog
 export default async function InventoryPage({
     searchParams,
 }: {
-    searchParams: Promise<{ q?: string; make?: string; model?: string; page?: string }>
+    searchParams: Promise<{ q?: string; make?: string; model?: string; partItem?: string; page?: string }>
 }) {
     const params = await searchParams;
     const query = params.q || "";
     const make = params.make || "";
     const model = params.model || "";
+    const partItem = params.partItem || "";
 
     // 1. Build Filter inputs
     const where: any = {};
@@ -29,50 +30,77 @@ export default async function InventoryPage({
         ];
     }
 
-    // YMM Filtering via new brandId and modelId fields
-    if (make) {
-        where.brandId = make;
-    }
+    if (make) where.brandId = make;
+    if (model) where.modelId = model;
+    if (partItem) where.partItemId = partItem;
 
-    if (model) {
-        where.modelId = model;
-    }
-
-
-    // 2. Fetch Dropdown Data from DB
-    let dbBrands: any[] = [];
+    // 2. Fetch Dropdown Data (Hierarchical for Filters + Full for Form)
+    let makeOptions: any[] = [];
+    let modelOptions: any[] = [];
+    let partItemOptions: any[] = [];
+    
+    // Data for Table/Edit Form (Full catalog)
+    let fullBrands: any[] = [];
+    let fullModels: any[] = [];
+    let fullPartItems: any[] = [];
     let dbCategories: any[] = [];
-    let dbPartItems: any[] = [];
     let dbSubcategories: any[] = [];
-    let allModels: any[] = [];
 
     try {
-        const [brands, cats, items, subcats, models] = await Promise.all([
+        const [
+            fBrands, fModels, fPartItems,
+            aBrands, aModels, aPartItems,
+            cats, subcats
+        ] = await Promise.all([
+            // FILTER DATA (Limited to active inventory)
+            prisma.vehicleBrand.findMany({
+                where: { Part: { some: {} } },
+                orderBy: { name: 'asc' }
+            }),
+            prisma.vehicleModel.findMany({
+                where: {
+                    AND: [
+                        { Part: { some: {} } },
+                        make ? { brandId: make } : {}
+                    ]
+                },
+                orderBy: { name: 'asc' }
+            }),
+            prisma.partItem.findMany({
+                where: {
+                    AND: [
+                        { Part: { some: {} } },
+                        make ? { Part: { some: { brandId: make } } } : {},
+                        model ? { Part: { some: { modelId: model } } } : {}
+                    ]
+                },
+                orderBy: { name: 'asc' }
+            }),
+            // FORM DATA (Full Catalog)
             getBrands(),
-            getCategories(),
+            prisma.vehicleModel.findMany(),
             getAllPartItems(),
-            prisma.partSubcategory.findMany(),
-            prisma.vehicleModel.findMany()
+            getCategories(),
+            prisma.partSubcategory.findMany()
         ]);
-        dbBrands = brands;
+
+        makeOptions = fBrands.map(b => ({ value: b.id, label: b.name }));
+        modelOptions = fModels.map(m => ({ 
+            value: m.id, 
+            label: m.name,
+            group: m.series || 'Egyéb'
+        }));
+        partItemOptions = fPartItems.map(i => ({ value: i.id, label: i.name }));
+
+        fullBrands = aBrands;
+        fullModels = aModels;
+        fullPartItems = aPartItems;
         dbCategories = cats;
-        dbPartItems = items;
         dbSubcategories = subcats;
-        allModels = models;
+
     } catch (e) {
         console.error("InventoryPage: Failed to fetch dropdown data:", e);
     }
-
-    const makeOptions = dbBrands
-        .map((b: any) => ({ value: b.id, label: b.name }));
-
-    // For models, if a make is selected, provide its models
-    const availableModels = make ? allModels.filter((m: any) => m.brandId === make) : [];
-    const modelOptions = availableModels.map((m: any) => ({ 
-        value: m.id, 
-        label: m.name,
-        group: m.series || 'Egyéb'
-    }));
 
     // 3. Pagination logic
     const pageSize = 50;
@@ -123,16 +151,16 @@ export default async function InventoryPage({
             </div>
 
             {/* Search & Filter Bar (Client Component) */}
-            <InventoryFilters makes={makeOptions} models={modelOptions} />
+            <InventoryFilters makes={makeOptions} models={modelOptions} partItems={partItemOptions} />
 
             {/* Smart Table (Client Component for Actions) */}
             <InventoryTable 
                 parts={parts} 
-                brands={dbBrands}
-                models={allModels}
+                brands={fullBrands}
+                models={fullModels}
                 categories={dbCategories}
                 subcategories={dbSubcategories}
-                partItems={dbPartItems}
+                partItems={fullPartItems}
             />
 
             {/* Pagination */}
@@ -141,7 +169,7 @@ export default async function InventoryPage({
                     <div className="flex items-center gap-2">
                         {page > 1 && (
                             <Link 
-                                href={`/admin/inventory?page=${page - 1}${query ? `&q=${query}` : ''}${make ? `&make=${make}` : ''}${model ? `&model=${model}` : ''}`}
+                                href={`/admin/inventory?page=${page - 1}${query ? `&q=${query}` : ''}${make ? `&make=${make}` : ''}${model ? `&model=${model}` : ''}${partItem ? `&partItem=${partItem}` : ''}`}
                                 className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                             >
                                 Előző
@@ -152,7 +180,7 @@ export default async function InventoryPage({
                         </span>
                         {page < totalPages && (
                             <Link 
-                                href={`/admin/inventory?page=${page + 1}${query ? `&q=${query}` : ''}${make ? `&make=${make}` : ''}${model ? `&model=${model}` : ''}`}
+                                href={`/admin/inventory?page=${page + 1}${query ? `&q=${query}` : ''}${make ? `&make=${make}` : ''}${model ? `&model=${model}` : ''}${partItem ? `&partItem=${partItem}` : ''}`}
                                 className="px-4 py-2 bg-white border border-gray-200 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors"
                             >
                                 Következő

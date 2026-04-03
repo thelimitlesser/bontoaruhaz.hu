@@ -8,10 +8,12 @@ import { recordSearch } from "@/app/actions/analytics";
 
 export function InventoryFilters({
     makes,
-    models
+    models,
+    partItems
 }: {
     makes: { value: string; label: string }[];
     models: { value: string; label: string; group?: string }[];
+    partItems: { value: string; label: string }[];
 }) {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -20,6 +22,7 @@ export function InventoryFilters({
     const [query, setQuery] = useState(searchParams.get("q")?.toString() || "");
     const [selectedMake, setSelectedMake] = useState(searchParams.get("make")?.toString() || "");
     const [selectedModel, setSelectedModel] = useState(searchParams.get("model")?.toString() || "");
+    const [selectedPartItem, setSelectedPartItem] = useState(searchParams.get("partItem")?.toString() || "");
 
     // Memoize the current params to avoid infinite loops
     useEffect(() => {
@@ -41,16 +44,26 @@ export function InventoryFilters({
                 newParams.set("make", selectedMake);
             } else {
                 newParams.delete("make");
+                newParams.delete("model");
+                newParams.delete("partItem");
             }
 
             if (selectedModel) {
                 newParams.set("model", selectedModel);
             } else {
                 newParams.delete("model");
+                newParams.delete("partItem");
             }
 
-            // Only navigate if parameters actually changed to avoid infinite RSC loops
+            if (selectedPartItem) {
+                newParams.set("partItem", selectedPartItem);
+            } else {
+                newParams.delete("partItem");
+            }
+
+            // Always reset to page 1 when filtering
             if (newParams.toString() !== currentParams.toString()) {
+                newParams.set("page", "1");
                 startTransition(() => {
                     router.replace(`/admin/inventory?${newParams.toString()}`, { scroll: false });
                 });
@@ -58,21 +71,21 @@ export function InventoryFilters({
         }, 500);
 
         return () => clearTimeout(timer);
-    }, [query, selectedMake, selectedModel, router, searchParams]);
+    }, [query, selectedMake, selectedModel, selectedPartItem, router, searchParams]);
 
     return (
-        <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-xl flex flex-col md:flex-row gap-4 items-center">
-            <div className="flex-1 relative w-full">
+        <div className="bg-white border border-gray-200 shadow-sm p-4 rounded-xl flex flex-col gap-4">
+            <div className="relative w-full">
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
                     value={query}
                     onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Keresés... (Pl. Generátor, 03L903023F, Audi A4)" 
+                    placeholder="Keresés cikkszám, referencia vagy név alapján..." 
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg pl-12 pr-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 placeholder-gray-500 font-medium transition-colors" />
             </div>
             
-            <div className="flex gap-4 w-full md:w-auto">
-                <div className="min-w-[180px] flex-1 md:flex-none">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+                <div className="w-full">
                     <SearchableSelect
                         placeholder="Minden Márka"
                         options={makes}
@@ -80,16 +93,28 @@ export function InventoryFilters({
                         onChange={(val) => {
                             setSelectedMake(val);
                             setSelectedModel("");
+                            setSelectedPartItem("");
                         }}
                     />
                 </div>
-                <div className="min-w-[180px] flex-1 md:flex-none">
+                <div className="w-full">
                     <SearchableSelect
                         placeholder="Minden Modell"
                         disabled={!selectedMake}
                         options={models}
                         value={selectedModel}
-                        onChange={setSelectedModel}
+                        onChange={(val) => {
+                            setSelectedModel(val);
+                            setSelectedPartItem("");
+                        }}
+                    />
+                </div>
+                <div className="w-full">
+                    <SearchableSelect
+                        placeholder="Minden Alkatrész"
+                        options={partItems}
+                        value={selectedPartItem}
+                        onChange={setSelectedPartItem}
                     />
                 </div>
             </div>
