@@ -124,6 +124,37 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
     yearString = `${dbPart.yearTo}-ig`;
   }
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Főoldal",
+        "item": "https://bontoaruhaz.hu"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": brandName,
+        "item": `https://bontoaruhaz.hu/brand/${brandSlug}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": modelName,
+        "item": `https://bontoaruhaz.hu/brand/${brandSlug}/${modelSlug}`
+      },
+      ...(categoryName ? [{
+        "@type": "ListItem",
+        "position": 4,
+        "name": categoryName,
+        "item": `https://bontoaruhaz.hu/brand/${brandSlug}/${modelSlug}/${categorySlug}`
+      }] : [])
+    ]
+  };
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "Product",
@@ -142,7 +173,38 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
       "priceCurrency": dbPart.currency || "HUF",
       "price": dbPart.priceGross,
       "availability": dbPart.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "condition": dbPart.condition === "NEW" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition"
+      "itemCondition": dbPart.condition === "NEW" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition",
+      "shippingDetails": {
+        "@type": "OfferShippingDetails",
+        "shippingRate": {
+          "@type": "MonetaryAmount",
+          "value": (dbPart as any).shippingPrice || 2500,
+          "currency": "HUF"
+        },
+        "deliveryTime": {
+          "@type": "ShippingDeliveryTime",
+          "handlingTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 0,
+            "maxValue": 1,
+            "unitCode": "DAY"
+          },
+          "transitTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 1,
+            "maxValue": 3,
+            "unitCode": "DAY"
+          }
+        }
+      },
+      "hasMerchantReturnPolicy": {
+        "@type": "MerchantReturnPolicy",
+        "applicableCountry": "HU",
+        "returnPolicyCategory": "https://schema.org/MerchantReturnFiniteReturnPeriod",
+        "merchantReturnDays": 14,
+        "returnMethod": "https://schema.org/ReturnByMail",
+        "returnFees": "https://schema.org/ReturnFeesCustomerResponsibility"
+      }
     }
   };
 
@@ -151,6 +213,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <div className="max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden">
 

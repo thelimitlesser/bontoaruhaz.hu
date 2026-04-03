@@ -5,6 +5,47 @@ import { Navbar } from "@/components/navbar";
 import { prisma } from "@/lib/prisma";
 import { CategoryProductsContent } from "@/components/category-products-content";
 import { getCategoryPageDataAction } from "@/app/actions/product";
+import type { Metadata } from 'next';
+
+export async function generateMetadata({ 
+    params,
+    searchParams 
+}: { 
+    params: Promise<{ brandSlug: string; modelSlug: string; categorySlug: string }>;
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}): Promise<Metadata> {
+    const { brandSlug, modelSlug, categorySlug } = await params;
+    const resolvedSearchParams = await searchParams;
+    const subcatSlug = resolvedSearchParams.subcat as string | undefined;
+
+    const [brand, category] = await Promise.all([
+        prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } }),
+        prisma.partCategory.findUnique({ where: { slug: categorySlug } })
+    ]);
+
+    const model = brand 
+        ? await prisma.vehicleModel.findFirst({ where: { slug: modelSlug, brandId: brand.id } })
+        : null;
+
+    if (!brand || !model || !category) {
+        return { title: 'Kategória nem található' };
+    }
+
+    const title = `Bontott ${brand.name} ${model.name} ${category.name} Alkatrészek | Bontóáruház`;
+    const description = `Válogass minőségi bontott ${brand.name} ${model.name} ${category.name} alkatrészek közül. 14 napos garancia, gyors kiszállítás és megbízható minőség Seregélyesről.`;
+
+    return {
+        title,
+        description,
+        openGraph: {
+            title,
+            description,
+            type: 'website',
+            locale: 'hu_HU',
+            images: brand.logo ? [brand.logo] : [],
+        }
+    };
+}
 
 export default async function CategoryProductsPage({ 
     params,

@@ -85,7 +85,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
                 VehicleBrand: { select: { name: true } },
                 VehicleModel: { select: { name: true } }
             },
-            take: 2000 // Increased limit for better coverage
+            take: 10000 // Increased limit to cover the vast majority of active products
         });
         
         productRoutes = products.map(p => {

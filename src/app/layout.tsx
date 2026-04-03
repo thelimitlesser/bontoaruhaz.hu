@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     siteName: "BONTÓÁRUHÁZ",
     images: [
       {
-        url: "/logo_orange.png",
+        url: "https://bontoaruhaz.hu/logo_orange.png",
         width: 800,
         height: 600,
       },
