@@ -23,7 +23,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
     }
 
     if (payment) where.paymentStatus = payment;
-    if (shipping) where.shippingMethod = shipping;
+    if (shipping) {
+        if (shipping === 'DELIVERY') {
+            where.shippingMethod = { in: ['DELIVERY', 'PANNON_XP'] };
+        } else {
+            where.shippingMethod = shipping;
+        }
+    }
 
     const [orders, totalOrders] = await Promise.all([
         prisma.order.findMany({
