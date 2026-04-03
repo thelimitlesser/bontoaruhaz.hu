@@ -6,9 +6,12 @@ import { BulkSyncButton } from "./bulk-sync-button";
 import { SyncTrigger } from "./sync-trigger";
 import { getLastPxpSync } from "@/app/actions/shipping";
 
-export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string, payment?: string, shipping?: string, todo?: string }> }) {
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string, payment?: string, shipping?: string, todo?: string, page?: string }> }) {
     const params = await searchParams;
     const { status, payment, shipping, todo } = params;
+    const page = parseInt(params.page || "1");
+    const pageSize = 100;
+    const skip = (page - 1) * pageSize;
 
     const where: any = {};
     if (todo === 'true') {
@@ -22,11 +25,18 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
     if (payment) where.paymentStatus = payment;
     if (shipping) where.shippingMethod = shipping;
 
-    const orders = await prisma.order.findMany({
-        where,
-        orderBy: { createdAt:'desc' },
-        include: { user: true, items: true }
-    });
+    const [orders, totalOrders] = await Promise.all([
+        prisma.order.findMany({
+            where,
+            take: pageSize,
+            skip: skip,
+            orderBy: { createdAt:'desc' },
+            include: { user: true, items: true }
+        }),
+        prisma.order.count({ where })
+    ]);
+
+    const totalPages = Math.ceil(totalOrders / pageSize);
 
     // Get last sync time for the auto-trigger
     const syncData = await getLastPxpSync();
@@ -47,7 +57,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                     <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-1.5 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm">
                        <div className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl text-sm font-bold shadow-lg shadow-[var(--color-primary)]/20 flex items-center gap-2">
                            <Package className="w-4 h-4" />
-                           Találatok: {orders.length}
+                           Találatok: {totalOrders}
                        </div>
                     </div>
                 </div>
@@ -207,6 +217,36 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {totalPages > 1 && (
+                    <div className="p-6 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                            Összesen <span className="font-bold text-gray-900 dark:text-white">{totalOrders}</span> rendelés • Oldalanként 100 találat
+                        </div>
+                        <div className="flex items-center gap-2">
+                            {page > 1 && (
+                                <Link 
+                                    href={`/admin/orders?page=${page - 1}${status ? `&status=${status}` : ''}${payment ? `&payment=${payment}` : ''}${shipping ? `&shipping=${shipping}` : ''}${todo ? `&todo=${todo}` : ''}`}
+                                    className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
+                                >
+                                    Előző
+                                </Link>
+                            )}
+                            <div className="px-4 py-2 bg-[var(--color-primary)] text-white rounded-xl text-xs font-black shadow-lg shadow-[var(--color-primary)]/20">
+                                {page} / {totalPages}
+                            </div>
+                            {page < totalPages && (
+                                <Link 
+                                    href={`/admin/orders?page=${page + 1}${status ? `&status=${status}` : ''}${payment ? `&payment=${payment}` : ''}${shipping ? `&shipping=${shipping}` : ''}${todo ? `&todo=${todo}` : ''}`}
+                                    className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
+                                >
+                                    Következő
+                                </Link>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -236,6 +276,9 @@ function FilterLink({ label, value, param = 'status', active, searchParams }: { 
     } else {
         newParams.delete(param);
     }
+
+    // Always reset to page 1 when filter changes
+    newParams.delete('page');
 
     const queryString = newParams.toString();
     const url = queryString ? `?${queryString}` : `/admin/orders`; 
