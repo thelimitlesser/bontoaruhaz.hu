@@ -47,21 +47,21 @@ export function OrderTimeline({ status, paymentStatus, paymentMethod, invoiceId,
         {
             id: "processing",
             label: "Feldolgozás",
-            description: isReadyForPickup ? "Átvehetőre állítva" : (invoiceId ? "Számla elkészült" : "Admin jóváhagyásra vár"),
+            description: isReadyForPickup ? "Összekészítve" : (invoiceId ? "Számla elküldve" : "Jóváhagyásra vár"),
             status: isProcessed ? "complete" : (!isPaid && paymentMethod !== "COD" ? "upcoming" : "current"),
             icon: Package
         },
         {
             id: "shipping",
             label: isPickup ? "Átvétel" : "Szállítás",
-            description: isPickup ? (isReadyForPickup ? "Átvehető!" : "Előkészítés alatt") : (trackingNumber ? `Feladva: ${trackingNumber}` : "Csomagolás alatt"),
+            description: isPickup ? (isReadyForPickup ? "Átvehető!" : "Összekészítés alatt") : (trackingNumber ? "Futárnak átadva" : "Csomagolás alatt"),
             status: (isShipped || isReadyForPickup) ? "complete" : (!isProcessed ? "upcoming" : "current"),
             icon: isPickup ? MapPin : Truck
         },
         {
             id: "delivered",
             label: isPickup ? "Átvéve" : "Kézbesítve",
-            description: isDelivered ? (isPickup ? "Sikeres átvétel" : "Sikeresen átadva") : (isPickup ? "Várjuk a vevőt" : "Úton a vevőhöz"),
+            description: isDelivered ? (isPickup ? "Sikeres átvétel" : "Sikeresen átadva") : (isPickup ? "Átvehető telephelyünkön" : "Úton a vevőhöz"),
             status: isDelivered ? "complete" : (!isShipped && !isReadyForPickup ? "upcoming" : "current"),
             icon: CheckCircle2
         }

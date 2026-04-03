@@ -55,7 +55,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     </Link>
                     <div>
                         <h1 className="text-3xl font-bold tracking-tight">Rendelés <span className="text-[var(--color-primary)]">#{order.id?.slice(0, 8)}</span></h1>
-                        <p className="text-gray-500 dark:text-gray-400">{order.createdAt ? new Date(order.createdAt).toLocaleString('hu-HU') : 'Nincs dátum'}</p>
+                        <p className="text-gray-500 dark:text-gray-400 font-medium">
+                            {order.createdAt ? new Date(order.createdAt).toLocaleString('hu-HU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Nincs dátum'}
+                        </p>
                     </div>
                 </div>
                 <div className="md:ml-auto flex flex-col md:flex-row items-end md:items-center gap-3">
@@ -138,9 +140,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                         if (!billing) return <p className="text-gray-500 italic">Nincs számlázási adat.</p>;
                                         return (
                                             <div className="space-y-1 text-gray-600 dark:text-gray-300 font-medium">
-                                                <p className="text-gray-900 dark:text-white font-bold">{billing.name || (billing.companyName) || 'Nincs név'}</p>
-                                                <p>{billing.postalCode} {billing.city}</p>
-                                                <p>{billing.address}</p>
+                                                <p className="text-gray-900 dark:text-white font-bold">{billing.name || (billing.companyName) || 'Nincs elnevezés'}</p>
+                                                <p>{billing.postalCode || 'N/A'} {billing.city || 'N/A'}</p>
+                                                <p>{billing.address || 'Nincs utca/házszám'}</p>
                                                 <p className="mt-2 text-xs flex items-center gap-2">
                                                     <span className="font-bold text-gray-400 uppercase tracking-tighter w-12 shrink-0 text-[10px]">Email:</span>
                                                     <span className="text-gray-900 dark:text-white">{billing.email || order.user?.email || 'N/A'}</span>
@@ -203,7 +205,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         </h2>
                         <div className="text-sm">
                             <div className={`mb-3 inline-block px-3 py-1 rounded-full text-xs font-bold ${isPickup ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
-                                {isPickup ?'Személyes átvétel' :'Házhozszállítás'}
+                                {isPickup ? 'Személyes átvétel' : 'Futár (PannonXP)'}
                             </div>
                             {!isPickup && shipping ? (
                                 <div className="space-y-1 text-gray-600 dark:text-gray-300 font-medium">
@@ -211,8 +213,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     <div className="flex items-start gap-2">
                                         <MapPin className="w-4 h-4 mt-0.5 text-gray-400 shrink-0" />
                                         <div>
-                                            <p>{shipping?.zip || shipping?.postalCode} {shipping?.city}</p>
-                                            <p>{shipping?.street || shipping?.address}</p>
+                                            <p>{shipping?.zip || shipping?.postalCode || 'N/A'} {shipping?.city || 'N/A'}</p>
+                                            <p>{shipping?.street || shipping?.address || 'Nincs megadva'}</p>
                                         </div>
                                     </div>
                                     <div className="mt-2 pt-2 border-t border-gray-100 dark:border-white/5 space-y-1">
@@ -276,7 +278,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs font-bold text-gray-900 dark:text-white leading-tight">E-Számla (Billingo)</p>
-                                        <p className="text-[10px] text-gray-500 mt-0.5">{order.invoiceId ? `Sorszám: ${order.invoiceId}` : 'Még nincs generálva'}</p>
+                                        <p className="text-[10px] text-gray-500 mt-0.5">{order.invoiceId ? `Sorszám: ${order.invoiceId}` : 'Jóváhagyáskor készül el'}</p>
                                     </div>
                                 </div>
                                 {order.invoiceId && (
@@ -304,7 +306,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     </div>
                                     <div className="flex-1">
                                         <p className="text-xs font-bold text-gray-900 dark:text-white leading-tight">Szállítási Címke (PXP)</p>
-                                        <p className="text-[10px] text-gray-500 mt-0.5 break-all">{order.trackingNumber ? `Csomagszám: ${order.trackingNumber}` : 'Még nincs generálva'}</p>
+                                        <p className="text-[10px] text-gray-500 mt-0.5 break-all">
+                                            {isPickup ? 'Személyes átvétel - nem szükséges' : (order.trackingNumber ? `Csomagszám: ${order.trackingNumber}` : 'Jóváhagyáskor készül el')}
+                                        </p>
                                     </div>
                                 </div>
                                 {order.trackingNumber && (

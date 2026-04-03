@@ -167,7 +167,10 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5 font-medium text-gray-600 dark:text-gray-400">
-                                                {new Date(order.createdAt).toLocaleDateString('hu-HU', { year: 'numeric', month: 'short', day: 'numeric' })}
+                                                <div className="flex flex-col">
+                                                    <span>{new Date(order.createdAt).toLocaleDateString('hu-HU', { year: 'numeric', month: '2-digit', day: '2-digit' })}</span>
+                                                    <span className="text-[10px] text-gray-400">{new Date(order.createdAt).toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' })}</span>
+                                                </div>
                                             </td>
                                             <td className="px-6 py-5 text-right whitespace-nowrap">
                                                 <span className="text-base font-black text-gray-900 dark:text-white">
@@ -177,13 +180,13 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                                             <td className="px-6 py-5">
                                                 <div className="flex flex-col gap-1.5">
                                                     <div className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tight w-fit ${order.shippingMethod === 'PICKUP' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
-                                                        {order.shippingMethod === 'PICKUP' ? '🏢 Személyes' : '🚚 Kiszállítás'}
+                                                        {order.shippingMethod === 'PICKUP' ? '🏢 Személyes' : '🚚 Futár'}
                                                     </div>
                                                     <div className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-tight w-fit 
                                                         ${order.paymentStatus === 'PAID' ? 'bg-emerald-100 text-emerald-700' : 
                                                           (order.paymentMethod === 'CARD' ? 'bg-purple-100 text-purple-700' : 'bg-rose-100 text-rose-700')}`}>
                                                         {order.paymentStatus === 'PAID' ? '💰 Fizetve' : 
-                                                          (order.paymentMethod === 'CARD' ? '💳 Bankkártya' : '⏳ Utánvét')}
+                                                          (order.paymentMethod === 'CARD' ? '💳 Bankkártya (Zárolva)' : '⏳ Utánvét')}
                                                     </div>
                                                 </div>
                                             </td>
@@ -200,7 +203,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                                                             <Package className="w-3 h-3" /> ÁTVÉTELRE VÁR
                                                         </div>
                                                     )}
-                                                    {order.status === 'PROCESSING' && order.shippingMethod === 'DELIVERY' && (
+                                                    {order.status === 'PROCESSING' && order.shippingMethod !== 'PICKUP' && (
                                                         <div className="flex items-center gap-1.5 text-[10px] font-black text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-400/10 px-2 py-1 rounded-md border border-blue-200 dark:border-blue-400/20 w-fit">
                                                             <Package className="w-3 h-3" /> CSOMAGOLÁS
                                                         </div>
