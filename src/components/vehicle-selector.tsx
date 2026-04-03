@@ -23,10 +23,15 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
     const [isPending, startTransition] = useTransition();
     const containerRef = useRef<HTMLDivElement>(null);
 
-    // Scroll back to center on mobile after selection
-    const scrollToCenter = () => {
-        if (typeof window !== "undefined" && window.innerWidth < 768 && containerRef.current) {
-            containerRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Scroll back to top of search section on mobile after selection
+    const scrollToSearchTop = () => {
+        if (typeof window !== "undefined" && window.innerWidth < 768) {
+            const searchElement = document.getElementById('kereso');
+            if (searchElement) {
+                searchElement.scrollIntoView({ behavior: "smooth", block: "start" });
+            } else if (containerRef.current) {
+                containerRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+            }
         }
     };
 
@@ -207,7 +212,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                     onChange={(val) => {
                                         setSelectedBrand(val);
                                         setSelectedModel("");
-                                        if (val) scrollToCenter();
+                                        if (val) scrollToSearchTop();
                                     }}
                                     hideAllOption={true}
                                 />
@@ -227,7 +232,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                     value={selectedModel}
                                     onChange={(val) => {
                                         setSelectedModel(val);
-                                        if (val) scrollToCenter();
+                                        if (val) scrollToSearchTop();
                                     }}
                                     hideAllOption={true}
                                 />
@@ -242,7 +247,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                     value={selectedPartItem}
                                     onChange={(val) => {
                                         setSelectedPartItem(val);
-                                        if (val) scrollToCenter();
+                                        if (val) scrollToSearchTop();
                                     }}
                                     hideAllOption={true}
                                     disabled={isLoadingParts}
