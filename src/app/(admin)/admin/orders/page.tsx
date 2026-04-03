@@ -4,11 +4,12 @@ import Link from"next/link";
 import { Eye, Package, AlertCircle, Clock, RefreshCw } from"lucide-react";
 import { BulkSyncButton } from "./bulk-sync-button";
 import { SyncTrigger } from "./sync-trigger";
+import { OrderSearch } from "./order-search";
 import { getLastPxpSync } from "@/app/actions/shipping";
 
-export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string, payment?: string, shipping?: string, todo?: string, page?: string }> }) {
+export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string, payment?: string, shipping?: string, todo?: string, page?: string, q?: string }> }) {
     const params = await searchParams;
-    const { status, payment, shipping, todo } = params;
+    const { status, payment, shipping, todo, q } = params;
     const page = parseInt(params.page || "1");
     const pageSize = 100;
     const skip = (page - 1) * pageSize;
@@ -18,11 +19,26 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
         where.status = {
             in: ['PENDING', 'READY_FOR_PICKUP', 'PROCESSING']
         };
-    } else if (status) {
+    }
+    if (status) {
         where.status = status;
     }
 
-    if (payment) where.paymentStatus = payment;
+    if (q) {
+        where.OR = [
+            { id: { contains: q, mode: 'insensitive' } },
+            { shippingAddress: { contains: q, mode: 'insensitive' } },
+            { billingAddress: { contains: q, mode: 'insensitive' } },
+            { user: { fullName: { contains: q, mode: 'insensitive' } } },
+            { user: { email: { contains: q, mode: 'insensitive' } } },
+        ];
+    }
+
+    if (payment === 'PAID') {
+        where.paymentStatus = { in: ['PAID', 'AUTHORIZED'] };
+    } else if (payment === 'PENDING') {
+        where.paymentStatus = 'PENDING';
+    }
     if (shipping) {
         if (shipping === 'DELIVERY') {
             where.shippingMethod = { in: ['DELIVERY', 'PANNON_XP'] };
@@ -56,8 +72,9 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                     <h1 className="text-4xl font-black tracking-tight bg-gradient-to-r from-gray-900 to-gray-600 dark:from-white dark:to-gray-400 bg-clip-text text-transparent">
                         Rendelések
                     </h1>
-                    <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium">Bontóáruház adminisztrációs felület</p>
+                    <p className="text-gray-500 dark:text-gray-400 mt-1 font-medium italic">Bontóáruház kereskedelmi központ</p>
                 </div>
+                <OrderSearch />
                 <div className="flex items-center gap-3">
                     <BulkSyncButton />
                     <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 p-1.5 rounded-2xl border border-gray-200 dark:border-white/10 shadow-sm">
@@ -236,7 +253,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                         <div className="flex items-center gap-2">
                             {page > 1 && (
                                 <Link 
-                                    href={`/admin/orders?page=${page - 1}${status ? `&status=${status}` : ''}${payment ? `&payment=${payment}` : ''}${shipping ? `&shipping=${shipping}` : ''}${todo ? `&todo=${todo}` : ''}`}
+                                    href={`/admin/orders?page=${page - 1}${status ? `&status=${status}` : ''}${payment ? `&payment=${payment}` : ''}${shipping ? `&shipping=${shipping}` : ''}${todo ? `&todo=${todo}` : ''}${q ? `&q=${q}` : ''}`}
                                     className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
                                 >
                                     Előző
@@ -247,7 +264,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                             </div>
                             {page < totalPages && (
                                 <Link 
-                                    href={`/admin/orders?page=${page + 1}${status ? `&status=${status}` : ''}${payment ? `&payment=${payment}` : ''}${shipping ? `&shipping=${shipping}` : ''}${todo ? `&todo=${todo}` : ''}`}
+                                    href={`/admin/orders?page=${page + 1}${status ? `&status=${status}` : ''}${payment ? `&payment=${payment}` : ''}${shipping ? `&shipping=${shipping}` : ''}${todo ? `&todo=${todo}` : ''}${q ? `&q=${q}` : ''}`}
                                     className="px-4 py-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-white/10 rounded-xl text-xs font-bold hover:bg-gray-50 dark:hover:bg-white/5 transition-all shadow-sm"
                                 >
                                     Következő
