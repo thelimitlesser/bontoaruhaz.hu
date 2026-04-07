@@ -172,17 +172,17 @@ export function CategoryProductsContent({
         <main className="pt-32 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto">
 
             {/* Breadcrumb */}
-            <div className="flex items-center gap-1 text-sm text-gray-500 mb-6 font-medium tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+            <div className="flex items-center gap-1 text-sm text-gray-600 mb-6 font-medium tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
                 <Link href="/" className="hover:text-[var(--color-primary)] transition-colors shrink-0 p-2 -ml-2 rounded-lg hover:bg-foreground/5 active:scale-95">Autó kereső</Link>
-                <span className="shrink-0 opacity-40">/</span>
+                <span className="shrink-0 text-gray-400">/</span>
                 <Link href={`/brand/${brand.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 p-2 rounded-lg hover:bg-foreground/5 active:scale-95">{brand.name}</Link>
-                <span className="shrink-0 opacity-40">/</span>
+                <span className="shrink-0 text-gray-400">/</span>
                 <Link href={`/brand/${brand.slug}/${model.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 p-2 rounded-lg hover:bg-foreground/5 active:scale-95">{model.name}</Link>
-                <span className="shrink-0 opacity-40">/</span>
+                <span className="shrink-0 text-gray-400">/</span>
                 {currentSubcategory ? (
                     <>
                         <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 p-2 rounded-lg hover:bg-foreground/5 active:scale-95">{category.name}</Link>
-                        <span className="shrink-0 opacity-40">/</span>
+                        <span className="shrink-0 text-gray-400">/</span>
                         <span className="text-gray-900 font-bold uppercase shrink-0 p-2">{currentSubcategory.name}</span>
                     </>
                 ) : (
@@ -202,7 +202,7 @@ export function CategoryProductsContent({
                 <div className="flex flex-col sm:flex-row items-center gap-4 min-w-full sm:min-w-[450px]">
                     {/* Year Filter */}
                     <div className="flex flex-col gap-2 w-full sm:w-[180px]">
-                        <label htmlFor="year-filter" className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">
+                        <label htmlFor="year-filter" className="text-[10px] font-bold text-gray-500 uppercase tracking-widest pl-1">
                             Évjárat
                         </label>
                         <div className="relative group">
@@ -214,7 +214,8 @@ export function CategoryProductsContent({
                             {localYear && (
                                 <button
                                     onClick={() => { setLocalYear(""); updateFilters({ year: null }); }}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors" >
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                                    aria-label="Évjárat szűrő törlése" >
                                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18" /><path d="m6 6 12 12" /></svg>
                                 </button>
                             )}
@@ -223,10 +224,11 @@ export function CategoryProductsContent({
 
                     {/* Sort Dropdown */}
                     <div className="flex flex-col gap-2 w-full sm:w-[250px]">
-                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">
+                        <label htmlFor="sort-dropdown" className="text-[10px] font-bold text-gray-500 uppercase tracking-widest pl-1">
                             Rendezés
                         </label>
                         <select 
+                            id="sort-dropdown"
                             value={urlSort}
                             onChange={(e) => updateFilters({ sortBy: e.target.value })}
                             className="w-full bg-white border border-gray-200 rounded-2xl px-4 py-2.5 text-sm font-bold text-gray-900 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]/50 transition-all appearance-none cursor-pointer"
@@ -244,7 +246,7 @@ export function CategoryProductsContent({
 
                 {/* Level 2: Subcategories (Main Parts) */}
                 <div>
-                    <h3 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                    <h3 className="text-sm font-bold text-gray-600 uppercase tracking-widest mb-3 flex items-center gap-2">
                         <Filter className="w-4 h-4" /> Alkatrész csoportok
                     </h3>
                     <div className="flex flex-wrap gap-2 pb-2">

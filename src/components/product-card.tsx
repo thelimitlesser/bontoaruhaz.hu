@@ -104,7 +104,7 @@ export function ProductCard({ product }: { product: Product | any }) {
                 <div className="flex-1 flex flex-col px-5 pt-4">
                     <div className="flex items-center gap-2 mb-2">
                         <Tag className="w-3 h-3 text-[var(--color-primary)]" />
-                        <span className="text-xs text-muted uppercase tracking-wider">
+                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">
                             {isPrisma ? `${product?.brandName || product?.brandId || ''} ${product?.modelName || ''}`.trim() || 'Egyéb' : product?.brand}
                         </span>
                     </div>
@@ -113,18 +113,21 @@ export function ProductCard({ product }: { product: Product | any }) {
                         {product?.name || "Név nélküli termék"}
                     </h3>
                     {product?.sku && product.sku !== "SKU-HIÁNY" && (
-                        <p className="text-xs text-muted mb-4 font-mono">{product.sku}</p>
+                        <p className="text-xs text-gray-400 mb-4 font-mono font-medium">{product.sku}</p>
                     )}
 
                     <div className="mt-auto flex items-end justify-between">
                         <div className="flex flex-col">
-                            <span className="text-xs text-muted">Vételár:</span>
+                            <span className="text-xs text-gray-500 font-medium">Vételár:</span>
                             <span className="text-xl font-bold text-foreground group-hover:text-[var(--color-primary)] transition-colors">
                                 {displayPrice?.toLocaleString('hu-HU')} {displayCurrency}
                             </span>
                         </div>
 
-                        <div className="h-10 w-10 rounded-lg bg-foreground/5 hover:bg-[var(--color-primary)] flex items-center justify-center transition-all border border-border hover:border-[var(--color-primary)] shadow-sm hover:shadow-lg hover:text-white text-muted">
+                        <div 
+                            className="h-10 w-10 rounded-lg bg-foreground/5 hover:bg-[var(--color-primary)] flex items-center justify-center transition-all border border-border hover:border-[var(--color-primary)] shadow-sm hover:shadow-lg hover:text-white text-gray-500"
+                            aria-label="Kosárba teszem"
+                        >
                             <ShoppingCart className="w-5 h-5" />
                         </div>
                     </div>

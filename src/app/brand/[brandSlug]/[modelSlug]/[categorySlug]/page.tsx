@@ -31,8 +31,19 @@ export async function generateMetadata({
         return { title: 'Kategória nem található' };
     }
 
-    const title = `Bontott ${brand.name} ${model.name} ${category.name} Alkatrészek | Bontóáruház`;
-    const description = `Válogass minőségi bontott ${brand.name} ${model.name} ${category.name} alkatrészek közül. 14 napos garancia, gyors kiszállítás és megbízható minőség Seregélyesről.`;
+    // Try to find subcategory and part item for more specific SEO
+    const subcat = subcatSlug 
+        ? await prisma.partSubcategory.findFirst({ where: { slug: subcatSlug, categoryId: category.id } })
+        : null;
+    
+    const partItemSlug = resolvedSearchParams.item as string | undefined;
+    const partItem = (partItemSlug && subcat)
+        ? await prisma.partItem.findFirst({ where: { slug: partItemSlug, subcategoryId: subcat.id } })
+        : null;
+
+    const mainTerm = partItem?.name || subcat?.name || category.name;
+    const title = `Bontott ${brand.name} ${model.name} ${mainTerm} Alkatrészek | Bontóáruház`;
+    const description = `Válogass minőségi bontott ${brand.name} ${model.name} ${mainTerm} alkatrészek közül. 14 napos garancia, gyors kiszállítás és megbízható minőség Seregélyesről.`;
 
     return {
         title,
