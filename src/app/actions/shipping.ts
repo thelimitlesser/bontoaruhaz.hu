@@ -94,25 +94,29 @@ export async function closePxpDay() {
         const result = await performPxpManifest(trackingNumbers);
 
         if (result.success && result.pdfBase64) {
-            // Update order status for manifested orders
-            // Use trackingNumbers that were explicitly sent, as PXP TEST might return mocked IDs
-            if (trackingNumbers.length > 0) {
-                const updateRes = await prisma.order.updateMany({
-                    where: {
-                        trackingNumber: { in: trackingNumbers },
-                        status: 'PROCESSING'
-                    },
-                    data: {
-                        status: 'SHIPPED'
-                    }
-                });
-                console.log(`Manifested status update: ${updateRes.count} orders set to SHIPPED`);
-            }
+            // Get actual IDs from PXP response or fallback to original request list
+            const manifestedIds = (result as any).manifestedIds && (result as any).manifestedIds.length > 0 
+                ? (result as any).manifestedIds 
+                : trackingNumbers;
 
-            // Save manifest to database
+            console.log(`Manifest confirmed for ${manifestedIds.length} items out of ${trackingNumbers.length} requested.`);
+
+            // Update order status ONLY for actually manifested orders
+            const updateRes = await prisma.order.updateMany({
+                where: {
+                    trackingNumber: { in: manifestedIds },
+                    status: 'PROCESSING'
+                },
+                data: {
+                    status: 'SHIPPED'
+                }
+            });
+            console.log(`Manifested status update: ${updateRes.count} orders set to SHIPPED`);
+
+            // Save manifest to database with accurate count
             await prisma.pxpManifest.create({
                 data: {
-                    itemCount: trackingNumbers.length,
+                    itemCount: manifestedIds.length,
                     pdfBase64: result.pdfBase64
                 }
             });
@@ -123,7 +127,7 @@ export async function closePxpDay() {
             return {
                 success: true,
                 pdfBase64: result.pdfBase64,
-                count: trackingNumbers.length
+                count: manifestedIds.length
             };
         }
 

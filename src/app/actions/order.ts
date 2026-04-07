@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { stripe } from "@/lib/stripe";
-import { sendOrderReceivedEmail, sendOrderConfirmedEmail, sendOrderReadyForPickupEmail } from "@/lib/resend";
+import { sendOrderReceivedEmail, sendOrderConfirmedEmail, sendOrderReadyForPickupEmail, sendOrderManualInvoiceEmail } from "@/lib/resend";
 import { createBillingoInvoice } from "@/lib/billingo";
 import { createPxpShipment } from "@/lib/shipping/pannon-xp";
 
@@ -402,20 +402,21 @@ export async function updateOrderPaymentStatus(orderId: string, newPaymentStatus
     if (!order) throw new Error("Order not found");
 
     // Trigger Billingo if transitioning to PAID and no invoice exists yet
+    // CRITICAL: We now SKIP this for PICKUP orders as per user request (manual invoicing only)
     let invoiceId = order.invoiceId;
     // @ts-ignore
     let invoiceUrl = order.invoiceUrl;
 
-    if (newPaymentStatus === 'PAID' && !invoiceId) {
-        console.log("Generating delayed invoice for PAID order...");
+    const isPickup = order.shippingMethod === 'PICKUP';
+
+    if (newPaymentStatus === 'PAID' && !invoiceId && !isPickup) {
+        console.log("Generating delayed invoice for PAID order (Delivery)...");
         const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
         
-        // Ensure we pass corporate data correctly to Billingo
         const billingoData = {
             ...billingData,
             // @ts-ignore
             isCompany: order.isCompany,
-            // Fallback for taxNumber if it's missing from billingData but we know it's a company
             // @ts-ignore
             taxNumber: billingData.taxNumber || (order.isCompany ? 'ADÓSZÁM HIÁNYZIK' : '')
         };
@@ -429,7 +430,7 @@ export async function updateOrderPaymentStatus(orderId: string, newPaymentStatus
     }
 
     // If it's a PICKUP order and we mark it as PAID, it's also COMPLETED (they took it)
-    const shouldComplete = order.shippingMethod === 'PICKUP' && newPaymentStatus === 'PAID';
+    const shouldComplete = isPickup && newPaymentStatus === 'PAID';
 
     await prisma.order.update({
         where: { id: orderId },
@@ -444,4 +445,58 @@ export async function updateOrderPaymentStatus(orderId: string, newPaymentStatus
 
     revalidatePath(`/admin/orders/${orderId}`);
     revalidatePath('/admin/orders');
+}
+
+export async function issueManualInvoice(orderId: string) {
+    console.log("MANUALLY ISSUING INVOICE FOR ORDER:", orderId);
+    
+    const order = await prisma.order.findUnique({
+        where: { id: orderId },
+        include: { items: { include: { part: true } } }
+    });
+
+    if (!order) throw new Error("Order not found");
+    // @ts-ignore
+    if (order.invoiceId) throw new Error("Ehhez a rendeléshez már készült számla.");
+
+    try {
+        const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+        
+        const billingoData = {
+            ...billingData,
+            // @ts-ignore
+            isCompany: order.isCompany,
+            // @ts-ignore
+            taxNumber: billingData.taxNumber || (order.isCompany ? 'ADÓSZÁM HIÁNYZIK' : '')
+        };
+        
+        const customerEmail = billingData.email || 'vevo@email.com';
+        
+        console.log("ISSUE_MANUAL_INVOICE: Calling Billingo...");
+        const invoiceResult = await createBillingoInvoice(order, { ...billingoData, email: customerEmail });
+        
+        if (!invoiceResult) throw new Error("A Billingo számla kiállítása sikertelen volt.");
+
+        // Update order with invoice data
+        const updatedOrder = await prisma.order.update({
+            where: { id: orderId },
+            data: {
+                invoiceId: invoiceResult.invoiceId,
+                // @ts-ignore
+                invoiceUrl: invoiceResult.pdfUrl
+            }
+        });
+
+        // Send custom "Invoice Prepared" email
+        console.log("Sending manual invoice email to:", customerEmail);
+        await sendOrderManualInvoiceEmail(updatedOrder, customerEmail, invoiceResult.pdfUrl);
+
+        revalidatePath(`/admin/orders/${orderId}`);
+        revalidatePath('/admin/orders');
+        
+        return { success: true, pdfUrl: invoiceResult.pdfUrl };
+    } catch (err: any) {
+        console.error("Error in issueManualInvoice:", err);
+        return { success: false, error: err.message };
+    }
 }

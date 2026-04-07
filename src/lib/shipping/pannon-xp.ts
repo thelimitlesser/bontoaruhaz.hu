@@ -90,7 +90,7 @@ export async function createPxpShipment(order: any) {
                     nev: shippingAddr.name.slice(0, 30),
                     telefon: formatPxpPhone(shippingAddr.phone).slice(0, 20),
                     emailcim: shippingAddr.email.slice(0, 50),
-                    ceg_nev: (shippingAddr.companyName || shippingAddr.name).slice(0, 50),
+                    ceg_nev: (shippingAddr.companyName || "").slice(0, 50),
                     cim_telepules: shippingAddr.city.slice(0, 40),
                     cim_iranyito: shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4),
                     cim_kozterulet: shippingAddr.address.slice(0, 60),

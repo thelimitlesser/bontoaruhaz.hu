@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { ArrowLeft, CreditCard, Truck, ShieldCheck, Mail, MapPin, User, Minus, Plus, ShoppingBag, Loader2, AlertCircle } from "lucide-react";
 import { useCart } from "@/context/cart-context";
@@ -76,14 +76,28 @@ export default function CheckoutView() {
     const [lastIntentAmount, setLastIntentAmount] = useState(0);
     const [isFetchingSecret, setIsFetchingSecret] = useState(false);
     const [paymentIntentError, setPaymentIntentError] = useState<string | null>(null);
+    const syncInFlight = useRef(false);
+
+    // Automatically switch to COD if Pickup is selected
+    useEffect(() => {
+        if (shippingMethod === 'pickup') {
+            setPaymentMethod('cod');
+        }
+    }, [shippingMethod]);
 
     // Fetch or Update PaymentIntent when the form becomes valid OR when the total changes
     useEffect(() => {
-        if (isCurrentlyValid && grandTotal > 0 && paymentMethod === 'card' && !isFetchingSecret) {
+        // Stripe is only for delivery
+        const shouldSync = shippingMethod === 'delivery' && isCurrentlyValid && grandTotal > 0 && paymentMethod === 'card';
+        
+        if (shouldSync && !isFetchingSecret && !syncInFlight.current) {
             // If we have an ID AND amount is the same, do nothing
             if (paymentIntentId && Math.abs(grandTotal - lastIntentAmount) < 1) return;
 
             const syncSecret = async () => {
+                if (syncInFlight.current) return;
+                syncInFlight.current = true;
+                
                 setIsFetchingSecret(true);
                 setPaymentIntentError(null);
                 try {
@@ -105,18 +119,21 @@ export default function CheckoutView() {
                     setPaymentIntentError(err.message || "Hiba történt a fizetés előkészítésekor.");
                 } finally {
                     setIsFetchingSecret(false);
+                    syncInFlight.current = false;
                 }
             };
             
             const timer = setTimeout(syncSecret, 800); 
-            return () => clearTimeout(timer);
+            return () => {
+                clearTimeout(timer);
+                // We DON'T reset syncInFlight here because the async task might still be running
+            };
         } else if (paymentMethod !== 'card') {
+            // We only hide the secret from UI, but we KEEP the ID to reuse if they switch back
             setClientSecret(null);
-            setPaymentIntentId(null);
-            setLastIntentAmount(0);
             setPaymentIntentError(null);
         }
-    }, [isCurrentlyValid, grandTotal, paymentMethod, paymentIntentId, lastIntentAmount, isFetchingSecret]);
+    }, [isCurrentlyValid, grandTotal, paymentMethod, paymentIntentId, lastIntentAmount, isFetchingSecret, shippingMethod]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -299,8 +316,18 @@ export default function CheckoutView() {
                             </h2>
                             <div className="space-y-4">
                                 <div
-                                    onClick={() => setPaymentMethod('card')}
-                                    className={`relative border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${paymentMethod === 'card' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
+                                    onClick={() => {
+                                        if (shippingMethod !== 'pickup') {
+                                            setPaymentMethod('card');
+                                        }
+                                    }}
+                                    className={`relative border rounded-xl p-4 flex items-center justify-between transition-all ${
+                                        shippingMethod === 'pickup' 
+                                        ? "bg-gray-100/50 border-gray-200 opacity-50 cursor-not-allowed" 
+                                        : (paymentMethod === 'card' 
+                                            ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)] cursor-pointer" 
+                                            : "bg-muted/5 border-border hover:border-muted cursor-pointer")
+                                    }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${paymentMethod === 'card' ? "border-[var(--color-primary)]" : "border-muted"}`}>
@@ -308,7 +335,9 @@ export default function CheckoutView() {
                                         </div>
                                         <div>
                                             <h4 className="text-foreground font-bold text-sm">Bankkártyás fizetés (Stripe)</h4>
-                                            <p className="text-muted text-xs">Biztonságos online fizetés</p>
+                                            <p className="text-muted text-xs">
+                                                {shippingMethod === 'pickup' ? "Személyes átvételkor nem elérhető" : "Biztonságos online fizetés"}
+                                            </p>
                                         </div>
                                     </div>
                                     <CreditCard className="w-5 h-5 text-muted" />

@@ -11,6 +11,7 @@ import { OrderTimeline } from "./OrderTimeline";
 import { FileText, ClipboardCheck, ExternalLink, Check } from "lucide-react";
 import { CancelOrderButton } from "./cancel-button";
 import { MarkAsPickedUpButton } from "./picked-up-button";
+import { IssueInvoiceButton } from "./issue-invoice-button";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const { id } = await params;
@@ -97,6 +98,12 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     orderId={order.id}
                     status={order.status || 'PENDING'}
                     shippingMethod={order.shippingMethod || 'DELIVERY'}
+                />
+                <IssueInvoiceButton 
+                    orderId={order.id}
+                    invoiceId={order.invoiceId}
+                    shippingMethod={order.shippingMethod || 'DELIVERY'}
+                    paymentStatus={order.paymentStatus || 'PENDING'}
                 />
             </div>
 

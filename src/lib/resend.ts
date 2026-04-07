@@ -293,3 +293,49 @@ export async function sendOrderReadyForPickupEmail(order: any, customerEmail: st
         console.error('Error sending pickup email:', error);
     }
 }
+
+export async function sendOrderManualInvoiceEmail(order: any, customerEmail: string, invoiceUrl: string) {
+    if (!resend) {
+        console.log('Resend API key not found. Email not sent.');
+        return;
+    }
+
+    try {
+        await resend.emails.send({
+            from: 'Bontóáruház <info@bontoaruhaz.hu>',
+            to: customerEmail,
+            subject: 'Számla a rendelésedről - Bontóáruház',
+            html: `
+                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; color: #334155;">
+                    <div style="text-align: center; margin-bottom: 30px;">
+                        <h1 style="color: #10b981; margin-bottom: 10px;">Elkészült a számlád!</h1>
+                        <p style="font-size: 16px; color: #64748b;">Rendelési szám: #${order.id.split('-')[0].toUpperCase()}</p>
+                    </div>
+
+                    <p>Kedves Vásárlónk!</p>
+                    <p>Köszönjük, hogy nálunk vásároltál! Ezúton küldjük a rendelésedről kiállított elektronikus számlát.</p>
+                    
+                    <div style="background-color: #f0fdf4; padding: 25px; border-radius: 12px; border: 1px solid #dcfce7; text-align: center; margin: 30px 0;">
+                        <p style="margin-top: 0; color: #166534; font-weight: bold;">A számla az alábbi gombra kattintva tölthető le:</p>
+                        <a href="${invoiceUrl}" style="display: inline-block; background-color: #10b981; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);">Számla Letöltése (PDF)</a>
+                    </div>
+
+                    <div style="margin: 30px 0; border-top: 1px solid #f1f5f9; pt-20px;">
+                        <p style="font-size: 13px; color: #64748b;">
+                            <strong>Rendelés összege:</strong> ${order.totalAmount.toLocaleString()} Ft<br>
+                            <strong>Fizetés módja:</strong> ${order.paymentMethod === 'COD' ? 'Helyszíni fizetés / Utánvét' : 'Bankkártya'}
+                        </p>
+                    </div>
+
+                    <p style="text-align: center; margin-top: 40px; color: #64748b; font-size: 13px;">
+                        Köszönjük a bizalmadat! Ha bármilyen kérdésed van, keress minket bizalommal.<br>
+                        <strong>Bontóáruház Csapata</strong>
+                    </p>
+                </div>
+            `
+        });
+        console.log(`SUCCESS: Manual invoice email sent to ${customerEmail}`);
+    } catch (error) {
+        console.error('Error sending manual invoice email:', error);
+    }
+}
