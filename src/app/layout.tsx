@@ -107,9 +107,10 @@ export default function RootLayout({
 
   return (
     <html lang="hu" suppressHydrationWarning>
-      <head>
-        <link rel="preload" href="/hero-bg.png" as="image" />
-        <link rel="preload" href="/grid.svg" as="image" />
+      <body
+        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
+        suppressHydrationWarning
+      >
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
@@ -118,11 +119,6 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(storeJsonLd) }}
         />
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}
-        suppressHydrationWarning
-      >
         <CartProvider>
           <NextTopLoader color="#db513c" showSpinner={false} />
           <Suspense fallback={<div className="h-16 bg-white border-b border-gray-100" />}>
@@ -132,9 +128,7 @@ export default function RootLayout({
             <CartDrawer />
           </Suspense>
           <main className="flex-1">
-            <Suspense fallback={null}>
-              {children}
-            </Suspense>
+            {children}
           </main>
           <Suspense fallback={<div className="h-20 bg-foreground" />}>
             <Footer />
