@@ -120,12 +120,14 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                         <button
                             onClick={handlePrev}
                             className="absolute left-0 top-1/2 -translate-y-1/2 p-4 md:p-6 text-white transition-all duration-300 hover:scale-125 z-10 active:scale-90 group"
+                            aria-label="Előző kép"
                         >
                             <ChevronLeft className="w-8 h-8 md:w-10 md:h-10 drop-shadow-[0_0_2px_rgba(0,0,0,1)] group-hover:-translate-x-1 transition-transform" />
                         </button>
                         <button
                             onClick={handleNext}
                             className="absolute right-0 top-1/2 -translate-y-1/2 p-4 md:p-6 text-white transition-all duration-300 hover:scale-125 z-10 active:scale-90 group"
+                            aria-label="Következő kép"
                         >
                             <ChevronRight className="w-8 h-8 md:w-10 md:h-10 drop-shadow-[0_0_2px_rgba(0,0,0,1)] group-hover:translate-x-1 transition-transform" />
                         </button>
@@ -144,6 +146,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                 setIsAutoPlaying(false);
                             }}
                             className="relative w-2.5 h-2.5 rounded-full transition-all duration-300"
+                            aria-label={`${idx + 1}. kép kiválasztása`}
+                            aria-current={currentIndex === idx ? "true" : "false"}
                         >
                             <div className={clsx(
                                 "absolute inset-0 rounded-full transition-all duration-300",
@@ -184,6 +188,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                     setIsFullscreen(false);
                                 }}
                                 title="Bezárás (Esc)"
+                                aria-label="Nagyítás bezárása"
                             >
                                 <X className="w-8 h-8" />
                             </button>
@@ -198,6 +203,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                         e.stopPropagation();
                                         handlePrev(e);
                                     }}
+                                    aria-label="Előző kép"
                                 >
                                     <ChevronLeft className="w-12 h-12 md:w-16 md:h-16 drop-shadow-[0_0_3px_rgba(0,0,0,1)] group-hover:-translate-x-2 transition-transform" />
                                 </button>
@@ -207,6 +213,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                         e.stopPropagation();
                                         handleNext(e);
                                     }}
+                                    aria-label="Következő kép"
                                 >
                                     <ChevronRight className="w-12 h-12 md:w-16 md:h-16 drop-shadow-[0_0_3px_rgba(0,0,0,1)] group-hover:translate-x-2 transition-transform" />
                                 </button>
@@ -241,6 +248,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                                                 ? "border-[var(--color-primary)] scale-110 shadow-2xl opacity-100"
                                                 : "border-transparent opacity-40 hover:opacity-100"
                                         )}
+                                        aria-label={`${idx + 1}. nézőkép`}
+                                        aria-current={selectedImage === img ? "true" : "false"}
                                     >
                                         <Image 
                                             src={img} 

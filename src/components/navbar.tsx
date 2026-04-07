@@ -111,7 +111,7 @@ export function Navbar() {
                                 key={link.href}
                                 href={link.href}
                                 className={clsx("text-sm font-bold transition-colors hover:text-[var(--color-primary)]",
-                                    pathname === link.href ? "text-foreground" : "text-foreground/85")}
+                                    pathname === link.href ? "text-foreground" : "text-gray-700")}
                             >
                                 {link.label}
                             </Link>
@@ -138,7 +138,7 @@ export function Navbar() {
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                                 aria-label="Profil"
                             >
-                                <User className={clsx("w-5 h-5 sm:w-6 sm:h-6 transition-colors", user ? "text-[var(--color-primary)]" : "text-muted group-hover:text-foreground")} />
+                                <User className={clsx("w-5 h-5 sm:w-6 sm:h-6 transition-colors", user ? "text-[var(--color-primary)]" : "text-gray-500 group-hover:text-foreground")} />
                             </button>
                         </div>
 
@@ -176,7 +176,9 @@ export function Navbar() {
                                 <span className="font-bold text-lg uppercase tracking-widest text-foreground">Profil</span>
                                 <button
                                     onClick={() => setIsProfileOpen(false)}
-                                    className="p-2 rounded-full hover:bg-foreground/5 transition-colors" >
+                                    className="p-2 rounded-full hover:bg-foreground/5 transition-colors"
+                                    aria-label="Profil bezárása"
+                                >
                                     <X className="w-6 h-6" />
                                 </button>
                             </div>
@@ -186,7 +188,7 @@ export function Navbar() {
                                     <div className="flex flex-col gap-4">
                                         <div>
                                             <p className="text-lg font-bold text-foreground">Kedves Vásárlónk!</p>
-                                            <p className="text-sm text-muted mt-1">Lépj be a fiókodba a vásárláshoz.</p>
+                                            <p className="text-sm text-gray-600 mt-1">Lépj be a fiókodba a vásárláshoz.</p>
                                         </div>
                                         <Link
                                             href="/login" className="w-full bg-[var(--color-primary)] hover:bg-orange-600 text-white font-bold py-3 sm:py-4 rounded-xl transition-colors flex items-center justify-center" onClick={() => setIsProfileOpen(false)}
@@ -203,7 +205,7 @@ export function Navbar() {
                                             <p className="text-lg font-bold text-foreground">
                                                 {user.user_metadata?.full_name || user.email?.split('@')[0]}
                                             </p>
-                                            <p className="text-sm text-muted break-all">{user.email}</p>
+                                            <p className="text-sm text-gray-600 break-all">{user.email}</p>
                                         </div>
 
                                         <div className="flex flex-col gap-2">
@@ -258,7 +260,9 @@ export function Navbar() {
                             <span className="font-bold text-lg uppercase tracking-widest text-[var(--color-primary)]">Menü</span>
                             <button
                                 onClick={() => setIsOpen(false)}
-                                className="p-2 rounded-full hover:bg-foreground/5 transition-colors" >
+                                className="p-2 rounded-full hover:bg-foreground/5 transition-colors"
+                                aria-label="Menü bezárása"
+                            >
                                 <X className="w-6 h-6" />
                             </button>
                         </div>

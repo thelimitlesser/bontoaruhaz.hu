@@ -13,7 +13,7 @@ export function Footer() {
     }
 
     return (
-        <footer className="bg-foreground text-background/80 pt-16 pb-8 font-[family-name:var(--font-geist-sans)]">
+        <footer className="bg-foreground text-gray-200 pt-16 pb-8 font-[family-name:var(--font-geist-sans)]">
             <div className="max-w-7xl mx-auto px-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12 border-b border-background/10 pb-12">
 
@@ -34,7 +34,7 @@ export function Footer() {
                                 <span className="text-[var(--color-primary)]">BONTÓ</span>ÁRUHÁZ
                             </span>
                         </Link>
-                        <p className="text-sm text-background/60 leading-relaxed max-w-xs mx-auto sm:mx-0">
+                        <p className="text-sm text-gray-400 leading-relaxed max-w-xs mx-auto sm:mx-0">
                             Kiváló minőségű bontott autóalkatrészek, megbízható forrásból, garanciával, egyenesen a raktárunkból.
                         </p>
                     </div>
@@ -71,7 +71,7 @@ export function Footer() {
                 </div>
 
                 {/* Copyright */}
-                <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-background/40 gap-4 text-center sm:text-left">
+                <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4 text-center sm:text-left">
                     <p>© {new Date().getFullYear()} BONTÓÁRUHÁZ. Minden jog fenntartva.</p>
                     <div className="flex flex-wrap items-center justify-center gap-6">
                         <Link href="/terms" className="hover:text-background transition-colors py-2 px-3 -my-2 rounded-md">ÁSZF</Link>

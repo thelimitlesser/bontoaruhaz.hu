@@ -316,18 +316,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   {/* Condition (Állapot) block */}
                   <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-muted mt-0.5" />
+                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />
                     <div>
-                      <div className="text-[10px] text-muted uppercase tracking-wider font-bold">Állapot</div>
+                      <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Állapot</div>
                       <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">{product.condition || "Ismeretlen"}</div>
                     </div>
                   </div>
 
                   {/* Year / Universal block */}
                   <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                    {dbPart?.isUniversal ? <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-muted mt-0.5" /> : <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-muted mt-0.5" />}
+                    {dbPart?.isUniversal ? <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" /> : <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />}
                     <div>
-                      <div className="text-[10px] text-muted uppercase tracking-wider font-bold">{dbPart?.isUniversal ? "Típus" : "Évjárat"}</div>
+                      <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">{dbPart?.isUniversal ? "Típus" : "Évjárat"}</div>
                       <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">
                         {dbPart?.isUniversal ? "Univerzális" : (yearString || "-")}
                       </div>
@@ -335,26 +335,26 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                   </div>
 
                   <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                    <Hash className="w-4 h-4 sm:w-5 sm:h-5 text-muted mt-0.5" />
+                    <Hash className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />
                     <div>
-                      <div className="text-[10px] text-muted uppercase tracking-wider font-bold">Hivatkozási szám</div>
+                      <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Hivatkozási szám</div>
                       <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">{dbPart?.productCode || "-"}</div>
                     </div>
                   </div>
                   {product.sku && (
                     <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                      <Factory className="w-4 h-4 sm:w-5 sm:h-5 text-muted mt-0.5" />
+                      <Factory className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />
                       <div>
-                        <div className="text-[10px] text-muted uppercase tracking-wider font-bold">Gyári Cikkszám</div>
+                        <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Gyári Cikkszám</div>
                         <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5 truncate max-w-[80px] sm:max-w-none">{product.sku}</div>
                       </div>
                     </div>
                   )}
                   {dbPart.engineCode && (
                     <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                      <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-muted mt-0.5" />
+                      <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />
                       <div>
-                        <div className="text-[10px] text-muted uppercase tracking-wider font-bold">Motorkód</div>
+                        <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Motorkód</div>
                         <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">{dbPart.engineCode}</div>
                       </div>
                     </div>
@@ -428,12 +428,12 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                 <div className="relative z-10 space-y-6">
                   {/* Price Block */}
                   <div>
-                    <span className="text-xs font-bold text-muted uppercase tracking-widest block mb-1">Vételár</span>
+                    <span className="text-xs font-bold text-gray-600 uppercase tracking-widest block mb-1">Vételár</span>
                     <div className="flex items-baseline gap-2">
                       <span className="text-3xl sm:text-5xl font-black text-foreground tracking-tight">
                         {product.price.toLocaleString('hu-HU')}
                       </span>
-                      <span className="text-lg sm:text-xl font-bold text-muted">Ft</span>
+                      <span className="text-lg sm:text-xl font-bold text-gray-600">Ft</span>
                     </div>
                   </div>
 
@@ -451,7 +451,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                 {/* Stock & Buy Button */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between text-sm font-bold">
-                    <span className="text-muted">Készleten:</span>
+                    <span className="text-gray-600">Készleten:</span>
                     <span className="flex items-center gap-2 text-foreground">
                       <span className="relative flex h-3 w-3">
                         {product.quantity > 0 ? (
