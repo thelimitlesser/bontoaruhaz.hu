@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
-import { updateOrderStatus } from "@/app/actions/order";
+import { updateOrderPaymentStatus } from "@/app/actions/order";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 interface MarkAsPickedUpButtonProps {
@@ -17,12 +17,12 @@ export function MarkAsPickedUpButton({ orderId, status, shippingMethod }: MarkAs
     if (status !== 'READY_FOR_PICKUP' && status !== 'PROCESSING') return null;
 
     const handlePickedUp = async () => {
-        if (!confirm("Biztosan rögzíted az átvételt? A rendelés állapota 'Átvéve' lesz.")) return;
+        if (!confirm("Biztosan rögzíted az átvételt? A rendelés állapota 'Átvéve' lesz, kifizetett státusszal.")) return;
 
         startTransition(async () => {
             try {
-                await updateOrderStatus(orderId, 'DELIVERED');
-                alert("Átvétel sikeresen rögzítve!");
+                await updateOrderPaymentStatus(orderId, 'PAID');
+                alert("Átvétel és fizetés sikeresen rögzítve!");
             } catch (err: any) {
                 alert("Hiba: " + (err.message || "Ismeretlen hiba történt."));
             }

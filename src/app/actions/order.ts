@@ -411,21 +411,27 @@ export async function updateOrderPaymentStatus(orderId: string, newPaymentStatus
 
     if (newPaymentStatus === 'PAID' && !invoiceId && !isPickup) {
         console.log("Generating delayed invoice for PAID order (Delivery)...");
-        const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
-        
-        const billingoData = {
-            ...billingData,
-            // @ts-ignore
-            isCompany: order.isCompany,
-            // @ts-ignore
-            taxNumber: billingData.taxNumber || (order.isCompany ? 'ADÓSZÁM HIÁNYZIK' : '')
-        };
-        
-        const customerEmail = billingData.email || 'vevo@email.com';
-        const invoiceResult = await createBillingoInvoice(order, { ...billingoData, email: customerEmail });
-        if (invoiceResult) {
-            invoiceId = invoiceResult.invoiceId;
-            invoiceUrl = invoiceResult.pdfUrl;
+        try {
+            const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+            
+            if (billingData) {
+                const billingoData = {
+                    ...billingData,
+                    // @ts-ignore
+                    isCompany: order.isCompany,
+                    // @ts-ignore
+                    taxNumber: billingData.taxNumber || (order.isCompany ? 'ADÓSZÁM HIÁNYZIK' : '')
+                };
+                
+                const customerEmail = billingData.email || 'vevo@email.com';
+                const invoiceResult = await createBillingoInvoice(order, { ...billingoData, email: customerEmail });
+                if (invoiceResult) {
+                    invoiceId = invoiceResult.invoiceId;
+                    invoiceUrl = invoiceResult.pdfUrl;
+                }
+            }
+        } catch (e) {
+            console.error("Error parsing billing address or creating invoice:", e);
         }
     }
 
