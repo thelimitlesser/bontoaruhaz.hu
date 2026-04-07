@@ -28,7 +28,10 @@ export async function generateMetadata({
         : null;
 
     if (!brand || !model || !category) {
-        return { title: 'Kategória nem található' };
+        return { 
+            title: 'Kategória nem található | Bontóáruház',
+            description: 'A keresett autóalkatrész kategória nem található. Válogasson további minőségi bontott alkatrészeink közül.'
+        };
     }
 
     // Try to find subcategory and part item for more specific SEO
@@ -105,13 +108,15 @@ export default async function CategoryProductsPage({
     return (
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
             <Navbar />
-            <CategoryProductsContent 
-                params={resolvedParams} 
-                brand={brand}
-                model={model}
-                category={category}
-                initialData={pageData}
-            />
+            <main className="min-h-[800px] flex flex-col">
+                <CategoryProductsContent 
+                    params={resolvedParams} 
+                    brand={brand}
+                    model={model}
+                    category={category}
+                    initialData={pageData}
+                />
+            </main>
         </div>
     );
 }

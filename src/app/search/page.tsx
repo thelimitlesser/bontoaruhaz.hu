@@ -40,13 +40,15 @@ export default function SearchPage() {
     return (
         <div className="min-h-screen bg-[var(--color-background)]">
             <Navbar />
-            <Suspense fallback={
-                <div className="min-h-screen flex items-center justify-center">
-                    <Loader2 className="w-10 h-10 animate-spin text-[var(--color-primary)]" />
-                </div>
-            }>
-                <SearchResultsContent />
-            </Suspense>
+            <main className="min-h-[800px] flex flex-col">
+                <Suspense fallback={
+                    <div className="min-h-screen flex items-center justify-center">
+                        <Loader2 className="w-10 h-10 animate-spin text-[var(--color-primary)]" />
+                    </div>
+                }>
+                    <SearchResultsContent />
+                </Suspense>
+            </main>
         </div>
     );
 }

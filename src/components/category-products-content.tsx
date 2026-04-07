@@ -173,20 +173,20 @@ export function CategoryProductsContent({
 
             {/* Breadcrumb */}
             <div className="flex items-center gap-1 text-sm text-gray-600 mb-6 font-medium tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
-                <Link href="/" className="hover:text-[var(--color-primary)] transition-colors shrink-0 p-2 -ml-2 rounded-lg hover:bg-foreground/5 active:scale-95">Autó kereső</Link>
+                <Link href="/" className="hover:text-[var(--color-primary)] transition-colors shrink-0 py-1 rounded-lg">Autó kereső</Link>
                 <span className="shrink-0 text-gray-400">/</span>
-                <Link href={`/brand/${brand.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 p-2 rounded-lg hover:bg-foreground/5 active:scale-95">{brand.name}</Link>
+                <Link href={`/brand/${brand.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg">{brand.name}</Link>
                 <span className="shrink-0 text-gray-400">/</span>
-                <Link href={`/brand/${brand.slug}/${model.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 p-2 rounded-lg hover:bg-foreground/5 active:scale-95">{model.name}</Link>
+                <Link href={`/brand/${brand.slug}/${model.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg">{model.name}</Link>
                 <span className="shrink-0 text-gray-400">/</span>
                 {currentSubcategory ? (
                     <>
-                        <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 p-2 rounded-lg hover:bg-foreground/5 active:scale-95">{category.name}</Link>
+                        <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg">{category.name}</Link>
                         <span className="shrink-0 text-gray-400">/</span>
-                        <span className="text-gray-900 font-bold uppercase shrink-0 p-2">{currentSubcategory.name}</span>
+                        <span className="text-gray-900 font-bold uppercase shrink-0 py-1">{currentSubcategory.name}</span>
                     </>
                 ) : (
-                    <span className="text-gray-900 font-bold uppercase shrink-0 p-2">{category.name}</span>
+                    <span className="text-gray-900 font-bold uppercase shrink-0 py-1">{category.name}</span>
                 )}
             </div>
 
