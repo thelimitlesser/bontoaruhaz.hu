@@ -14,37 +14,50 @@ import { RelatedProductsWrapper } from "@/components/related-products-wrapper";
 
 
 export async function generateMetadata({ params }: { params: Promise<{ slug_id: string }> }): Promise<import("next").Metadata> {
-  const { slug_id } = await params;
-  const id = extractIdFromSlug(slug_id);
-  const data = await getProductMetadataAction(id);
-  if (!data) return { title: "Termék nem található" };
-
-  const { dbPart, brandName, modelName } = data;
-  
-  const title = `[Bontott] ${brandName} ${modelName} ${dbPart.name} | Bontóáruház`;
-  const description = dbPart.description 
-    ? dbPart.description.slice(0, 155) + "..." 
-    : `Minőségi bontott ${brandName} ${modelName} ${dbPart.name} alkatrész garanciával és gyors kiszállítással a Bontóáruházban.`;
-
-  const images = (dbPart.images || "").split(",").filter(img => img.length > 0);
-  const mainImage = images.length > 0 ? images[0] : "https://bontoaruhaz.hu/logo_orange.png";
-
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      images: [mainImage],
-      type: 'article',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [mainImage],
+  try {
+    const { slug_id } = await params;
+    const id = extractIdFromSlug(slug_id);
+    const data = await getProductMetadataAction(id);
+    if (!data) {
+      return { 
+        title: "Termék nem található | Bontóáruház",
+        description: "A keresett alkatrész jelenleg nem elérhető. Böngésszen tovább több ezer minőségi bontott autóalkatrészünk között."
+      };
     }
-  };
+
+    const { dbPart, brandName, modelName } = data;
+    
+    const title = `[Bontott] ${brandName} ${modelName} ${dbPart.name} | Bontóáruház`;
+    const description = dbPart.description 
+      ? dbPart.description.slice(0, 155) + "..." 
+      : `Minőségi bontott ${brandName} ${modelName} ${dbPart.name} alkatrész garanciával és gyors kiszállítással a Bontóáruházban Seregélyesről.`;
+
+    const images = (dbPart.images || "").split(",").filter(img => img.length > 0);
+    const mainImage = images.length > 0 ? images[0] : "https://bontoaruhaz.hu/logo_orange.png";
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        images: [mainImage],
+        type: 'article',
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title,
+        description,
+        images: [mainImage],
+      }
+    };
+  } catch (error) {
+    console.error("Product SEO Error:", error);
+    return {
+      title: "Bontott Autóalkatrész | Bontóáruház",
+      description: "Válogasson minőségi bontott autóalkatrészek közül garanciával. Gyors szállítás Seregélyesről az ország egész területére."
+    };
+  }
 }
 
 
@@ -209,7 +222,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
   };
 
   return (
-    <div className="min-h-screen pb-24 px-4 md:px-8 relative bg-background overflow-x-hidden w-full max-w-[100vw]" style={{ paddingTop: '100px' }}>
+    <div className="min-h-screen pb-24 px-4 md:px-8 relative bg-background overflow-x-hidden w-full max-w-[100vw] flex flex-col" style={{ paddingTop: '100px' }}>
+      <main className="flex-1 min-h-[800px]">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
@@ -221,11 +235,11 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
       <div className="max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden">
 
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center text-sm font-medium text-muted overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
-          <Link href="/" className="hover:text-[var(--color-primary)] transition-colors inline-flex items-center gap-2 shrink-0 p-2 -ml-2 rounded-lg hover:bg-foreground/5 active:scale-95">
+        <nav className="flex items-center text-sm font-medium text-gray-600 overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+          <Link href="/" className="hover:text-[var(--color-primary)] transition-colors inline-flex items-center gap-2 shrink-0 py-1 -ml-1 rounded-lg">
             <ArrowLeft className="w-5 h-5" /> <span className="text-base sm:text-sm">Vissza</span>
           </Link>
-          <span className="mx-3 border-r h-4 border-border shrink-0"></span>
+          <span className="mx-3 border-r h-4 border-gray-300 shrink-0"></span>
           {brandSlug ? (
             <Link href={`/brand/${brandSlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
               {product.brand}
@@ -235,7 +249,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
           )}
           {modelSlug && (
             <>
-              <span className="mx-2 text-border shrink-0">/</span>
+              <span className="mx-2 text-gray-300 shrink-0">/</span>
               <Link href={`/brand/${brandSlug}/${modelSlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
                 {product.model}
               </Link>
@@ -243,7 +257,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
           )}
           {categorySlug && categoryName && (
             <>
-              <span className="mx-2 text-border shrink-0">/</span>
+              <span className="mx-2 text-gray-300 shrink-0">/</span>
               <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
                 {categoryName}
               </Link>
@@ -251,7 +265,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
           )}
           {subcategorySlug && subcategoryName && (
             <>
-              <span className="mx-2 text-border shrink-0">/</span>
+              <span className="mx-2 text-gray-300 shrink-0">/</span>
               <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}?subcat=${subcategorySlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
                 {subcategoryName}
               </Link>
@@ -259,7 +273,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
           )}
           {partItemSlug && partItemName && (
             <>
-              <span className="mx-2 text-border shrink-0">/</span>
+              <span className="mx-2 text-gray-300 shrink-0">/</span>
               <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}?subcat=${subcategorySlug}&item=${partItemSlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
                 {partItemName}
               </Link>
@@ -498,20 +512,19 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
               <span className="font-bold text-foreground">Kérjük, hivatkozzon a termék hivatkozási számára!</span>
             </p>
 
-            <div className="flex justify-center w-full">
-              <a
-                href="tel:+36706121277"
-                className="flex items-center justify-center gap-2.5 px-10 py-4 bg-[var(--color-primary)] text-white font-bold text-lg rounded-2xl hover:scale-105 transition-all shadow-xl shadow-[var(--color-primary)]/20"
-              >
-                <Phone className="w-5 h-5" />
-                +36 70 612 1277
-              </a>
+                <div className="flex justify-center w-full">
+                  <a
+                    href="tel:+36706121277"
+                    className="flex items-center justify-center gap-2.5 px-10 py-4 bg-[var(--color-primary)] text-white font-bold text-lg rounded-2xl hover:scale-105 transition-all shadow-xl shadow-[var(--color-primary)]/20"
+                  >
+                    <Phone className="w-5 h-5" />
+                    +36 70 612 1277
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
-
-      {/* Sticky Mobile Buy Bar removed as per user request */}
+      </main>
     </div>
   );
 }

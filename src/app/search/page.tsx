@@ -9,31 +9,37 @@ export async function generateMetadata({
 }: { 
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>
 }): Promise<Metadata> {
-    const resolvedParams = await searchParams;
-    const query = resolvedParams.query as string | undefined;
-    const brand = resolvedParams.brand as string | undefined;
-    const model = resolvedParams.model as string | undefined;
+    try {
+        const resolvedParams = await searchParams;
+        const query = resolvedParams.query as string | undefined;
+        const brand = resolvedParams.brand as string | undefined;
 
-    let title = "Keresési eredmények | Bontóáruház";
-    let description = "Keressen minőségi bontott autóalkatrészeket garanciával. Több ezer alkatrész készleten minden autó típushoz.";
+        let title = "Keresési eredmények | Bontóáruház";
+        let description = "Keressen minőségi bontott autóalkatrészeket garanciával. Több ezer alkatrész készleten minden autó típushoz.";
 
-    if (query) {
-        title = `Találatok a(z) "${query}" kifejezésre | Bontóáruház`;
-        description = `Fedezze fel a legjobb bontott autóalkatrész ajánlatokat a(z) "${query}" kifejezésre. 14 napos garancia és gyors házhozszállítás.`;
-    } else if (brand) {
-        title = `${brand} Bontott Alkatrészek | Bontóáruház`;
-        description = `Minőségi bontott ${brand} alkatrészek széles választékban. Motoralkatrészek, karosszéria elemek és egyebek garanciával.`;
-    }
+        if (query) {
+            title = `Találatok a(z) "${query}" kifejezésre | Bontóáruház`;
+            description = `Fedezze fel a legjobb bontott autóalkatrész ajánlatokat a(z) "${query}" kifejezésre. 14 napos garancia és gyors házhozszállítás.`;
+        } else if (brand) {
+            title = `${brand} Bontott Alkatrészek | Bontóáruház`;
+            description = `Minőségi bontott ${brand} alkatrészek széles választékban. Motoralkatrészek, karosszéria elemek és egyebek garanciával Seregélyesről.`;
+        }
 
-    return {
-        title,
-        description,
-        openGraph: {
+        return {
             title,
             description,
-            type: 'website',
-        }
-    };
+            openGraph: {
+                title,
+                description,
+                type: 'website',
+            }
+        };
+    } catch (error) {
+        return {
+            title: "Alkatrész kereső | Bontóáruház",
+            description: "Használja intelligens keresőnket a tökéletes bontott autóalkatrész megtalálásához. 14 napos pénzvisszafizetési garancia minden termékre."
+        };
+    }
 }
 
 export default function SearchPage() {

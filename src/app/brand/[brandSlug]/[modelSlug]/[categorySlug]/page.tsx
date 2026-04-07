@@ -14,51 +14,59 @@ export async function generateMetadata({
     params: Promise<{ brandSlug: string; modelSlug: string; categorySlug: string }>;
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }): Promise<Metadata> {
-    const { brandSlug, modelSlug, categorySlug } = await params;
-    const resolvedSearchParams = await searchParams;
-    const subcatSlug = resolvedSearchParams.subcat as string | undefined;
+    try {
+        const { brandSlug, modelSlug, categorySlug } = await params;
+        const resolvedSearchParams = await searchParams;
+        const subcatSlug = resolvedSearchParams.subcat as string | undefined;
 
-    const [brand, category] = await Promise.all([
-        prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } }),
-        prisma.partCategory.findUnique({ where: { slug: categorySlug } })
-    ]);
+        const [brand, category] = await Promise.all([
+            prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } }),
+            prisma.partCategory.findUnique({ where: { slug: categorySlug } })
+        ]);
 
-    const model = brand 
-        ? await prisma.vehicleModel.findFirst({ where: { slug: modelSlug, brandId: brand.id } })
-        : null;
+        const model = brand 
+            ? await prisma.vehicleModel.findFirst({ where: { slug: modelSlug, brandId: brand.id } })
+            : null;
 
-    if (!brand || !model || !category) {
-        return { 
-            title: 'Kategória nem található | Bontóáruház',
-            description: 'A keresett autóalkatrész kategória nem található. Válogasson további minőségi bontott alkatrészeink közül.'
-        };
-    }
+        if (!brand || !model || !category) {
+            return { 
+                title: 'Alkatrészek keresése | Bontóáruház',
+                description: 'Válogasson minőségi bontott autóalkatrészeink közül. Keressen márka, modell vagy kategória alapján garanciával.'
+            };
+        }
 
-    // Try to find subcategory and part item for more specific SEO
-    const subcat = subcatSlug 
-        ? await prisma.partSubcategory.findFirst({ where: { slug: subcatSlug, categoryId: category.id } })
-        : null;
-    
-    const partItemSlug = resolvedSearchParams.item as string | undefined;
-    const partItem = (partItemSlug && subcat)
-        ? await prisma.partItem.findFirst({ where: { slug: partItemSlug, subcategoryId: subcat.id } })
-        : null;
+        // Try to find subcategory and part item for more specific SEO
+        const subcat = subcatSlug 
+            ? await prisma.partSubcategory.findFirst({ where: { slug: subcatSlug, categoryId: category.id } })
+            : null;
+        
+        const partItemSlug = resolvedSearchParams.item as string | undefined;
+        const partItem = (partItemSlug && subcat)
+            ? await prisma.partItem.findFirst({ where: { slug: partItemSlug, subcategoryId: subcat.id } })
+            : null;
 
-    const mainTerm = partItem?.name || subcat?.name || category.name;
-    const title = `Bontott ${brand.name} ${model.name} ${mainTerm} Alkatrészek | Bontóáruház`;
-    const description = `Válogass minőségi bontott ${brand.name} ${model.name} ${mainTerm} alkatrészek közül. 14 napos garancia, gyors kiszállítás és megbízható minőség Seregélyesről.`;
+        const mainTerm = partItem?.name || subcat?.name || category.name;
+        const title = `Bontott ${brand.name} ${model.name} ${mainTerm} Alkatrészek | Bontóáruház`;
+        const description = `Válogass minőségi bontott ${brand.name} ${model.name} ${mainTerm} alkatrészek közül. 14 napos garancia, gyors kiszállítás és megbízható minőség Seregélyesről.`;
 
-    return {
-        title,
-        description,
-        openGraph: {
+        return {
             title,
             description,
-            type: 'website',
-            locale: 'hu_HU',
-            images: brand.logo ? [brand.logo] : [],
-        }
-    };
+            openGraph: {
+                title,
+                description,
+                type: 'website',
+                locale: 'hu_HU',
+                images: brand.logo ? [brand.logo] : [],
+            }
+        };
+    } catch (error) {
+        console.error("SEO Metadata Error:", error);
+        return {
+            title: 'Minőségi Bontott Autóalkatrészek | Bontóáruház',
+            description: 'Találja meg a tökéletes bontott alkatrészt autójához Seregélyes legnagyobb raktárkészletéből. 14 napos garancia és gyors házhozszállítás minden alkatrészre.'
+        };
+    }
 }
 
 export default async function CategoryProductsPage({ 
