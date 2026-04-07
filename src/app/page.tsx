@@ -38,7 +38,7 @@ export default async function Home() {
             </div>
 
             {/* MAIN SEARCH WIDGET */}
-            <div className="w-full text-left transform translate-y-0 sm:translate-y-4 px-1 sm:px-0">
+            <div className="w-full text-left transform translate-y-0 sm:translate-y-4 px-1 sm:px-0 min-h-[300px] sm:min-h-[160px]">
               <VehicleSelector initialBrands={activeBrands} initialModelsMap={modelsMap} initialPartOptions={initialPartOptions} />
             </div>
 
