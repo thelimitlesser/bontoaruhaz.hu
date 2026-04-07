@@ -56,6 +56,17 @@ export async function createPxpShipment(order: any) {
             return `+36 ${digits}`; // Fallback
         };
 
+        // Helper to strip forbidden characters: ' " \ < > ? $ ;
+        const cleanPxpText = (text: string | undefined | null) => {
+            if (!text) return "";
+            return text.replace(/['"\\<>?$;]/g, "").trim();
+        };
+
+        const cleanName = cleanPxpText(shippingAddr.name);
+        // PXP requires ceg_nev for individuals too, and it must be min 4 chars
+        const rawCompany = cleanPxpText(shippingAddr.companyName);
+        const finalCompanyName = (rawCompany.length >= 4 ? rawCompany : cleanName).slice(0, 50);
+
         const isCOD = order.paymentMethod === 'COD';
         const utanvetAmount = isCOD ? Number(Math.round(order.totalAmount)) : 0;
         
@@ -87,13 +98,13 @@ export async function createPxpShipment(order: any) {
             "0": {
                 tipus: 0, // 0 = Csomagfeladás
                 cimzett: {
-                    nev: shippingAddr.name.slice(0, 30),
+                    nev: cleanName.slice(0, 30),
                     telefon: formatPxpPhone(shippingAddr.phone).slice(0, 20),
-                    emailcim: shippingAddr.email.slice(0, 50),
-                    ceg_nev: (shippingAddr.companyName || "").slice(0, 50),
-                    cim_telepules: shippingAddr.city.slice(0, 40),
+                    emailcim: cleanPxpText(shippingAddr.email).slice(0, 50),
+                    ceg_nev: finalCompanyName,
+                    cim_telepules: cleanPxpText(shippingAddr.city).slice(0, 40),
                     cim_iranyito: shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4),
-                    cim_kozterulet: shippingAddr.address.slice(0, 60),
+                    cim_kozterulet: cleanPxpText(shippingAddr.address).slice(0, 60),
                     cim_megjegyzes: megjegyzesText
                 },
                 szolgaltatas: "24H",
