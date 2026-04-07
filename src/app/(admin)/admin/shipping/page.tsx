@@ -173,7 +173,7 @@ export default function ShippingPage() {
                             className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
                         >
                             {isPrinting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5 text-gray-500" />}
-                            Címkék Összesítése ({orders.length})
+                            Címkék nyomtatása ({orders.length})
                         </button>
 
                         <button
