@@ -192,14 +192,14 @@ export function CategoryProductsContent({
 
             {/* Main Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-                <header>
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-tight">
+                <header className="overflow-hidden">
+                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-tight break-words">
                         {brand.name} {model.name} {currentSubcategory ? currentSubcategory.name : category.name}
                     </h1>
                 </header>
 
                 {/* Year and Sort Filters */}
-                <div className="flex flex-col sm:flex-row items-center gap-4 min-w-full sm:min-w-[450px]">
+                <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
                     {/* Year Filter */}
                     <div className="flex flex-col gap-2 w-full sm:w-[180px]">
                         <label htmlFor="year-filter" className="text-[10px] font-bold text-gray-500 uppercase tracking-widest pl-1">
@@ -313,11 +313,11 @@ export function CategoryProductsContent({
 
                 {/* Product Grid */}
                 <div className="w-full">
-                    <header className="mb-8 flex items-center justify-between border-b border-gray-200 pb-4">
-                        <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight">
+                    <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-4 gap-4">
+                        <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight break-words">
                             {currentPartItem ? currentPartItem.name : (currentSubcategory ? currentSubcategory.name : category.name)} termékek
                         </h2>
-                        <p className="text-gray-500 text-sm">
+                        <p className="text-gray-500 text-sm whitespace-nowrap">
                             Találatok: <span className="text-[var(--color-primary)] font-bold">{isLoading ? '...' : realProducts.length} db</span>
                         </p>
                     </header>

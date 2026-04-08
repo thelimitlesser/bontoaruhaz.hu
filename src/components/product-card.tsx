@@ -119,7 +119,7 @@ export function ProductCard({ product }: { product: Product | any }) {
                     <div className="mt-auto flex items-end justify-between">
                         <div className="flex flex-col">
                             <span className="text-xs text-gray-500 font-medium">Vételár:</span>
-                            <span className="text-xl font-bold text-foreground group-hover:text-[var(--color-primary)] transition-colors">
+                            <span className="text-xl font-bold text-foreground group-hover:text-[var(--color-primary)] transition-colors whitespace-nowrap">
                                 {displayPrice?.toLocaleString('hu-HU')} {displayCurrency}
                             </span>
                         </div>

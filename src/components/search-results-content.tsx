@@ -28,7 +28,7 @@ export function SearchResultsContent() {
     const [detectedMeta, setDetectedMeta] = useState<{
         detectedYear?: number;
         detectedBrand?: string;
-        detectedModel?: string;
+        detectedModel?: string | null;
         suggestion?: string;
         categoryName?: string;
         subcategoryName?: string;
@@ -87,7 +87,7 @@ export function SearchResultsContent() {
                     <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)]">
                         <Search className="w-5 h-5" />
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tighter">
+                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tighter break-words">
                         Keresési eredmények
                     </h1>
                 </div>
@@ -159,7 +159,7 @@ export function SearchResultsContent() {
                     </div>
                 </div>
 
-                <p className="text-gray-500 font-medium">
+                <p className="text-gray-500 font-medium break-words">
                     Találatok a <span className="text-gray-900 font-bold">&quot;{query}&quot;</span> kifejezésre.
                 </p>
 
