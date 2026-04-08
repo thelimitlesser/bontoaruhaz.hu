@@ -159,7 +159,7 @@ export async function sendOrderReceivedEmail(order: any, customerEmail: string) 
             Köszönjük rendelését! Sikeresen rögzítettük a rendelését, és megkezdtük a termék minőségi ellenőrzését.
         </p>
         <p style="font-size: 16px; line-height: 1.6;">
-            Amint mindent rendben találunk, jóváhagyjuk a rendelését és értesítjük a szállításról.
+            Amint mindent rendben találunk, jóváhagyjuk a rendelését és értesítjük ${isPickup ? 'az átvételi információkról' : 'a szállításról'}.
         </p>
 
         ${specialMessage}
