@@ -16,6 +16,7 @@ const COLORS = {
     textLight: "#64748b",
     success: "#10b981",
     warning: "#f59e0b",
+    blue: "#2563eb",
     white: "#ffffff",
     border: "#e2e8f0"
 };
@@ -195,7 +196,7 @@ export async function sendOrderConfirmedEmail(order: any, customerEmail: string,
 
         ${invoiceUrl ? `
             <div style="margin: 30px 0; text-align: center;">
-                <a href="${invoiceUrl}" style="display: inline-block; border: 1px solid ${COLORS.secondary}; color: ${COLORS.secondary}; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                <a href="${invoiceUrl}" style="display: inline-block; background-color: ${COLORS.blue}; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold;">
                     Elektronikus számla letöltése
                 </a>
             </div>
@@ -279,7 +280,7 @@ export async function sendOrderManualInvoiceEmail(order: any, customerEmail: str
 
         <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid ${COLORS.border}; text-align: center; margin: 30px 0;">
             <p style="margin-top: 0; color: ${COLORS.textLight}; font-size: 14px;">A számla letöltéséhez kattintson az alábbi gombra:</p>
-            <a href="${invoiceUrl}" style="display: inline-block; background-color: ${COLORS.success}; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">
+            <a href="${invoiceUrl}" style="display: inline-block; background-color: ${COLORS.blue}; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">
                 Számla letöltése (PDF)
             </a>
         </div>
