@@ -165,41 +165,27 @@ export default function ShippingPage() {
                     <p className="text-gray-500 mt-1">PannonXP napi zárás és folyamatban lévő szállítások</p>
                 </div>
 
-                {orders.length > 0 && (() => {
-                    const startOfToday = new Date();
-                    startOfToday.setHours(0, 0, 0, 0);
-                    
-                    const readyForManifestCount = orders.filter(o => new Date(o.createdAt) < startOfToday).length;
-                    const todayCount = orders.filter(o => new Date(o.createdAt) >= startOfToday).length;
+                {orders.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-3">
+                        <button
+                            onClick={handleBulkLabels}
+                            disabled={isPrinting || isClosing}
+                            className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {isPrinting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5 text-gray-500" />}
+                            Címkék nyomtatása ({orders.length})
+                        </button>
 
-                    return (
-                        <div className="flex flex-wrap items-center gap-3">
-                            <button
-                                onClick={handleBulkLabels}
-                                disabled={isPrinting || isClosing}
-                                className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 border border-gray-200 px-6 py-3 rounded-xl font-bold shadow-sm transition-all active:scale-95 disabled:opacity-50"
-                            >
-                                {isPrinting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5 text-gray-500" />}
-                                Címkék nyomtatása ({orders.length})
-                            </button>
-
-                            <button
-                                onClick={() => setShowConfirmModal(true)}
-                                disabled={isClosing || isPrinting || readyForManifestCount === 0}
-                                className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
-                            >
-                                {isClosing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
-                                NAPI ZÁRÁS ({readyForManifestCount})
-                            </button>
-                            
-                            {todayCount > 0 && (
-                                <div className="text-[10px] sm:text-xs text-blue-600 font-bold bg-blue-50 px-3 py-1 rounded-full border border-blue-100 italic">
-                                    + {todayCount} mai rendelés várakozik
-                                </div>
-                            )}
-                        </div>
-                    );
-                })()}
+                        <button
+                            onClick={() => setShowConfirmModal(true)}
+                            disabled={isClosing || isPrinting}
+                            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-xl font-bold shadow-lg shadow-blue-500/20 transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {isClosing ? <Loader2 className="w-5 h-5 animate-spin" /> : <Printer className="w-5 h-5" />}
+                            NAPI ZÁRÁS INDÍTÁSA ({orders.length})
+                        </button>
+                    </div>
+                )}
             </div>
 
             <AnimatePresence>
@@ -230,10 +216,7 @@ export default function ShippingPage() {
                             <div className="space-y-2">
                                 <h3 className="text-2xl font-bold text-gray-900">Biztosan lezárod a napot?</h3>
                                 <p className="text-gray-500 leading-relaxed">
-                                    Ez a folyamat összesíti a korábbi (tegnapi és régebbi) <span className="font-bold text-blue-600">{orders.filter(o => new Date(o.createdAt).getTime() < new Date().setHours(0,0,0,0)).length} db</span> csomagot, és elküldi a PannonXP-nek. Ezután generálódik a gyűjtőlista.
-                                </p>
-                                <p className="text-xs text-amber-600 bg-amber-50 p-3 rounded-xl border border-amber-100 font-medium">
-                                    Figyelem: A mai napon érkezett rendelések automatikusan kimaradnak ebből a zárásból, hogy holnap tiszta lappal indulhass.
+                                    Ez a folyamat összesíti a jelenlegi <span className="font-bold text-blue-600">{orders.length} db</span> csomagot, és elküldi a PannonXP-nek. Ezután generálódik a gyűjtőlista.
                                 </p>
                             </div>
                             <div className="flex flex-col gap-3 pt-4">
