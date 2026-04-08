@@ -68,7 +68,7 @@ const getEmailFooter = () => `
 /**
  * Items Table Component
  */
-const getItemsTableHtml = (items: any[], total: number) => {
+const getItemsTableHtml = (items: any[], total: number, shippingCost: number = 0) => {
     const rows = items.map((item: any) => `
         <tr>
             <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border};">
@@ -78,6 +78,24 @@ const getItemsTableHtml = (items: any[], total: number) => {
             <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; font-weight: bold; white-space: nowrap;">${item.priceAtTime.toLocaleString()} Ft</td>
         </tr>
     `).join('');
+
+    let footerRows = "";
+    
+    if (shippingCost > 0) {
+        footerRows += `
+            <tr>
+                <td colspan="2" style="padding: 10px 0; text-align: right; color: ${COLORS.textLight}; font-size: 14px;">Szállítási díj:</td>
+                <td style="padding: 10px 0; text-align: right; color: ${COLORS.text}; font-size: 14px; white-space: nowrap;">${shippingCost.toLocaleString()} Ft</td>
+            </tr>
+        `;
+    }
+
+    footerRows += `
+        <tr>
+            <td colspan="2" style="padding: 15px 0; text-align: right; font-weight: bold; white-space: nowrap;">Összesen:</td>
+            <td style="padding: 15px 0; text-align: right; font-weight: bold; font-size: 18px; color: ${COLORS.primary}; white-space: nowrap;">${total.toLocaleString()} Ft</td>
+        </tr>
+    `;
 
     return `
         <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
@@ -92,10 +110,7 @@ const getItemsTableHtml = (items: any[], total: number) => {
                 ${rows}
             </tbody>
             <tfoot>
-                <tr>
-                    <td colspan="2" style="padding: 15px 0; text-align: right; font-weight: bold; white-space: nowrap;">Összesen:</td>
-                    <td style="padding: 15px 0; text-align: right; font-weight: bold; font-size: 18px; color: ${COLORS.primary}; white-space: nowrap;">${total.toLocaleString()} Ft</td>
-                </tr>
+                ${footerRows}
             </tfoot>
         </table>
     `;
@@ -150,7 +165,7 @@ export async function sendOrderReceivedEmail(order: any, customerEmail: string) 
         ${specialMessage}
 
         <h3 style="font-size: 14px; color: ${COLORS.textLight}; text-transform: uppercase;">Rendelt termékek:</h3>
-        ${getItemsTableHtml(order.items, order.totalAmount)}
+        ${getItemsTableHtml(order.items, order.totalAmount, order.shippingCost)}
 
         ${getEmailFooter()}
     `;
@@ -203,7 +218,7 @@ export async function sendOrderConfirmedEmail(order: any, customerEmail: string,
         ` : ''}
 
         <h3 style="font-size: 14px; color: ${COLORS.textLight}; text-transform: uppercase;">Rendelés összesítő:</h3>
-        ${getItemsTableHtml(order.items, order.totalAmount)}
+        ${getItemsTableHtml(order.items, order.totalAmount, order.shippingCost)}
         
         ${getEmailFooter()}
     `;
@@ -246,7 +261,7 @@ export async function sendOrderReadyForPickupEmail(order: any, customerEmail: st
             <a href="https://www.google.com/maps/dir/?api=1&destination=8111+Seregélyes-Jánosmajor" style="color: ${COLORS.primary}; font-weight: bold; font-size: 13px; text-decoration: underline; margin-top: 10px; display: inline-block;">Útvonaltervezés →</a>
         </div>
 
-        ${getItemsTableHtml(order.items, order.totalAmount)}
+        ${getItemsTableHtml(order.items, order.totalAmount, order.shippingCost)}
         ${getEmailFooter()}
     `;
 
