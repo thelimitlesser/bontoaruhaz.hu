@@ -363,7 +363,7 @@ export async function approveOrder(orderId: string) {
             const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
             const customerEmail = billingData.email || 'vevo@email.com';
             
-            if (isNonCardPickup) {
+        if (isNonCardPickup) {
                 await sendOrderReadyForPickupEmail(updatedOrder as any, customerEmail);
             } else {
                 await sendOrderConfirmedEmail(updatedOrder as any, customerEmail, invoiceResult?.pdfUrl);

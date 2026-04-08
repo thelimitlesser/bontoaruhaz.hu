@@ -1,341 +1,306 @@
 import { Resend } from 'resend';
 
 const resendSecret = process.env.RESEND_API_KEY;
-
 export const resend = resendSecret ? new Resend(resendSecret) : null;
 
-export const ADMIN_EMAIL = process.env.ADMIN_EMAILS?.split(',')[0] || 'admin@bontoaruhaz.hu';
+const COMPANY_PHONE = "+36 70 612 1277";
+const COMPANY_EMAIL = "info@bontoaruhaz.hu";
+const OWNER_NAME = "Jerzsele Tamás";
+const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://bontoaruhaz.hu";
 
+const COLORS = {
+    primary: "#f97316", // Orange
+    secondary: "#334155", // Slate
+    bg: "#f8fafc",
+    text: "#334155",
+    textLight: "#64748b",
+    success: "#10b981",
+    warning: "#f59e0b",
+    white: "#ffffff",
+    border: "#e2e8f0"
+};
+
+/**
+ * Common HTML Header & Style
+ */
+const getEmailHeader = (title: string, iconColor: string = COLORS.primary) => `
+    <!DOCTYPE html>
+    <html lang="hu">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>${title}</title>
+    </head>
+    <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: ${COLORS.bg}; color: ${COLORS.text};">
+        <div style="max-width: 600px; margin: 20px auto; background: ${COLORS.white}; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid ${COLORS.border};">
+            <div style="background-color: ${COLORS.secondary}; padding: 25px; text-align: center;">
+                <h1 style="color: ${COLORS.white}; margin: 0; font-size: 22px; letter-spacing: 1px;">BONTÓÁRUHÁZ</h1>
+                <p style="color: ${COLORS.textLight}; margin-top: 4px; font-size: 13px;">Minőségi bontott alkatrészek</p>
+            </div>
+            <div style="padding: 30px;">
+`;
+
+/**
+ * Common HTML Footer & Signature
+ */
+const getEmailFooter = () => `
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid ${COLORS.border};">
+                    <p style="margin: 0; font-weight: bold; font-size: 15px;">Üdvözlettel,</p>
+                    <p style="margin: 4px 0 0 0; font-size: 16px; color: ${COLORS.primary}; font-weight: bold;">${OWNER_NAME}</p>
+                    <p style="margin: 2px 0 0 0; font-size: 13px; color: ${COLORS.textLight};">Bontóáruház</p>
+                    
+                    <div style="margin-top: 15px; font-size: 13px; color: ${COLORS.textLight}; line-height: 1.5;">
+                        <p style="margin: 0;">📞 ${COMPANY_PHONE}</p>
+                        <p style="margin: 0;">✉️ ${COMPANY_EMAIL}</p>
+                        <p style="margin: 0;">📍 8111 Seregélyes-Jánosmajor</p>
+                    </div>
+                </div>
+            </div>
+            <div style="background-color: ${COLORS.bg}; padding: 15px; text-align: center; font-size: 11px; color: ${COLORS.textLight};">
+                <p>© ${new Date().getFullYear()} Bontóáruház. Minden jog fenntartva.</p>
+            </div>
+        </div>
+    </body>
+    </html>
+`;
+
+/**
+ * Items Table Component
+ */
+const getItemsTableHtml = (items: any[], total: number) => {
+    const rows = items.map((item: any) => `
+        <tr>
+            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border};">
+                <p style="margin: 0; font-weight: bold; color: ${COLORS.text};">${item.part.name}</p>
+                <p style="margin: 2px 0 0 0; font-size: 11px; color: ${COLORS.textLight};">Összetevő: ${item.part.oemNumbers || '-'}</p>
+            </td>
+            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: center;">${item.quantity} db</td>
+            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; font-weight: bold;">${item.priceAtTime.toLocaleString()} Ft</td>
+        </tr>
+    `).join('');
+
+    return `
+        <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+            <thead>
+                <tr style="text-align: left; font-size: 11px; color: ${COLORS.textLight}; text-transform: uppercase;">
+                    <th style="padding-bottom: 8px;">Termék</th>
+                    <th style="padding-bottom: 8px; text-align: center;">Db</th>
+                    <th style="padding-bottom: 8px; text-align: right;">Ár</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${rows}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" style="padding: 15px 0; text-align: right; font-weight: bold;">Összesen:</td>
+                    <td style="padding: 15px 0; text-align: right; font-weight: bold; font-size: 18px; color: ${COLORS.primary};">${total.toLocaleString()} Ft</td>
+                </tr>
+            </tfoot>
+        </table>
+    `;
+};
+
+/**
+ * EMAIL 1: Order Received
+ */
 export async function sendOrderReceivedEmail(order: any, customerEmail: string) {
-    if (!resend) {
-        console.log('Resend API key not found. Email not sent.');
-        return;
-    }
+    if (!resend) return;
 
-    const isCard = order.paymentMethod === 'CARD';
-    
-    const itemsHtml = order.items.map((item: any) => `
-        <tr>
-            <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.part.name}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity} db</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.priceAtTime.toLocaleString()} Ft</td>
-        </tr>
-    `).join('');
-
-    console.log(`PREPARING "Order Received" email for ${customerEmail}, order #${order.id}`);
-
-    try {
-        const result = await resend.emails.send({
-            from: 'Bontóáruház <info@bontoaruhaz.hu>',
-            to: customerEmail,
-            subject: 'Rendelésedet megkaptuk - Ellenőrzés alatt',
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; color: #334155;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #f97316; margin-bottom: 10px;">Rendelés fogadva!</h1>
-                        <p style="font-size: 16px; color: #64748b;">Rendelési szám: #${order.id.split('-')[0].toUpperCase()}</p>
-                    </div>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; font-size: 13px;">
-                        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <h4 style="margin-top: 0; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Szállítási Cím</h4>
-                            ${(() => {
-                                const s = typeof order.shippingAddress === 'string' ? JSON.parse(order.shippingAddress) : order.shippingAddress;
-                                return `
-                                    <p style="margin: 5px 0; font-weight: bold;">${s.name}</p>
-                                    <p style="margin: 2px 0;">${s.postalCode} ${s.city}</p>
-                                    <p style="margin: 2px 0;">${s.address}</p>
-                                `;
-                            })()}
-                        </div>
-                        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <h4 style="margin-top: 0; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Számlázási Adatok</h4>
-                            ${(() => {
-                                const b = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
-                                return `
-                                    <p style="margin: 5px 0; font-weight: bold;">${b.name}</p>
-                                    <p style="margin: 2px 0;">${b.postalCode} ${b.city}</p>
-                                    <p style="margin: 2px 0;">${b.address}</p>
-                                    ${b.taxNumber ? `<p style="margin: 5px 0 0 0; color: #64748b; font-size: 11px;">Adószám: ${b.taxNumber}</p>` : ''}
-                                `;
-                            })()}
-                        </div>
-                    </div>
-                    
-                    <p>Kedves Vásárlónk!</p>
-                    <p>Köszönjük, hogy a Bontóáruházat választottad! Rendelésedet rendszerünk sikeresen rögzítette.</p>
-                    <p>Mivel számunkra kiemelten fontos a minőség, munkatársaink jelenleg <strong>manuálisan ellenőrzik a választott alkatrész(ek) állapotát és a készletet</strong>. Ez a folyamat biztosítja, hogy pontosan azt kapd, amit rendeltél.</p>
-                    <p>Amint az ellenőrzés lezárult, e-mailben értesítünk a rendelés jóváhagyásáról és a kiszállítás elindításáról.</p>
-                    
-                    <div style="background-color: #fff7ed; padding: 20px; border-radius: 8px; border-left: 4px solid #f97316; margin: 25px 0;">
-                        <h3 style="margin-top: 0; color: #9a3412; font-size: 14px; text-transform: uppercase;">Fizetési információk:</h3>
-                        ${isCard 
-                            ? `<p style="margin-bottom: 0;">Mivel <strong>bankkártyával</strong> fizettél, az összeget jelenleg csak zároltuk a folyószámládon. A tényleges levonás csak akkor történik meg, ha jóváhagytuk a rendelést. A számlát is akkor fogod megkapni.</p>`
-                            : `<p style="margin-bottom: 0;">Mivel <strong>utánvétet</strong> választottál, a fizetés a futárnál történik (készpénz vagy kártya). Elektronikus számládat a sikeres kézbesítés után juttatjuk el hozzád.</p>`
-                        }
-                    </div>
-
-                    <div style="margin: 30px 0;">
-                        <h3 style="border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Rendelés részletei:</h3>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                            <thead>
-                                <tr style="background-color: #f8fafc;">
-                                    <th style="padding: 10px; text-align: left;">Termék</th>
-                                    <th style="padding: 10px; text-align: center;">Mennyiség</th>
-                                    <th style="padding: 10px; text-align: right;">Ár</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${itemsHtml}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="2" style="padding: 15px 10px; text-align: right; font-weight: bold;">Összesen:</td>
-                                    <td style="padding: 15px 10px; text-align: right; font-weight: bold; color: #f97316; font-size: 18px;">${order.totalAmount.toLocaleString()} Ft</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-
-                    <p style="font-size: 13px; color: #64748b; margin-top: 40px; text-align: center;">
-                        Köszönjük, hogy a Bontóáruházat választottad!<br>
-                        Hamarosan keresünk a jóváhagyással.
-                    </p>
-                </div>
-            `
-        });
-        console.log(`SUCCESS: "Order Received" email sent to ${customerEmail}. Resend ID: ${result.data?.id}`);
-    } catch (error) {
-        console.error('CRITICAL: Error sending "Order Received" email:', error);
-    }
-}
-
-export async function sendOrderConfirmedEmail(order: any, customerEmail: string, invoiceUrl?: string) {
-    if (!resend) {
-        console.log('Resend API key not found. Email not sent.');
-        return;
-    }
-
-    const isCard = order.paymentMethod === 'CARD';
+    const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+    const isStripe = order.paymentMethod === 'CARD';
     const isPickup = order.shippingMethod === 'PICKUP';
+    
+    const subject = `Rendelés visszaigazolás: #${order.id.split('-')[0].toUpperCase()}`;
+    
+    let specialMessage = "";
+    if (isStripe) {
+        specialMessage = `
+            <div style="background-color: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid ${COLORS.border}; margin: 25px 0;">
+                <p style="margin: 0; font-size: 15px; line-height: 1.6;">
+                    <strong>Bankkártyás fizetés:</strong> A kártyás összeget jelenleg csak <strong>zárolta a bank</strong> a számláján. A tényleges levonás csak a minőségi ellenőrzés és a rendelés jóváhagyása után történik meg.
+                </p>
+            </div>
+        `;
+    } else if (isPickup) {
+        specialMessage = `
+            <div style="background-color: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid ${COLORS.border}; margin: 25px 0;">
+                <p style="margin: 0; font-size: 15px; line-height: 1.6;">
+                    <strong>Személyes átvétel:</strong> Kérjük, vegye fel velünk a kapcsolatot a <strong>${COMPANY_PHONE}</strong> számon, hogy egyeztesse, mikor szeretné átvenni a terméket.
+                </p>
+                <div style="margin-top: 15px;">
+                    <a href="https://www.google.com/maps/dir/?api=1&destination=8111+Seregélyes-Jánosmajor" style="background-color: ${COLORS.secondary}; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: bold; display: inline-block;">
+                        Navigáció a telephelyre →
+                    </a>
+                </div>
+            </div>
+        `;
+    }
+
+    const html = `
+        ${getEmailHeader(subject)}
+        <h2 style="margin-top: 0; font-size: 20px;">Kedves ${billingData.firstName || billingData.name}!</h2>
+        <p style="font-size: 16px; line-height: 1.6;">
+            Köszönjük rendelését! Sikeresen rögzítettük a rendelését, és megkezdtük a termék minőségi ellenőrzését.
+        </p>
+        <p style="font-size: 16px; line-height: 1.6;">
+            Amint mindent rendben találunk, jóváhagyjuk a rendelését és értesítjük a szállításról.
+        </p>
+
+        ${specialMessage}
+
+        <h3 style="font-size: 14px; color: ${COLORS.textLight}; text-transform: uppercase;">Rendelt termékek:</h3>
+        ${getItemsTableHtml(order.items, order.totalAmount)}
+
+        ${getEmailFooter()}
+    `;
 
     try {
         await resend.emails.send({
             from: 'Bontóáruház <info@bontoaruhaz.hu>',
             to: customerEmail,
-            subject: 'Rendelésedet jóváhagytuk! - Bontóáruház',
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; color: #334155;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #10b981; margin-bottom: 10px;">Rendelés jóváhagyva!</h1>
-                        <p style="font-size: 16px; color: #64748b;">Rendelési szám: #${order.id.split('-')[0].toUpperCase()}</p>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; font-size: 13px;">
-                        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <h4 style="margin-top: 0; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Szállítási Cím</h4>
-                            ${(() => {
-                                const s = typeof order.shippingAddress === 'string' ? JSON.parse(order.shippingAddress) : order.shippingAddress;
-                                return `
-                                    <p style="margin: 5px 0; font-weight: bold;">${s.name}</p>
-                                    <p style="margin: 2px 0;">${s.postalCode} ${s.city}</p>
-                                    <p style="margin: 2px 0;">${s.address}</p>
-                                `;
-                            })()}
-                        </div>
-                        <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <h4 style="margin-top: 0; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Számlázási Adatok</h4>
-                            ${(() => {
-                                const b = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
-                                return `
-                                    <p style="margin: 5px 0; font-weight: bold;">${b.name}</p>
-                                    <p style="margin: 2px 0;">${b.postalCode} ${b.city}</p>
-                                    <p style="margin: 2px 0;">${b.address}</p>
-                                    ${b.taxNumber ? `<p style="margin: 5px 0 0 0; color: #64748b; font-size: 11px;">Adószám: ${b.taxNumber}</p>` : ''}
-                                `;
-                            })()}
-                        </div>
-                    </div>
-                    
-                    <p>Kedves Vásárlónk!</p>
-                    <p>Örömmel értesítünk, hogy a rendelésedet ellenőriztük és <strong>mindent rendben találtunk</strong>, így a vásárlást jóváhagytuk!</p>
-                    
-                    ${isPickup 
-                        ? `<p>Mivel <strong>személyes átvételt</strong> választottál, az alkatrészt összeállítottuk, és mostantól átvehető telephelyünkön!</p>`
-                        : `<p>A kiszállítási folyamat elindult, csomagodat hamarosan átadjuk a PannonXP futárszolgálatnak.</p>`
-                    }
-                    
-                    <div style="background-color: #f0fdf4; padding: 20px; border-radius: 8px; border-left: 4px solid #10b981; margin: 25px 0;">
-                        ${isCard 
-                            ? `<p style="margin: 0;">A kártyás fizetést véglegesítettük. A számlát az alábbi linken érheted el:</p>`
-                            : `<p style="margin: 0;">A csomagot hamarosan elindítjuk. Fizetés az átvételkor esedékes. A számlát a sikeres kézbesítés után küldjük.</p>`
-                        }
-                        ${invoiceUrl ? `<a href="${invoiceUrl}" style="display: inline-block; background-color: #10b981; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 15px;">Számla letöltése</a>` : ''}
-                    </div>
-
-                    <div style="margin: 30px 0; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px;">
-                        <h4 style="margin-top: 0; color: #64748b; font-size: 12px; text-transform: uppercase;">
-                            ${isPickup ? 'Átvételi információk:' : 'Szállítási információk:'}
-                        </h4>
-                        
-                        ${isPickup ? `
-                            <p style="margin-bottom: 5px;"><strong>Helyszín:</strong> 8111 Seregélyes-Jánosmajor</p>
-                            <p style="margin-bottom: 0;"><strong>Nyitvatartás:</strong> H-P: 08:00 - 17:00</p>
-                        ` : `
-                            <p style="margin-bottom: 5px;"><strong>Szállító:</strong> PannonXP</p>
-                            ${order.trackingNumber ? `
-                                <p style="margin-bottom: 10px;"><strong>Követési kód:</strong> ${order.trackingNumber}</p>
-                                <a href="https://mypxp.pannonxp.hu/kereses?v=${order.trackingNumber}" 
-                                   style="display: inline-block; background-color: #f59e0b; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 14px;">
-                                   Csomag Nyomonkövetése
-                                </a>
-                            ` : ''}
-                            <p style="margin-top: 10px; margin-bottom: 0;"><strong>Várható érkezés:</strong> 1-2 munkanap</p>
-                        `}
-                    </div>
-
-                    <p style="text-align: center; margin-top: 40px; color: #64748b; font-size: 13px;">
-                        Köszönjük a bizalmadat!<br>
-                        Bontóáruház Csapata
-                    </p>
-                </div>
-            `
+            subject,
+            html
         });
     } catch (error) {
-        console.error('Error sending email:', error);
+        console.error('Error sending OrderReceived email:', error);
     }
 }
 
+/**
+ * EMAIL 2: Order Confirmed / Shipping
+ */
+export async function sendOrderConfirmedEmail(order: any, customerEmail: string, invoiceUrl?: string) {
+    if (!resend) return;
+
+    const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+    
+    const subject = `Rendelését jóváhagytuk: #${order.id.split('-')[0].toUpperCase()}`;
+
+    const html = `
+        ${getEmailHeader(subject, COLORS.success)}
+        <h2 style="margin-top: 0; font-size: 20px; color: ${COLORS.success};">Kedves ${billingData.firstName || billingData.name}!</h2>
+        <p style="font-size: 16px; line-height: 1.6;">
+            Rendelését jóváhagytuk, megkezdtük az előkészítést és a csomagját hamarosan átadjuk a futárszolgálatnak.
+        </p>
+
+        ${order.trackingNumber ? `
+            <div style="background-color: #f8fafc; padding: 20px; border-radius: 12px; border: 1px solid ${COLORS.border}; margin: 25px 0; text-align: center;">
+                <p style="margin-top: 0; font-size: 12px; color: ${COLORS.textLight}; text-transform: uppercase;">Szállító: PannonXP</p>
+                <p style="font-size: 18px; margin: 5px 0; font-weight: bold;">${order.trackingNumber}</p>
+                <a href="https://mypxp.pannonxp.hu/kereses?v=${order.trackingNumber}" style="display: inline-block; background-color: ${COLORS.primary}; color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">
+                    Csomag nyomonkövetése →
+                </a>
+            </div>
+        ` : ''}
+
+        ${invoiceUrl ? `
+            <div style="margin: 30px 0; text-align: center;">
+                <a href="${invoiceUrl}" style="display: inline-block; border: 1px solid ${COLORS.secondary}; color: ${COLORS.secondary}; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+                    Elektronikus számla letöltése
+                </a>
+            </div>
+        ` : ''}
+
+        <h3 style="font-size: 14px; color: ${COLORS.textLight}; text-transform: uppercase;">Rendelés összesítő:</h3>
+        ${getItemsTableHtml(order.items, order.totalAmount)}
+        
+        ${getEmailFooter()}
+    `;
+
+    try {
+        await resend.emails.send({
+            from: 'Bontóáruház <info@bontoaruhaz.hu>',
+            to: customerEmail,
+            subject,
+            html
+        });
+    } catch (error) {
+        console.error('Error sending OrderConfirmed email:', error);
+    }
+}
+
+/**
+ * EMAIL 3: Ready for Pickup
+ */
 export async function sendOrderReadyForPickupEmail(order: any, customerEmail: string) {
-    if (!resend) {
-        console.log('Resend API key not found. Email not sent.');
-        return;
-    }
+    if (!resend) return;
 
-    const itemsHtml = order.items.map((item: any) => `
-        <tr>
-            <td style="padding: 10px; border-bottom: 1px solid #eee;">${item.part.name}</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: center;">${item.quantity} db</td>
-            <td style="padding: 10px; border-bottom: 1px solid #eee; text-align: right;">${item.priceAtTime.toLocaleString()} Ft</td>
-        </tr>
-    `).join('');
+    const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+    const subject = `Rendelése átvehető: #${order.id.split('-')[0].toUpperCase()}`;
+
+    const html = `
+        ${getEmailHeader(subject, COLORS.warning)}
+        <h2 style="margin-top: 0; font-size: 20px;">Kedves ${billingData.firstName || billingData.name}!</h2>
+        <p style="font-size: 16px; line-height: 1.6;">
+            Rendelését jóváhagytuk, az alkatrész átvehető! 
+        </p>
+        <p style="font-size: 16px; line-height: 1.6; color: ${COLORS.primary}; font-weight: bold;">
+            Kérjük, hívjon minket a ${COMPANY_PHONE} számon az átvétel pontosításához.
+        </p>
+
+        <div style="background-color: #fffbeb; padding: 20px; border-radius: 12px; border: 1px solid #fef3c7; margin: 25px 0;">
+            <p style="margin: 0; font-size: 14px; font-weight: bold;">Átvételi pont:</p>
+            <p style="margin: 5px 0; font-size: 14px;">8111 Seregélyes-Jánosmajor</p>
+            <p style="margin: 2px 0; font-size: 13px; color: ${COLORS.textLight};">Hétfő - Péntek: 08:00 - 17:00</p>
+            <a href="https://www.google.com/maps/dir/?api=1&destination=8111+Seregélyes-Jánosmajor" style="color: ${COLORS.primary}; font-weight: bold; font-size: 13px; text-decoration: underline; margin-top: 10px; display: inline-block;">Útvonaltervezés →</a>
+        </div>
+
+        ${getItemsTableHtml(order.items, order.totalAmount)}
+        ${getEmailFooter()}
+    `;
 
     try {
         await resend.emails.send({
             from: 'Bontóáruház <info@bontoaruhaz.hu>',
             to: customerEmail,
-            subject: 'Rendelésed átvehető! - Bontóáruház',
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; color: #334155;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #f59e0b; margin-bottom: 10px;">Átvehető!</h1>
-                        <p style="font-size: 16px; color: #64748b;">Rendelési szám: #${order.id.split('-')[0].toUpperCase()}</p>
-                    </div>
-
-                    <div style="background-color: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 30px; font-size: 13px;">
-                        <h4 style="margin-top: 0; color: #64748b; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;">Számlázási Adatok</h4>
-                        ${(() => {
-                            const b = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
-                            return `
-                                <p style="margin: 5px 0; font-weight: bold;">${b.name}</p>
-                                <p style="margin: 2px 0;">${b.postalCode} ${b.city}</p>
-                                <p style="margin: 2px 0;">${b.address}</p>
-                                ${b.taxNumber ? `<p style="margin: 5px 0 0 0; color: #64748b; font-size: 11px;">Adószám: ${b.taxNumber}</p>` : ''}
-                            `;
-                        })()}
-                    </div>
-                    
-                    <p>Kedves Vásárlónk!</p>
-                    <p>Örömmel értesítünk, hogy a rendelésedet összeállítottuk, és <strong>mostantól átvehető telephelyünkön!</strong></p>
-                    
-                    <div style="background-color: #fffbeb; padding: 20px; border-radius: 8px; border-left: 4px solid #f59e0b; margin: 25px 0;">
-                        <h3 style="margin-top: 0; color: #92400e; font-size: 14px; text-transform: uppercase;">Fontos információk:</h3>
-                        <p>Az alkatrészt <strong>3 munkanapig</strong> tartjuk fenn neked. Kérjük, ez idő alatt gyere el érte!</p>
-                        <p style="margin-bottom: 0;"><strong>Fizetés:</strong> A helyszínen készpénzzel vagy bankkártyával.</p>
-                    </div>
-
-                    <div style="margin: 30px 0; border: 1px dashed #cbd5e1; padding: 15px; border-radius: 8px;">
-                        <h4 style="margin-top: 0; color: #64748b; font-size: 12px; text-transform: uppercase;">Átvételi pont:</h4>
-                        <p style="margin-bottom: 5px;"><strong>Cím:</strong> 8111 Seregélyes-Jánosmajor</p>
-                        <p style="margin-bottom: 0;"><strong>Nyitvatartás:</strong> H-P: 08:00 - 17:00</p>
-                    </div>
-
-                    <div style="margin: 30px 0;">
-                        <h3 style="border-bottom: 2px solid #f1f5f9; padding-bottom: 10px;">Rendelés részletei:</h3>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
-                            <thead>
-                                <tr style="background-color: #f8fafc;">
-                                    <th style="padding: 10px; text-align: left;">Termék</th>
-                                    <th style="padding: 10px; text-align: center;">Mennyiség</th>
-                                    <th style="padding: 10px; text-align: right;">Ár</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${itemsHtml}
-                            </tbody>
-                            <tfoot>
-                                <tr>
-                                    <td colspan="2" style="padding: 15px 10px; text-align: right; font-weight: bold;">Fizetendő összesen:</td>
-                                    <td style="padding: 15px 10px; text-align: right; font-weight: bold; color: #f59e0b; font-size: 18px;">${order.totalAmount.toLocaleString()} Ft</td>
-                                </tr>
-                            </tfoot>
-                        </table>
-                    </div>
-
-                    <p style="text-align: center; margin-top: 40px; color: #64748b; font-size: 13px;">
-                        Köszönjük a bizalmadat!<br>
-                        Bontóáruház Csapata
-                    </p>
-                </div>
-            `
+            subject,
+            html
         });
     } catch (error) {
-        console.error('Error sending pickup email:', error);
+        console.error('Error sending ReadyForPickup email:', error);
     }
 }
 
+/**
+ * EMAIL 4: Manual Invoice / Pickup Final
+ */
 export async function sendOrderManualInvoiceEmail(order: any, customerEmail: string, invoiceUrl: string) {
-    if (!resend) {
-        console.log('Resend API key not found. Email not sent.');
-        return;
-    }
+    if (!resend) return;
+
+    const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
+    const subject = `Számla a rendeléséről: #${order.id.split('-')[0].toUpperCase()}`;
+
+    const html = `
+        ${getEmailHeader(subject, COLORS.success)}
+        <h2 style="margin-top: 0; font-size: 20px;">Kedves ${billingData.firstName || billingData.name}!</h2>
+        <p style="font-size: 16px; line-height: 1.6;">
+            Köszönjük a vásárlást! Mellékelten küldjük a vásárlásáról kiállított elektronikus számlát.
+        </p>
+
+        <div style="background-color: #f8fafc; padding: 25px; border-radius: 12px; border: 1px solid ${COLORS.border}; text-align: center; margin: 30px 0;">
+            <p style="margin-top: 0; color: ${COLORS.textLight}; font-size: 14px;">A számla letöltéséhez kattintson az alábbi gombra:</p>
+            <a href="${invoiceUrl}" style="display: inline-block; background-color: ${COLORS.success}; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px;">
+                Számla letöltése (PDF)
+            </a>
+        </div>
+
+        <div style="margin: 30px 0; border-top: 1px solid ${COLORS.border}; pt-20px;">
+            <p style="font-size: 14px; color: ${COLORS.textLight};">
+                <strong>Rendelés összege:</strong> ${order.totalAmount.toLocaleString()} Ft
+            </p>
+        </div>
+        ${getEmailFooter()}
+    `;
 
     try {
         await resend.emails.send({
             from: 'Bontóáruház <info@bontoaruhaz.hu>',
             to: customerEmail,
-            subject: 'Számla a rendelésedről - Bontóáruház',
-            html: `
-                <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 12px; color: #334155;">
-                    <div style="text-align: center; margin-bottom: 30px;">
-                        <h1 style="color: #10b981; margin-bottom: 10px;">Elkészült a számlád!</h1>
-                        <p style="font-size: 16px; color: #64748b;">Rendelési szám: #${order.id.split('-')[0].toUpperCase()}</p>
-                    </div>
-
-                    <p>Kedves Vásárlónk!</p>
-                    <p>Köszönjük, hogy nálunk vásároltál! Ezúton küldjük a rendelésedről kiállított elektronikus számlát.</p>
-                    
-                    <div style="background-color: #f0fdf4; padding: 25px; border-radius: 12px; border: 1px solid #dcfce7; text-align: center; margin: 30px 0;">
-                        <p style="margin-top: 0; color: #166534; font-weight: bold;">A számla az alábbi gombra kattintva tölthető le:</p>
-                        <a href="${invoiceUrl}" style="display: inline-block; background-color: #10b981; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 10px; box-shadow: 0 4px 6px -1px rgba(16, 185, 129, 0.2);">Számla Letöltése (PDF)</a>
-                    </div>
-
-                    <div style="margin: 30px 0; border-top: 1px solid #f1f5f9; pt-20px;">
-                        <p style="font-size: 13px; color: #64748b;">
-                            <strong>Rendelés összege:</strong> ${order.totalAmount.toLocaleString()} Ft<br>
-                            <strong>Fizetés módja:</strong> ${order.paymentMethod === 'COD' ? 'Helyszíni fizetés / Utánvét' : 'Bankkártya'}
-                        </p>
-                    </div>
-
-                    <p style="text-align: center; margin-top: 40px; color: #64748b; font-size: 13px;">
-                        Köszönjük a bizalmadat! Ha bármilyen kérdésed van, keress minket bizalommal.<br>
-                        <strong>Bontóáruház Csapata</strong>
-                    </p>
-                </div>
-            `
+            subject,
+            html
         });
-        console.log(`SUCCESS: Manual invoice email sent to ${customerEmail}`);
     } catch (error) {
-        console.error('Error sending manual invoice email:', error);
+        console.error('Error sending ManualInvoice email:', error);
     }
 }
