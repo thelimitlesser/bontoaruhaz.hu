@@ -76,47 +76,70 @@ export async function cancelOrder(orderId: string) {
 
 export async function closePxpDay() {
     try {
-        const ordersToManifest = await prisma.order.findMany({
+        // 1. Determine start of today in Budapest time
+        const now = new Date();
+        const budapestDate = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Europe/Budapest',
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+        }).format(now);
+
+        const [month, day, year] = budapestDate.split('/');
+        const startOfToday = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
+        // 2. Get orders to manifest:
+        // - Those currently ready (status: PROCESSING, trackingNumber present)
+        // - PLUS those already manifested TODAY (status: SHIPPED, trackingNumber present, updated TODAY)
+        const combinedOrders = await prisma.order.findMany({
             where: {
-                status: 'PROCESSING',
-                trackingNumber: { not: null }
+                trackingNumber: { not: null },
+                OR: [
+                    { status: 'PROCESSING' },
+                    { 
+                        status: 'SHIPPED',
+                        updatedAt: { gte: startOfToday }
+                    }
+                ]
             },
-            select: { trackingNumber: true }
+            select: { trackingNumber: true, id: true, status: true }
         });
-        const trackingNumbers = ordersToManifest.map(o => o.trackingNumber as string);
+
+        const trackingNumbers = combinedOrders.map(o => o.trackingNumber as string);
         
         if (trackingNumbers.length === 0) {
-            return { success: false, error: "Nincs lezárható (fuvarlevéllel rendelkező) csomag a listában." };
+            return { success: false, error: "Nincs lezárható csomag a listában." };
         }
 
-        console.log("Orders attempting to manifest:", trackingNumbers);
+        console.log(`Attempting cumulative manifest for ${trackingNumbers.length} items (Today's total list).`);
 
+        // 3. Call PannonXP API with the FULL list for today
         const result = await performPxpManifest(trackingNumbers);
 
         if (result.success && result.pdfBase64) {
-            // Get actual IDs from PXP response or fallback to original request list
-            const manifestedIds = (result as any).manifestedIds && (result as any).manifestedIds.length > 0 
+            // Get manifested tracking numbers from response or use our list
+            const manifestedNums = (result as any).manifestedIds && (result as any).manifestedIds.length > 0 
                 ? (result as any).manifestedIds 
                 : trackingNumbers;
 
-            console.log(`Manifest confirmed for ${manifestedIds.length} items out of ${trackingNumbers.length} requested.`);
-
-            // Update order status ONLY for actually manifested orders
+            // 4. Update status to SHIPPED and refresh updatedAt for all processing orders in the manifest
             const updateRes = await prisma.order.updateMany({
                 where: {
-                    trackingNumber: { in: manifestedIds },
+                    trackingNumber: { in: manifestedNums },
                     status: 'PROCESSING'
                 },
                 data: {
                     status: 'SHIPPED'
+                    // Prisma automatically updates updatedAt with @updatedAt
                 }
             });
-            console.log(`Manifested status update: ${updateRes.count} orders set to SHIPPED`);
+            
+            console.log(`Cumulative manifest status update: ${updateRes.count} new orders set to SHIPPED`);
 
-            // Save manifest to database with accurate count
+            // 5. Save/Log manifest info
             await prisma.pxpManifest.create({
                 data: {
-                    itemCount: manifestedIds.length,
+                    itemCount: manifestedNums.length,
                     pdfBase64: result.pdfBase64
                 }
             });
@@ -127,7 +150,7 @@ export async function closePxpDay() {
             return {
                 success: true,
                 pdfBase64: result.pdfBase64,
-                count: manifestedIds.length
+                count: manifestedNums.length
             };
         }
 
