@@ -34,7 +34,7 @@ const getEmailHeader = (title: string, iconColor: string = COLORS.primary) => `
     <body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: ${COLORS.bg}; color: ${COLORS.text};">
         <div style="max-width: 600px; margin: 20px auto; background: ${COLORS.white}; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid ${COLORS.border};">
             <div style="background-color: ${COLORS.secondary}; padding: 25px; text-align: center;">
-                <h1 style="color: ${COLORS.white}; margin: 0; font-size: 22px; letter-spacing: 1px;">BONTÓÁRUHÁZ</h1>
+                <h1 style="color: ${COLORS.white}; margin: 0; font-size: 22px; letter-spacing: 1px;"><span style="color: ${COLORS.primary};">BONTÓ</span>ÁRUHÁZ</h1>
                 <p style="color: ${COLORS.textLight}; margin-top: 4px; font-size: 13px;">Minőségi bontott alkatrészek</p>
             </div>
             <div style="padding: 30px;">
@@ -72,10 +72,9 @@ const getItemsTableHtml = (items: any[], total: number) => {
         <tr>
             <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border};">
                 <p style="margin: 0; font-weight: bold; color: ${COLORS.text};">${item.part.name}</p>
-                <p style="margin: 2px 0 0 0; font-size: 11px; color: ${COLORS.textLight};">Összetevő: ${item.part.oemNumbers || '-'}</p>
             </td>
-            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: center;">${item.quantity} db</td>
-            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; font-weight: bold;">${item.priceAtTime.toLocaleString()} Ft</td>
+            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: center; white-space: nowrap;">${item.quantity} db</td>
+            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; font-weight: bold; white-space: nowrap;">${item.priceAtTime.toLocaleString()} Ft</td>
         </tr>
     `).join('');
 
@@ -93,8 +92,8 @@ const getItemsTableHtml = (items: any[], total: number) => {
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="2" style="padding: 15px 0; text-align: right; font-weight: bold;">Összesen:</td>
-                    <td style="padding: 15px 0; text-align: right; font-weight: bold; font-size: 18px; color: ${COLORS.primary};">${total.toLocaleString()} Ft</td>
+                    <td colspan="2" style="padding: 15px 0; text-align: right; font-weight: bold; white-space: nowrap;">Összesen:</td>
+                    <td style="padding: 15px 0; text-align: right; font-weight: bold; font-size: 18px; color: ${COLORS.primary}; white-space: nowrap;">${total.toLocaleString()} Ft</td>
                 </tr>
             </tfoot>
         </table>
