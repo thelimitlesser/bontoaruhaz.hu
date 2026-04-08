@@ -12,6 +12,7 @@ export async function createPendingOrder(data: {
     items: any[];
     customerData: any;
     totalAmount: number;
+    shippingCost: number;
     shippingMethod: string;
     paymentMethod: string;
     stripePaymentIntentId?: string;
@@ -19,7 +20,7 @@ export async function createPendingOrder(data: {
     isCompany?: boolean;
     billingSameAsShipping?: boolean;
 }) {
-    const { userId, items, customerData, totalAmount, shippingMethod, paymentMethod, stripePaymentIntentId, sessionId, isCompany, billingSameAsShipping } = data;
+    const { userId, items, customerData, totalAmount, shippingMethod, paymentMethod, stripePaymentIntentId, sessionId, isCompany, billingSameAsShipping, shippingCost } = data;
 
     // Construct Definitive Billing Data
     const billingName = isCompany ? customerData.companyName : `${customerData.lastName} ${customerData.firstName}`;
@@ -32,6 +33,7 @@ export async function createPendingOrder(data: {
         data: {
             userId,
             totalAmount,
+            shippingCost: shippingCost || 0,
             shippingAddress: JSON.stringify({
                 name: `${customerData.lastName} ${customerData.firstName}`,
                 address: customerData.address,
@@ -173,8 +175,9 @@ export async function createOrder(data: {
     sessionId?: string;
     isCompany?: boolean;
     billingSameAsShipping?: boolean;
+    shippingCost?: number;
 }) {
-    const { userId, items, customerData, totalAmount, shippingMethod, paymentMethod, stripePaymentIntentId, sessionId, isCompany, billingSameAsShipping } = data;
+    const { userId, items, customerData, totalAmount, shippingMethod, paymentMethod, stripePaymentIntentId, sessionId, isCompany, billingSameAsShipping, shippingCost } = data;
 
     // Construct Definitive Billing Data
     const billingName = isCompany ? customerData.companyName : `${customerData.lastName} ${customerData.firstName}`;
@@ -187,6 +190,7 @@ export async function createOrder(data: {
         data: {
             userId,
             totalAmount,
+            shippingCost: shippingCost || 0,
             shippingAddress: JSON.stringify({
                 name: `${customerData.lastName} ${customerData.firstName}`,
                 address: customerData.address,

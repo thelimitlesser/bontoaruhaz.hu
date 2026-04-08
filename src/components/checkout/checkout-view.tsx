@@ -539,6 +539,7 @@ export default function CheckoutView() {
                                             <PaymentForm 
                                                 formData={formData} 
                                                 totalAmount={grandTotal} 
+                                                shippingCost={shippingMethod === 'delivery' ? shippingCost : 0}
                                                 shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'} 
                                                 isCompany={isCompany}
                                                 billingSameAsShipping={billingSameAsShipping}
@@ -562,7 +563,7 @@ export default function CheckoutView() {
                                                 <span>{paymentIntentError}</span>
                                             </div>
                                         )}
-
+ 
                                         {!isCurrentlyValid && !isFetchingSecret && !paymentIntentError && (
                                             <p className="text-xs text-center text-muted italic">
                                                 Kérjük töltsd ki az összes kötelező szállítási mezőt a fizetés megkezdéséhez.
@@ -575,6 +576,7 @@ export default function CheckoutView() {
                                     <PaymentForm 
                                         formData={formData} 
                                         totalAmount={grandTotal} 
+                                        shippingCost={shippingMethod === 'delivery' ? shippingCost : 0}
                                         shippingMethod={shippingMethod === 'delivery' ? 'PANNON_XP' : 'PICKUP'}
                                         paymentMethodOverride="COD"
                                         isFormValid={isCurrentlyValid}

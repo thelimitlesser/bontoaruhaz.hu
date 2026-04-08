@@ -118,6 +118,7 @@ model Order {
   isCompany             Boolean     @default(false)
   stripePaymentIntentId String?
   trackingNumber        String?
+  shippingCost          Int         @default(0)
   updatedAt             DateTime?   @updatedAt
   user                  User?       @relation(fields: [userId], references: [id])
   items                 OrderItem[]

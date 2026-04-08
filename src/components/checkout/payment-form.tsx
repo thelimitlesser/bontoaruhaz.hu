@@ -21,6 +21,7 @@ interface PaymentFormProps {
     isCompany?: boolean;
     billingSameAsShipping?: boolean;
     clientSecret?: string;
+    shippingCost: number;
 }
 
 export function PaymentForm(props: PaymentFormProps) {
@@ -30,7 +31,7 @@ export function PaymentForm(props: PaymentFormProps) {
     return <StripePaymentForm {...props} />;
 }
 
-function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, billingSameAsShipping, clientSecret }: PaymentFormProps) {
+function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, billingSameAsShipping, clientSecret, shippingCost }: PaymentFormProps) {
     const stripe = useStripe();
     const elements = useElements();
     const { items, clearCart } = useCart();
@@ -76,7 +77,8 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, b
                 stripePaymentIntentId: paymentIntentId,
                 sessionId: sessionId || undefined,
                 isCompany,
-                billingSameAsShipping
+                billingSameAsShipping,
+                shippingCost
             });
         } catch (err: any) {
             console.error("Order pre-creation error:", err);
@@ -129,7 +131,7 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, b
     );
 }
 
-function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid, isCompany, billingSameAsShipping }: PaymentFormProps) {
+function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid, isCompany, billingSameAsShipping, shippingCost }: PaymentFormProps) {
     const { items, clearCart } = useCart();
     const router = useRouter();
 
@@ -162,7 +164,8 @@ function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid, is
                 paymentMethod: 'COD',
                 sessionId: sessionId || undefined,
                 isCompany,
-                billingSameAsShipping
+                billingSameAsShipping,
+                shippingCost
             });
 
             router.push("/checkout/success");
