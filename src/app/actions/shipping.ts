@@ -76,10 +76,23 @@ export async function cancelOrder(orderId: string) {
 
 export async function closePxpDay() {
     try {
+        // Get start of today in Budapest time to separate yesterday's orders from today's
+        const now = new Date();
+        const budapestDate = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'Europe/Budapest',
+            year: 'numeric',
+            month: 'numeric',
+            day: 'numeric'
+        }).format(now);
+
+        const [month, day, year] = budapestDate.split('/');
+        const startOfToday = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+
         const ordersToManifest = await prisma.order.findMany({
             where: {
                 status: 'PROCESSING',
-                trackingNumber: { not: null }
+                trackingNumber: { not: null },
+                createdAt: { lt: startOfToday } // Only orders before today 00:00:00
             },
             select: { trackingNumber: true }
         });
