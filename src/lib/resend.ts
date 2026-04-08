@@ -258,6 +258,7 @@ export async function sendOrderReadyForPickupEmail(order: any, customerEmail: st
             <p style="margin: 0; font-size: 14px; font-weight: bold;">Átvételi pont:</p>
             <p style="margin: 5px 0; font-size: 14px;">8111 Seregélyes-Jánosmajor</p>
             <p style="margin: 2px 0; font-size: 13px; color: ${COLORS.textLight};">Hétfő - Péntek: 08:00 - 17:00</p>
+            <p style="margin: 10px 0 0 0; font-size: 14px;"><strong>Fizetés a helyszínen:</strong> Készpénz vagy azonnali banki átutalás.</p>
             <a href="https://www.google.com/maps/dir/?api=1&destination=8111+Seregélyes-Jánosmajor" style="color: ${COLORS.primary}; font-weight: bold; font-size: 13px; text-decoration: underline; margin-top: 10px; display: inline-block;">Útvonaltervezés →</a>
         </div>
 
