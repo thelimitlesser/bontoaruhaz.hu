@@ -1,6 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
+import { revalidateTag } from "next/cache";
 
 const RESERVATION_MINUTES = 15;
 
@@ -79,6 +80,8 @@ export async function reservePart(partId: string, sessionId: string, requestedQu
             });
         }
 
+        // @ts-ignore
+        revalidateTag('products');
         return { success: true, expiresAt };
     } catch (error) {
         console.error("Reservation Error:", error);
@@ -98,6 +101,8 @@ export async function releaseReservation(partId: string, sessionId: string) {
             await prisma.reservation.delete({
                 where: { id: existing.id }
             });
+            // @ts-ignore
+            revalidateTag('products');
         }
         return { success: true };
     } catch (error) {
