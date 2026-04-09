@@ -55,7 +55,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                         <ArrowLeft className="w-6 h-6" />
                     </Link>
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Rendelés <span className="text-[var(--color-primary)]">#{order.id?.slice(0, 8)}</span></h1>
+                        <h1 className="text-3xl font-bold tracking-tight">Rendelés <span className="text-white bg-[var(--color-primary)] px-3 py-1 rounded-xl shadow-lg shadow-[var(--color-primary)]/20 ml-2 uppercase font-black text-2xl">#{order.id?.slice(0, 8)}</span></h1>
                         <p className="text-gray-500 dark:text-gray-400 font-medium">
                             {order.createdAt ? new Date(order.createdAt).toLocaleString('hu-HU', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : 'Nincs dátum'}
                         </p>

@@ -173,8 +173,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                                     return (
                                         <tr key={order.id} className="group hover:bg-gray-50 dark:hover:bg-white/[0.02] transition-all duration-200">
                                             <td className="px-6 py-5">
-                                                <div className="font-mono text-[10px] px-2 py-1 bg-gray-100 dark:bg-white/10 rounded-md w-fit font-bold text-gray-600 dark:text-gray-300">
-                                                    {order.id.slice(0, 8)}...
+                                                <div className="font-mono text-xs px-2.5 py-1.5 bg-gray-200 dark:bg-white/20 rounded-lg w-fit font-black text-gray-900 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-white/10 uppercase">
+                                                    #{order.id.slice(0, 8)}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
