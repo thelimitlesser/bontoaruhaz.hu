@@ -101,15 +101,15 @@ export function ProductCard({ product }: { product: Product | any }) {
                 </div>
 
                 {/* Content */}
-                <div className="flex-1 flex flex-col px-5 pt-4">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Tag className="w-3 h-3 text-[var(--color-primary)]" />
-                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wider">
+                <div className="flex-1 flex flex-col px-5 pt-4 min-w-0">
+                    <div className="flex items-center gap-2 mb-2 min-w-0">
+                        <Tag className="w-3 h-3 text-[var(--color-primary)] shrink-0" />
+                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wider truncate">
                             {isPrisma ? `${product?.brandName || product?.brandId || ''} ${product?.modelName || ''}`.trim() || 'Egyéb' : product?.brand}
                         </span>
                     </div>
 
-                    <h3 className={clsx("text-lg font-bold text-foreground leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-2", (!product?.sku || product.sku === "SKU-HIÁNY") ? "mb-5" : "mb-1")}>
+                    <h3 className={clsx("text-lg font-bold text-foreground leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-2 [overflow-wrap:anywhere] [word-break:break-word] min-w-0", (!product?.sku || product.sku === "SKU-HIÁNY") ? "mb-5" : "mb-1")}>
                         {product?.name || "Név nélküli termék"}
                     </h3>
                     {product?.sku && product.sku !== "SKU-HIÁNY" && (

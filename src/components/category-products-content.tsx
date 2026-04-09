@@ -169,10 +169,10 @@ export function CategoryProductsContent({
     };
 
     return (
-        <main className="pt-32 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto">
+        <div className="pt-32 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto w-full min-w-0">
 
             {/* Breadcrumb */}
-            <div className="flex items-center gap-1 text-sm text-gray-600 mb-6 font-medium tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+            <nav className="flex items-center gap-1 text-xs sm:text-sm text-gray-600 mb-6 font-medium tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide w-full min-w-0">
                 <Link href="/" className="hover:text-[var(--color-primary)] transition-colors shrink-0 py-1 rounded-lg">Autó kereső</Link>
                 <span className="shrink-0 text-gray-400">/</span>
                 <Link href={`/brand/${brand.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg">{brand.name}</Link>
@@ -188,12 +188,12 @@ export function CategoryProductsContent({
                 ) : (
                     <span className="text-gray-900 font-bold uppercase shrink-0 py-1">{category.name}</span>
                 )}
-            </div>
+            </nav>
 
             {/* Main Header */}
-            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-                <header className="overflow-hidden">
-                    <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-tight break-words">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 w-full min-w-0">
+                <header className="w-full min-w-0">
+                    <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-tight [overflow-wrap:anywhere] [word-break:break-word]">
                         {brand.name} {model.name} {currentSubcategory ? currentSubcategory.name : category.name}
                     </h1>
                 </header>
@@ -312,9 +312,9 @@ export function CategoryProductsContent({
             <div className="w-full block">
 
                 {/* Product Grid */}
-                <div className="w-full">
-                    <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-4 gap-4">
-                        <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight break-words">
+                <div className="w-full min-w-0">
+                    <header className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-4 gap-4 w-full min-w-0">
+                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 uppercase tracking-tight [overflow-wrap:anywhere] [word-break:break-word] w-full">
                             {currentPartItem ? currentPartItem.name : (currentSubcategory ? currentSubcategory.name : category.name)} termékek
                         </h2>
                         <p className="text-gray-500 text-sm whitespace-nowrap">
@@ -398,6 +398,6 @@ export function CategoryProductsContent({
                     )}
                 </div>
             </div>
-        </main >
+        </div >
     );
 }

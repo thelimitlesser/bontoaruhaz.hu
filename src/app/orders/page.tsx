@@ -32,8 +32,7 @@ export default async function OrdersPage() {
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
-            <Navbar />
-            <main className="pt-32 pb-20 px-4 md:px-8 max-w-5xl mx-auto">
+            <div className="pt-32 pb-20 px-4 md:px-8 max-w-5xl mx-auto">
                 <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
                     <div>
                         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-tight">
@@ -107,7 +106,7 @@ export default async function OrdersPage() {
                         ))}
                     </div>
                 )}
-            </main>
+            </div>
         </div>
     );
 }

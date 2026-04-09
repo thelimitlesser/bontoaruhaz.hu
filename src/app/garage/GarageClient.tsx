@@ -50,8 +50,7 @@ export default function GarageClient({ vehicles: initialVehicles }: { vehicles: 
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
-            <Navbar />
-            <main className="pt-32 pb-20 px-4 md:px-8 max-w-5xl mx-auto">
+            <div className="pt-32 pb-20 px-4 md:px-8 max-w-5xl mx-auto">
                 <Link
                     href="/profile" className="inline-flex items-center gap-2 text-sm font-bold text-gray-500 hover:text-[var(--color-primary)] transition-colors mb-8 group" >
                     <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
@@ -219,7 +218,7 @@ export default function GarageClient({ vehicles: initialVehicles }: { vehicles: 
                         </p>
                     </div>
                 </footer>
-            </main>
+            </div>
         </div>
     );
 }

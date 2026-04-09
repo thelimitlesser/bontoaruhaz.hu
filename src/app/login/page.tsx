@@ -65,8 +65,7 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
-            <Navbar />
-            <main className="pt-40 pb-20 px-4 flex items-center justify-center">
+            <div className="pt-40 pb-20 px-4 flex items-center justify-center">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -177,14 +176,14 @@ export default function LoginPage() {
                                             setMessage(null);
                                         }}
                                         className="text-[var(--color-primary)] font-bold hover:underline" >
-                                        {isRegistering ? "Jelentkezz be!" : "Regisztrálj most!"}
+                                        {isRegistering ? "Jelentkezz be!" : "Regisztráj most!"}
                                     </button>
                                 </p>
                             </div>
                         </div>
                     </div>
                 </motion.div>
-            </main>
+            </div>
         </div>
     );
 }

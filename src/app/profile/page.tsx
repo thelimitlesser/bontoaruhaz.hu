@@ -29,8 +29,7 @@ export default async function ProfilePage() {
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
-            <Navbar />
-            <main className="pt-32 pb-20 px-4 md:px-8 max-w-5xl mx-auto">
+            <div className="pt-32 pb-20 px-4 md:px-8 max-w-5xl mx-auto">
                 <header className="mb-12">
                     <h1 className="text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-tight">
                         Fiók Kezelése
@@ -77,7 +76,7 @@ export default async function ProfilePage() {
                         <p className="text-3xl font-black text-gray-900">0</p>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     );
 }

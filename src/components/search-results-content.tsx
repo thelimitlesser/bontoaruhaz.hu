@@ -80,14 +80,14 @@ export function SearchResultsContent() {
     }, [query, brand, model, category, subcategory, item, page]);
 
     return (
-        <main className="pt-32 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto">
+        <div className="pt-32 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto w-full min-w-0">
             {/* Header */}
             <div className="mb-10">
                 <div className="flex items-center gap-3 mb-4">
                     <div className="w-10 h-10 rounded-xl bg-[var(--color-primary)]/10 flex items-center justify-center text-[var(--color-primary)]">
                         <Search className="w-5 h-5" />
                     </div>
-                    <h1 className="text-2xl sm:text-3xl font-black text-gray-900 uppercase tracking-tighter break-words">
+                    <h1 className="text-xl sm:text-3xl font-black text-gray-900 uppercase tracking-tighter [overflow-wrap:anywhere] [word-break:break-word] w-full">
                         Keresési eredmények
                     </h1>
                 </div>
@@ -159,7 +159,7 @@ export function SearchResultsContent() {
                     </div>
                 </div>
 
-                <p className="text-gray-500 font-medium break-words">
+                <p className="text-gray-500 font-medium [overflow-wrap:anywhere] [word-break:break-word] w-full">
                     Találatok a <span className="text-gray-900 font-bold">&quot;{query}&quot;</span> kifejezésre.
                 </p>
 
@@ -357,6 +357,6 @@ export function SearchResultsContent() {
                     </div>
                 </div>
             )}
-        </main>
+        </div>
     );
 }

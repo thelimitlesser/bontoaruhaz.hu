@@ -115,8 +115,7 @@ export default async function CategoryProductsPage({
 
     return (
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
-            <Navbar />
-            <main className="min-h-[800px] flex flex-col">
+            <div className="min-h-[800px] flex flex-col">
                 <CategoryProductsContent 
                     params={resolvedParams} 
                     brand={brand}
@@ -124,7 +123,7 @@ export default async function CategoryProductsPage({
                     category={category}
                     initialData={pageData}
                 />
-            </main>
+            </div>
         </div>
     );
 }
