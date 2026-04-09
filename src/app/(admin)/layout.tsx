@@ -21,6 +21,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
         if (dbUser.role !== 'ADMIN') {
             console.warn(`AdminLayout: Unauthorized access attempt by ${dbUser.email}`);
+            // Redirect to home if not admin
             redirect("/");
         }
 

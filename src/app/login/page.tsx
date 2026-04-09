@@ -57,7 +57,16 @@ export default function LoginPage() {
                 window.location.href = "/";
             }
         } catch (error: any) {
-            setMessage({ type: 'error', text: error.message || "Hiba történt a művelet során." });
+            let errorText = error.message || "Hiba történt a művelet során.";
+            
+            // Handle Supabase Email not confirmed error
+            if (errorText.toLowerCase().includes("email not confirmed")) {
+                errorText = "A fiókod még nincs aktiválva! Kérjük, ellenőrizd az e-mail fiókodat a visszaigazoló linkért. (Nézd meg a Spam mappát is!)";
+            } else if (errorText.toLowerCase().includes("invalid login credentials")) {
+                errorText = "Hibás e-mail cím vagy jelszó.";
+            }
+
+            setMessage({ type: 'error', text: errorText });
         } finally {
             setLoading(false);
         }
