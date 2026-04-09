@@ -131,7 +131,7 @@ export async function ensureUserExists() {
             if (!existingUser) {
                 const adminEmails = process.env.ADMIN_EMAILS ?
                     process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
-                    ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai'];
+                    ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
 
                 const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
 
@@ -162,7 +162,7 @@ export async function ensureUserExists() {
         } catch (prismaError) {
             console.error("ensureUserExists: Prisma error during runtime:", prismaError);
             // Return Supabase user data as a fallback to prevent crash
-            const adminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu'];
+            const adminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'jtomi.auto@gmail.com'];
             const isAdmin = user.email && adminEmails.includes(user.email.toLowerCase());
             return {
                 id: user.id,
@@ -204,7 +204,7 @@ export async function syncAndGetUserRole() {
 
         const adminEmails = process.env.ADMIN_EMAILS ?
             process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
-            ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai'];
+            ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
 
         const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
 
