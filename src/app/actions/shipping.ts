@@ -89,12 +89,18 @@ export async function closePxpDay() {
         const startOfToday = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
         // 2. Get orders to manifest:
-        // Only those currently ready (status: PROCESSING, trackingNumber present)
-        // We do NOT include already SHIPPED ones, because every close should be a clean, new manifest.
+        // - Those currently ready (status: PROCESSING, trackingNumber present)
+        // - PLUS those already manifested TODAY (status: SHIPPED, trackingNumber present, updated TODAY)
         const combinedOrders = await prisma.order.findMany({
             where: {
                 trackingNumber: { not: null },
-                status: 'PROCESSING'
+                OR: [
+                    { status: 'PROCESSING' },
+                    { 
+                        status: 'SHIPPED',
+                        updatedAt: { gte: startOfToday }
+                    }
+                ]
             },
             select: { trackingNumber: true, id: true, status: true }
         });
@@ -111,11 +117,10 @@ export async function closePxpDay() {
         const result = await performPxpManifest(trackingNumbers);
 
         if (result.success && result.pdfBase64) {
-            // Note: The PXP API (especially on the test server) ignores our specific trackingNumbers array 
-            // and instead just closes EVERY un-picked-up package on the account, returning a huge array.
-            // To prevent our UI from claiming we closed 30 packages when we only requested 2, 
-            // we strictly use the numbers WE requested to update our database count.
-            const manifestedNums = trackingNumbers;
+            // Get manifested tracking numbers from response or use our list
+            const manifestedNums = (result as any).manifestedIds && (result as any).manifestedIds.length > 0 
+                ? (result as any).manifestedIds 
+                : trackingNumbers;
 
             // 4. Update status to SHIPPED and refresh updatedAt for all processing orders in the manifest
             const updateRes = await prisma.order.updateMany({
