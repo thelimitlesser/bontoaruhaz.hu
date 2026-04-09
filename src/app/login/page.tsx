@@ -163,9 +163,12 @@ export default function LoginPage() {
 
                         <div className="mt-8 text-center space-y-4">
                             {!isRegistering && (
-                                <button className="text-sm font-bold text-gray-500 hover:text-[var(--color-primary)] transition-colors">
+                                <Link
+                                    href="/forgot-password"
+                                    className="text-sm font-bold text-gray-500 hover:text-[var(--color-primary)] transition-colors inline-block"
+                                >
                                     Elfelejtetted a jelszavad?
-                                </button>
+                                </Link>
                             )}
                             <div className="pt-6 border-t border-gray-100">
                                 <p className="text-sm text-gray-500 font-medium">

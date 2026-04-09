@@ -1,15 +1,18 @@
 "use client";
 
 import { Navbar } from"@/components/navbar";
-import { User, Mail, Phone, MapPin, Save, ChevronLeft, Loader2, CheckCircle2 } from"lucide-react";
+import { User, Mail, Phone, MapPin, Save, ChevronLeft, Loader2, CheckCircle2, Lock } from"lucide-react";
 import Link from"next/link";
 import { useState } from"react";
 import { updateUserProfile } from"@/app/actions/user";
+import { updatePasswordAction } from "@/app/actions/auth";
 import { motion, AnimatePresence } from"framer-motion";
 
 export default function SettingsPage({ user, dbUser }: { user: any, dbUser: any }) {
     const [loading, setLoading] = useState(false);
+    const [pwdLoading, setPwdLoading] = useState(false);
     const [message, setMessage] = useState<{ type:'success' |'error', text: string } | null>(null);
+    const [pwdMessage, setPwdMessage] = useState<{ type:'success' |'error', text: string } | null>(null);
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -27,6 +30,28 @@ export default function SettingsPage({ user, dbUser }: { user: any, dbUser: any 
             setMessage({ type:'error', text: error.message ||'Hiba történt a mentés során.' });
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handlePasswordSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setPwdLoading(true);
+        setPwdMessage(null);
+
+        const formData = new FormData(e.currentTarget);
+        try {
+            const result = await updatePasswordAction(formData);
+            if (result.success) {
+                setPwdMessage({ type:'success', text:'Jelszó sikeresen megváltoztatva!' });
+                e.currentTarget.reset();
+                setTimeout(() => setPwdMessage(null), 5000);
+            } else {
+                setPwdMessage({ type:'error', text: result.error || 'Hiba történt.' });
+            }
+        } catch (error: any) {
+            setPwdMessage({ type:'error', text: error.message ||'Hiba történt.' });
+        } finally {
+            setPwdLoading(false);
         }
     };
 
@@ -146,6 +171,64 @@ export default function SettingsPage({ user, dbUser }: { user: any, dbUser: any 
                         </button>
                     </div>
                 </form>
+
+                {/* Password Section */}
+                <div className="mt-12 pt-12 border-t border-gray-100">
+                    <header className="mb-8">
+                        <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-tight flex items-center gap-3">
+                            <Lock className="w-6 h-6 text-red-500" /> Jelszó módosítása
+                        </h2>
+                        <p className="text-gray-500 mt-2 font-medium">
+                            Itt állíthatsz be új jelszót a fiókodhoz. Legalább 6 karakter szükséges.
+                        </p>
+                    </header>
+
+                    <form onSubmit={handlePasswordSubmit} className="space-y-6">
+                        <AnimatePresence>
+                            {pwdMessage && (
+                                <motion.div
+                                    initial={{ opacity: 0, height: 0 }}
+                                    animate={{ opacity: 1, height:"auto" }}
+                                    exit={{ opacity: 0, height: 0 }}
+                                    className={`p-4 rounded-2xl flex items-center gap-3 font-bold text-sm ${pwdMessage.type ==='success' ?'bg-green-500/10 text-green-500 border border-green-500/20' :'bg-red-500/10 text-red-500 border border-red-500/20' }`}
+                                >
+                                    {pwdMessage.type ==='success' && <CheckCircle2 className="w-5 h-5" />}
+                                    {pwdMessage.text}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        <div className="bg-white border border-gray-200 rounded-3xl p-8 shadow-sm">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Új jelszó</label>
+                                    <input
+                                        type="password" name="password" required minLength={6}
+                                        placeholder="••••••••" className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all text-base" />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-gray-400 uppercase tracking-widest pl-1">Jelszó megerősítése</label>
+                                    <input
+                                        type="password" name="confirmPassword" required minLength={6}
+                                        placeholder="••••••••" className="w-full bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 text-gray-900 font-medium focus:outline-none focus:ring-2 focus:ring-red-500/50 transition-all text-base" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex justify-end pr-1">
+                            <button
+                                type="submit" disabled={pwdLoading}
+                                className="bg-gray-900 text-white font-bold px-10 py-4 rounded-2xl hover:bg-black transition-all shadow-xl shadow-black/10 flex items-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed" >
+                                {pwdLoading ? (
+                                    <Loader2 className="w-5 h-5 animate-spin" />
+                                ) : (
+                                    <Save className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                )}
+                                {pwdLoading ?"Mentés..." :"Jelszó frissítése"}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );
