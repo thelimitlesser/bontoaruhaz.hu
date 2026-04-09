@@ -89,18 +89,12 @@ export async function closePxpDay() {
         const startOfToday = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
 
         // 2. Get orders to manifest:
-        // - Those currently ready (status: PROCESSING, trackingNumber present)
-        // - PLUS those already manifested TODAY (status: SHIPPED, trackingNumber present, updated TODAY)
+        // Only those currently ready (status: PROCESSING, trackingNumber present)
+        // We do NOT include already SHIPPED ones, because every close should be a clean, new manifest.
         const combinedOrders = await prisma.order.findMany({
             where: {
                 trackingNumber: { not: null },
-                OR: [
-                    { status: 'PROCESSING' },
-                    { 
-                        status: 'SHIPPED',
-                        updatedAt: { gte: startOfToday }
-                    }
-                ]
+                status: 'PROCESSING'
             },
             select: { trackingNumber: true, id: true, status: true }
         });
