@@ -111,10 +111,11 @@ export async function closePxpDay() {
         const result = await performPxpManifest(trackingNumbers);
 
         if (result.success && result.pdfBase64) {
-            // Get manifested tracking numbers from response or use our list
-            const manifestedNums = (result as any).manifestedIds && (result as any).manifestedIds.length > 0 
-                ? (result as any).manifestedIds 
-                : trackingNumbers;
+            // Note: The PXP API (especially on the test server) ignores our specific trackingNumbers array 
+            // and instead just closes EVERY un-picked-up package on the account, returning a huge array.
+            // To prevent our UI from claiming we closed 30 packages when we only requested 2, 
+            // we strictly use the numbers WE requested to update our database count.
+            const manifestedNums = trackingNumbers;
 
             // 4. Update status to SHIPPED and refresh updatedAt for all processing orders in the manifest
             const updateRes = await prisma.order.updateMany({
