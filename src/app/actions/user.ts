@@ -129,9 +129,10 @@ export async function ensureUserExists() {
             });
 
             if (!existingUser) {
-                const adminEmails = process.env.ADMIN_EMAILS ?
-                    process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
-                    ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
+                const envAdminEmails = process.env.ADMIN_EMAILS ?
+                    process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : [];
+                const fallbackAdminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
+                const adminEmails = Array.from(new Set([...envAdminEmails, ...fallbackAdminEmails]));
 
                 const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
 
@@ -158,11 +159,32 @@ export async function ensureUserExists() {
                 }
             }
 
-            return existingUser;
+            if (existingUser) {
+                // Proactive sync for existing users
+                const envAdminEmails = process.env.ADMIN_EMAILS ?
+                    process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : [];
+                const fallbackAdminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
+                const adminEmails = Array.from(new Set([...envAdminEmails, ...fallbackAdminEmails]));
+                
+                const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
+                
+                if (isAdminEmail && existingUser.role !== 'ADMIN') {
+                    console.log(`ensureUserExists: Syncing ADMIN role for existing user ${user.email}`);
+                    const updatedUser = await prisma.user.update({
+                        where: { id: user.id },
+                        data: { role: 'ADMIN' }
+                    });
+                    return updatedUser;
+                }
+                return existingUser;
+            }
         } catch (prismaError) {
             console.error("ensureUserExists: Prisma error during runtime:", prismaError);
             // Return Supabase user data as a fallback to prevent crash
-            const adminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'jtomi.auto@gmail.com'];
+            const envAdminEmails = process.env.ADMIN_EMAILS ?
+                process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : [];
+            const fallbackAdminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'jtomi.auto@gmail.com'];
+            const adminEmails = Array.from(new Set([...envAdminEmails, ...fallbackAdminEmails]));
             const isAdmin = user.email && adminEmails.includes(user.email.toLowerCase());
             return {
                 id: user.id,
@@ -202,9 +224,10 @@ export async function syncAndGetUserRole() {
             return null;
         }
 
-        const adminEmails = process.env.ADMIN_EMAILS ?
-            process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) :
-            ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
+        const envAdminEmails = process.env.ADMIN_EMAILS ?
+            process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : [];
+        const fallbackAdminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
+        const adminEmails = Array.from(new Set([...envAdminEmails, ...fallbackAdminEmails]));
 
         const isAdminEmail = user.email && adminEmails.includes(user.email.toLowerCase());
 

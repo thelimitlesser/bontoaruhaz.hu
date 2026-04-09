@@ -33,10 +33,13 @@ export async function middleware(request: NextRequest) {
             return NextResponse.redirect(loginUrl)
         }
 
-        // Fast path admin check using environment variable if no DB role is in JWT yet
-        const adminEmails = process.env.ADMIN_EMAILS ? 
-            process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : 
-            ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
+        // Combine environment variable with hardcoded list for robustness
+        const envAdminEmails = process.env.ADMIN_EMAILS ? 
+            process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : [];
+        
+        const fallbackAdminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
+        
+        const adminEmails = Array.from(new Set([...envAdminEmails, ...fallbackAdminEmails]));
 
         if (!adminEmails.includes(user.email?.toLowerCase() || '')) {
             console.warn(`Middleware: Unauthorized admin access attempt by ${user.email}`);
