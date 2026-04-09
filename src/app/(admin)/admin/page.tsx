@@ -1,17 +1,9 @@
-export const dynamic = "force-dynamic";
 import { prisma } from "@/lib/prisma";
-import { DollarSign, Package, ShoppingCart, Users, Calendar } from "lucide-react";
-import Link from "next/link";
+import { Package, ShoppingCart, Users } from "lucide-react";
 import { MaintenanceTrigger } from "./maintenance-trigger";
+import { DashboardRevenue } from "@/components/admin/DashboardRevenue";
 
-async function getStats(month?: number, year?: number) {
-    const now = new Date();
-    const targetMonth = month ?? (now.getMonth() + 1);
-    const targetYear = year ?? now.getFullYear();
-
-    const startDate = new Date(targetYear, targetMonth - 1, 1);
-    const endDate = new Date(targetYear, targetMonth, 0, 23, 59, 59);
-
+async function getStats() {
     // 1. Basic Counts
     let products = 0;
     let users = 0;
@@ -22,38 +14,35 @@ async function getStats(month?: number, year?: number) {
         console.error("Error fetching basic counts:", e);
     }
 
-    // 2. Revenue Calculation (ONLY PAID orders in the selected month)
-    let paidOrders: { totalAmount: number }[] = [];
-    try {
-        paidOrders = await prisma.order.findMany({
+    // 2. Multi-period Revenue
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+
+    const periods = [
+        { key: 'today', start: startOfToday },
+        { key: 'week', start: startOfWeek },
+        { key: 'month', start: startOfMonth },
+        { key: 'year', start: startOfYear }
+    ];
+
+    const revenueStats: any = {};
+
+    for (const p of periods) {
+        const orders = await prisma.order.findMany({
             where: {
                 paymentStatus: 'PAID',
-                createdAt: {
-                    gte: startDate,
-                    lte: endDate
-                }
+                createdAt: { gte: p.start }
             },
             select: { totalAmount: true }
         });
-    } catch (e) {
-        console.error("Error fetching paid orders:", e);
-        // Fallback if paymentStatus column doesn't exist yet (though it should)
-        try {
-            paidOrders = await (prisma.order as any).findMany({
-                where: {
-                    status: 'PAID',
-                    createdAt: {
-                        gte: startDate,
-                        lte: endDate
-                    }
-                },
-                select: { totalAmount: true }
-            });
-        } catch (e2) {
-            console.error("Fallback revenue calculation failed:", e2);
-        }
+        revenueStats[p.key] = {
+            revenue: orders.reduce((acc: number, o: any) => acc + (o.totalAmount || 0), 0),
+            count: orders.length
+        };
     }
-    const monthlyRevenue = paidOrders.reduce((acc: number, order: any) => acc + order.totalAmount, 0);
 
     // 3. Active Orders (All time, not completed or cancelled)
     let activeOrdersCount = 0;
@@ -95,7 +84,7 @@ async function getStats(month?: number, year?: number) {
     orderItems.forEach(item => {
         if (!salesByPart[item.partId]) {
             salesByPart[item.partId] = {
-                name: item.part.name,
+                name: item.part?.name || "Ismeretlen alkatrész",
                 quantity: 0,
                 total: 0
             };
@@ -111,113 +100,80 @@ async function getStats(month?: number, year?: number) {
     return {
         products,
         users,
-        monthlyRevenue,
+        revenueStats,
         activeOrdersCount,
         trendingSearches,
-        topSellers,
-        targetMonth,
-        targetYear
+        topSellers
     };
 }
 
-export default async function AdminDashboard({
-    searchParams
-}: {
-    searchParams: Promise<{ m?: string; y?: string }>
-}) {
-    const sParams = await searchParams;
-    const m = sParams.m ? parseInt(sParams.m) : undefined;
-    const y = sParams.y ? parseInt(sParams.y) : undefined;
-
-    const stats = await getStats(m, y);
-
-    const monthNames = ["Január", "Február", "Március", "Április", "Május", "Június", "Július", "Augusztus", "Szeptember", "Október", "November", "December"];
+export default async function AdminDashboard() {
+    const stats = await getStats();
 
     return (
-        <div className="space-y-8 text-gray-900">
+        <div className="space-y-10 text-gray-900 pb-20">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Vezérlőpult</h1>
-                    <p className="text-gray-500">Üzleti statisztikák és áttekintés</p>
+                    <h1 className="text-4xl font-black tracking-tighter text-gray-900">Vezérlőpult</h1>
+                    <p className="text-gray-500 font-medium">Üzleti intelligencia és folyamatkezelés</p>
                 </div>
-
                 <MaintenanceTrigger />
-
-                <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
-                    <div className="px-3 py-1.5 text-sm font-bold flex items-center gap-2 text-gray-400 border-r border-gray-100">
-                        <Calendar className="w-4 h-4" />
-                        IDŐSZAK:
-                    </div>
-                    <div className="flex gap-1 overflow-x-auto max-w-[300px] md:max-w-none px-2">
-                        {[5, 4, 3, 2, 1, 0].map((offset) => {
-                            const d = new Date();
-                            d.setDate(1); // Mentsük meg a világot a Február 31-től
-                            d.setMonth(d.getMonth() - offset);
-                            const month = d.getMonth() + 1;
-                            const year = d.getFullYear();
-                            const isActive = stats.targetMonth === month && stats.targetYear === year;
-
-                            return (
-                                <Link
-                                    key={`${year}-${month}`}
-                                    href={`/admin?m=${month}&y=${year}`}
-                                    className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-all whitespace-nowrap ${isActive
-                                        ? 'bg-[var(--color-primary)] text-white shadow-lg shadow-[var(--color-primary)]/20' : 'text-gray-500 hover:bg-gray-100'}`}
-                                >
-                                    {monthNames[month - 1]}
-                                </Link>
-                            );
-                        })}
-                    </div>
-                </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Interactive Revenue Section */}
+            <DashboardRevenue initialStats={stats.revenueStats} />
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <StatCard
-                    title={`${monthNames[stats.targetMonth - 1]}i Bevétel`}
-                    value={`${stats.monthlyRevenue.toLocaleString()} Ft`}
-                    icon={<DollarSign className="w-6 h-6" />}
-                    color="green"
-                    subtitle="Kizárólag a kifizetett rendelések" />
-                <StatCard
-                    title="Aktív Rendelések" value={stats.activeOrdersCount.toString()}
+                    title="Aktív Feladatok" 
+                    value={stats.activeOrdersCount.toString()}
                     icon={<ShoppingCart className="w-6 h-6" />}
                     color="blue"
-                    subtitle="Folyamatban lévő ügyek" />
+                    subtitle="Kiszállításra váró csomagok" />
                 <StatCard
-                    title="Raktárkészlet" value={`${stats.products} db`}
+                    title="Raktárkészlet" 
+                    value={`${stats.products.toLocaleString()} db`}
                     icon={<Package className="w-6 h-6" />}
                     color="orange"
+                    subtitle="Összes feltöltött alkatrész"
                 />
                 <StatCard
-                    title="Felhasználók" value={stats.users.toString()}
+                    title="Ügyfelek" 
+                    value={stats.users.toLocaleString()}
                     icon={<Users className="w-6 h-6" />}
                     color="purple"
+                    subtitle="Regisztrált felhasználók"
                 />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Demand Sensing Module */}
-                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold">Piaci Igények (Keresések)</h2>
-                        <span className="text-xs font-bold text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-2 py-1 rounded uppercase tracking-wider">Demand Sensing</span>
+                <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm hover:shadow-xl transition-shadow duration-500">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-xl font-black tracking-tight">Piaci Igények</h2>
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Leggyakoribb keresések</p>
+                        </div>
+                        <span className="text-[10px] font-black text-[var(--color-primary)] bg-[var(--color-primary)]/10 px-3 py-1 rounded-full uppercase tracking-tighter">Live Demand</span>
                     </div>
 
                     {stats.trendingSearches.length === 0 ? (
-                        <div className="text-gray-500 text-sm py-8 text-center">Nincs elegendő adat a trendekhez.</div>
+                        <div className="text-gray-400 text-sm py-12 text-center font-medium italic">Nincs elegendő adat a trendekhez.</div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {stats.trendingSearches.map((search, i) => (
                                 <div key={search.id} className="flex items-center justify-between group">
-                                    <div className="flex items-center gap-3">
-                                        <div className="font-mono text-gray-500 text-sm w-4">#{i + 1}</div>
-                                        <div className="font-medium text-gray-900 group-hover:text-[var(--color-primary)] transition-colors lowercase">
+                                    <div className="flex items-center gap-4">
+                                        <div className="text-2xl font-black text-gray-100 group-hover:text-[var(--color-primary)]/10 transition-colors w-8 italic">0{i + 1}</div>
+                                        <div className="font-bold text-gray-700 group-hover:text-[var(--color-primary)] transition-colors lowercase tracking-tight">
                                             {search.query}
                                         </div>
                                     </div>
-                                    <div className="text-sm font-bold text-gray-500">
-                                        {search.count} keresés
+                                    <div className="flex items-center gap-2">
+                                        <div className="text-sm font-black text-gray-900">
+                                            {search.count}
+                                        </div>
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase">Keresés</div>
                                     </div>
                                 </div>
                             ))}
@@ -226,25 +182,30 @@ export default async function AdminDashboard({
                 </div>
 
                 {/* Top Sellers Module */}
-                <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
-                    <h2 className="text-xl font-bold mb-6">Sikertermékek (Top 5)</h2>
+                <div className="bg-white border border-gray-100 rounded-3xl p-8 shadow-sm hover:shadow-xl transition-shadow duration-500">
+                    <div className="flex items-center justify-between mb-8">
+                        <div>
+                            <h2 className="text-xl font-black tracking-tight">Sikertermékek</h2>
+                            <p className="text-xs text-gray-400 font-bold uppercase tracking-widest mt-1">Legjobban fogyó alkatrészek</p>
+                        </div>
+                    </div>
 
                     {stats.topSellers.length === 0 ? (
-                        <div className="text-gray-500 text-sm py-8 text-center">Nincs még eladás.</div>
+                        <div className="text-gray-400 text-sm py-12 text-center font-medium italic">Nincs még eladás.</div>
                     ) : (
-                        <div className="space-y-4">
+                        <div className="space-y-6">
                             {stats.topSellers.map((item, i) => (
-                                <div key={i} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs ${i === 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-gray-100 text-gray-500'}`}>
+                                <div key={i} className="flex items-center justify-between group">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-2xl flex items-center justify-center font-black text-sm transition-transform group-hover:rotate-6 ${i === 0 ? 'bg-amber-100 text-amber-600' : 'bg-gray-50 text-gray-400'}`}>
                                             {i + 1}
                                         </div>
                                         <div>
-                                            <div className="font-medium text-gray-900">{item.name}</div>
-                                            <div className="text-xs text-gray-500">{item.quantity} db eladva</div>
+                                            <div className="font-bold text-gray-800 group-hover:text-[var(--color-primary)] transition-colors line-clamp-1">{item.name}</div>
+                                            <div className="text-[10px] text-gray-400 font-black uppercase tracking-widest leading-none mt-1">{item.quantity} db eladva</div>
                                         </div>
                                     </div>
-                                    <div className="font-bold text-gray-900">
+                                    <div className="font-black text-gray-900 tabular-nums">
                                         {item.total.toLocaleString()} Ft
                                     </div>
                                 </div>

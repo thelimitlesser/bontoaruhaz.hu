@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import clsx from "clsx";
 import Link from "next/link";
 import { SearchableSelect } from "@/components/ui/searchable-select";
-import { getDirectMatchAction } from "@/app/actions/product";
+import { getDirectMatchAction, getPartSuggestionsAction } from "@/app/actions/product";
 import { getModelsByBrandAction, getActivePartOptionsAction } from "@/app/actions/vehicle";
 
 type SearchTab = "manual" | "code";
@@ -22,6 +22,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
     const [activeTab, setActiveTab] = useState<SearchTab>("manual");
     const [isPending, startTransition] = useTransition();
     const containerRef = useRef<HTMLDivElement>(null);
+    const codeSearchRef = useRef<HTMLDivElement>(null);
 
     // Scroll back to top of search section on mobile after selection
     const scrollToSearchTop = () => {
@@ -49,6 +50,38 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
 
     // Code State
     const [codeQuery, setCodeQuery] = useState("");
+    const [suggestions, setSuggestions] = useState<any[]>([]);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+    const [isSearchingSuggestions, setIsSearchingSuggestions] = useState(false);
+
+    // Suggestion Debounce
+    useEffect(() => {
+        const timer = setTimeout(async () => {
+            if (codeQuery.trim().length >= 2) {
+                setIsSearchingSuggestions(true);
+                const results = await getPartSuggestionsAction(codeQuery.trim());
+                setSuggestions(results || []);
+                setShowSuggestions(true);
+                setIsSearchingSuggestions(false);
+            } else {
+                setSuggestions([]);
+                setShowSuggestions(false);
+            }
+        }, 300);
+
+        return () => clearTimeout(timer);
+    }, [codeQuery]);
+
+    // Click outside to close suggestions
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (codeSearchRef.current && !codeSearchRef.current.contains(event.target as Node)) {
+                setShowSuggestions(false);
+            }
+        };
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
 
     // Fetch models of selected brand
     useEffect(() => {
@@ -121,6 +154,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
 
     const handleSearch = async (e?: React.FormEvent) => {
         if (e) e.preventDefault();
+        setShowSuggestions(false);
 
         startTransition(async () => {
             try {
@@ -279,19 +313,75 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
 
                 {activeTab === "code" && (
                     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="flex flex-col md:grid md:grid-cols-[1fr_auto] bg-white border-2 border-gray-100 rounded-[2rem] relative transition-all shadow-sm divide-y md:divide-y-0 md:divide-x divide-gray-100">
-                            <div className="min-h-[64px] flex items-center w-full min-w-0 relative group">
-                                <div className="absolute left-6 z-10 text-gray-400 group-focus-within:text-[var(--color-primary)] transition-colors">
-                                    <Hash className="w-5 h-5" />
+                        <div 
+                            ref={codeSearchRef}
+                            className="flex flex-col md:grid md:grid-cols-[1fr_auto] bg-white border-2 border-gray-100 rounded-[2rem] relative transition-all shadow-sm divide-y md:divide-y-0 md:divide-x divide-gray-100"
+                        >
+                            <div className="min-h-[64px] flex items-center w-full min-w-0 relative">
+                                <div className="absolute left-6 z-10 text-gray-400 peer-focus:text-[var(--color-primary)] transition-colors">
+                                    {isSearchingSuggestions ? <Loader2 className="w-5 h-5 animate-spin" /> : <Hash className="w-5 h-5" />}
                                 </div>
                                 <input
                                     type="text"
                                     value={codeQuery}
                                     onChange={(e) => setCodeQuery(e.target.value)}
-                                    placeholder="Cikkszám vagy hivatkozási szám (Pl.: 5G1 941 005)"
-                                    className="w-full h-[64px] bg-transparent border-none pl-14 pr-8 py-4 text-base sm:text-lg focus:outline-none placeholder:text-gray-300 font-bold"
+                                    placeholder="Cikkszám (OEM) vagy hivatkozási szám"
+                                    className="peer w-full h-[64px] bg-transparent border-none pl-14 pr-8 py-4 text-sm sm:text-lg focus:outline-none placeholder:text-gray-300 placeholder:text-xs placeholder:sm:text-lg font-bold"
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                                    onFocus={() => codeQuery.length >= 2 && setShowSuggestions(true)}
                                 />
+
+                                {/* Suggestions Dropdown */}
+                                {showSuggestions && (
+                                    <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                                        {suggestions.length > 0 ? (
+                                            <div className="max-h-[400px] overflow-y-auto py-2">
+                                                {suggestions.map((part) => (
+                                                    <Link
+                                                        key={part.id}
+                                                        href={`/product/${part.id}`}
+                                                        className="flex items-start gap-4 px-6 py-4 hover:bg-gray-50 transition-colors group"
+                                                        onClick={() => setShowSuggestions(false)}
+                                                    >
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-sm sm:text-base font-bold text-gray-900 leading-tight group-hover:text-[var(--color-primary)] transition-colors break-words">
+                                                                {part.name}
+                                                            </div>
+                                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
+                                                                {part.productCode && (
+                                                                    <div className="flex items-center gap-1.5 bg-gray-200 px-2 py-0.5 rounded-md">
+                                                                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Ref</span>
+                                                                        <span className="text-xs font-bold text-gray-950">{part.productCode}</span>
+                                                                    </div>
+                                                                )}
+                                                                {part.sku && (
+                                                                    <div className="flex items-center gap-1.5">
+                                                                        <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest">OEM</span>
+                                                                        <span className="text-xs font-bold text-gray-900">{part.sku}</span>
+                                                                    </div>
+                                                                )}
+                                                                <div className="ml-auto bg-[var(--color-primary)] text-white text-[11px] font-black px-2 py-1 rounded-lg shadow-sm group-hover:bg-orange-600 transition-colors shrink-0">
+                                                                    {part.priceGross.toLocaleString()} Ft
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                        <Search className="w-4 h-4 text-gray-300 mt-1 group-hover:text-[var(--color-primary)] transition-colors shrink-0" />
+                                                    </Link>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="p-8 text-center">
+                                                <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                                    <Search className="w-5 h-5 text-gray-300" />
+                                                </div>
+                                                <p className="text-sm font-bold text-gray-900">Nincs találat</p>
+                                                <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mt-1">
+                                                    Ellenőrizd a beírt számot
+                                                </p>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
                             </div>
 
                             <div className="p-2 flex items-center justify-center bg-gray-50/30 md:bg-transparent">

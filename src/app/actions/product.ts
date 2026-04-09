@@ -759,6 +759,46 @@ export async function getRelatedProducts(currentProductId: string, modelId: stri
  * Returns the product ID if a single unique match is found, or if there is 
  * an exact SKU/Product Code match despite other partial matches.
  */
+export async function getPartSuggestionsAction(query: string) {
+    return unstable_cache(
+        async (query: string) => {
+            if (!query || query.trim().length < 2) return [];
+
+            const cleanQuery = query.trim().toLowerCase();
+
+            try {
+                const parts = await prisma.part.findMany({
+                    where: {
+                        stock: { gt: 0 },
+                        OR: [
+                            { sku: { contains: cleanQuery, mode: 'insensitive' } },
+                            { productCode: { contains: cleanQuery, mode: 'insensitive' } },
+                            { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } }
+                        ]
+                    },
+                    select: {
+                        id: true,
+                        name: true,
+                        sku: true,
+                        productCode: true,
+                        priceGross: true,
+                        images: true,
+                        oemNumbers: true
+                    },
+                    take: 6
+                });
+
+                return parts;
+            } catch (error) {
+                console.error("Part suggestions error:", error);
+                return [];
+            }
+        },
+        ["part-suggestions", query],
+        { revalidate: 600, tags: ["products"] }
+    )(query);
+}
+
 export async function getDirectMatchAction(query: string) {
     return unstable_cache(
         async (query: string) => {
