@@ -510,3 +510,56 @@ export async function issueManualInvoice(orderId: string) {
         return { success: false, error: err.message };
     }
 }
+
+export async function cleanupOldOrders() {
+    console.log("RUNNING ORDER CLEANUP...");
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    try {
+        // 1. Find orders that match the criteria
+        const ordersToDelete = await prisma.order.findMany({
+            where: {
+                status: { in: ['DELIVERED', 'CANCELLED'] },
+                OR: [
+                    { updatedAt: { lt: thirtyDaysAgo } },
+                    { 
+                        AND: [
+                            { updatedAt: null },
+                            { createdAt: { lt: thirtyDaysAgo } }
+                        ]
+                    }
+                ]
+            },
+            select: { id: true }
+        });
+
+        const orderIds = ordersToDelete.map(o => o.id);
+
+        if (orderIds.length === 0) {
+            console.log("No orders to clean up.");
+            return { success: true, count: 0 };
+        }
+
+        console.log(`Deleting ${orderIds.length} old orders...`);
+
+        // 2. Perform deletion in a transaction
+        await prisma.$transaction([
+            // Delete order items first due to foreign key constraints
+            prisma.orderItem.deleteMany({
+                where: { orderId: { in: orderIds } }
+            }),
+            // Delete the orders themselves
+            prisma.order.deleteMany({
+                where: { id: { in: orderIds } }
+            })
+        ]);
+
+        console.log("Cleanup successful.");
+        revalidatePath('/admin/orders');
+        return { success: true, count: orderIds.length };
+    } catch (error) {
+        console.error("CRITICAL ERROR in cleanupOldOrders:", error);
+        return { success: false, error: "Hiba történt a törlés során." };
+    }
+}
