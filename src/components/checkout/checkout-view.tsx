@@ -14,6 +14,9 @@ import { calculateShippingPriceForItems } from "@/lib/shipping/pxp-rates";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
+// Feature toggle for corporate invoice - Set to true to show the option again
+const SHOW_CORPORATE_INVOICE = false;
+
 export default function CheckoutView() {
     const { items, totalPrice, totalItems, updateQuantity } = useCart();
     const router = useRouter();
@@ -375,15 +378,17 @@ export default function CheckoutView() {
                             </h2>
 
                             <div className="space-y-6">
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox" id="isCompany" checked={isCompany}
-                                        onChange={(e) => setIsCompany(e.target.checked)}
-                                        className="w-5 h-5 rounded border-border bg-muted/5 text-[var(--color-primary)]" />
-                                    <label htmlFor="isCompany" className="text-foreground text-sm cursor-pointer select-none">
-                                        Céges számlát kérek
-                                    </label>
-                                </div>
+                                {SHOW_CORPORATE_INVOICE && (
+                                    <div className="flex items-center gap-3">
+                                        <input
+                                            type="checkbox" id="isCompany" checked={isCompany}
+                                            onChange={(e) => setIsCompany(e.target.checked)}
+                                            className="w-5 h-5 rounded border-border bg-muted/5 text-[var(--color-primary)]" />
+                                        <label htmlFor="isCompany" className="text-foreground text-sm cursor-pointer select-none">
+                                            Céges számlát kérek
+                                        </label>
+                                    </div>
+                                )}
 
                                 {isCompany && (
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pl-8 border-l-2 border-[var(--color-primary)]/20 animate-in fade-in slide-in-from-top-2">
