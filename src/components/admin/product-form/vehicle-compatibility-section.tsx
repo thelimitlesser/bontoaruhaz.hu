@@ -117,7 +117,30 @@ export function VehicleCompatibilitySection({
                                     placeholder="Válassz modellt..." disabled={!selectedBrand}
                                     theme="light" />
                             </div>
-                            <div className="md:col-span-2 mt-6">
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mt-6 items-end">
+                            <div>
+                                <YearSelect 
+                                    label="Évjárat (mettől)"
+                                    value={yearFrom} 
+                                    onChange={setYearFrom}
+                                    placeholder="Válassz évet..." 
+                                    minYear={2000}
+                                    maxYear={2030}
+                                />
+                            </div>
+                            <div>
+                                <YearSelect 
+                                    label="Évjárat (meddig)"
+                                    value={yearTo} 
+                                    onChange={setYearTo}
+                                    placeholder="Válassz évet..." 
+                                    minYear={2000}
+                                    maxYear={2030}
+                                />
+                            </div>
+                            <div className="md:col-span-2">
                                 <SearchableSelect
                                     name="bodyType" label="Karosszéria típus" options={bodyTypeOptions}
                                     value={bodyType}
@@ -125,24 +148,6 @@ export function VehicleCompatibilitySection({
                                     placeholder="Válassz típust (opcionális)..." 
                                     theme="light" />
                             </div>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                            <YearSelect 
-                                label="Évjárat (mettől)"
-                                value={yearFrom} 
-                                onChange={setYearFrom}
-                                placeholder="Válassz évet..." 
-                                minYear={2000}
-                                maxYear={2030}
-                            />
-                            <YearSelect 
-                                label="Évjárat (meddig)"
-                                value={yearTo} 
-                                onChange={setYearTo}
-                                placeholder="Válassz évet..." 
-                                minYear={2000}
-                                maxYear={2030}
-                            />
                         </div>
                     </div>
 
