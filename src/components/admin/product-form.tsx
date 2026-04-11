@@ -165,7 +165,7 @@ export function ProductForm({
     // Intelligent Auto-Name & Header Generation
     const [lastAutoName, setLastAutoName] = useState("");
     const [lastAutoHeader, setLastAutoHeader] = useState("");
-    const isFirstAutoRun = useRef(true);
+    
     useEffect(() => {
         const brand = brands.find(b => b.id === selectedBrand)?.name;
         const model = models.filter(m => m.brandId === selectedBrand).find(m => m.id === selectedModel)?.name;
@@ -178,32 +178,32 @@ export function ProductForm({
             const newAutoName = `${brand} ${model}${bodyTypeStr} ${part}`;
             const newAutoHeader = `Eladó ${condLabel} ${brand} ${model}${bodyTypeStr} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
 
-            // On first run for existing items, if the current name/header matches what we would generate, 
-            // sync the 'lastAuto' states so future changes (like changing bodyType) will trigger an update.
-            if (isFirstAutoRun.current) {
+            // SYNC LOGIC: If we haven't identified an 'auto' name yet, check if the current one is an auto-pattern
+            if (!lastAutoName && productName) {
                 const noBodyTypeName = `${brand} ${model} ${part}`;
                 if (productName === newAutoName || productName === noBodyTypeName) {
                     setLastAutoName(productName);
                 }
-                
+            }
+            
+            // SYNC LOGIC for Header
+            if (!lastAutoHeader && descriptionHeader) {
                 const noBodyTypeHeader = `Eladó ${condLabel} ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
-                // Also check for a common manual variant "Eladó gyári {Brand}..." (without condLabel)
                 const simpleHeader = `Eladó gyári ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
                 
                 if (descriptionHeader === newAutoHeader || descriptionHeader === noBodyTypeHeader || descriptionHeader === simpleHeader) {
                     setLastAutoHeader(descriptionHeader);
                 }
-                isFirstAutoRun.current = false;
             }
 
             // Only update Title if current name is empty OR matches exactly the previous auto-generated name
-            if (!productName || productName === lastAutoName) {
+            if (!productName || (lastAutoName && productName === lastAutoName)) {
                 setProductName(newAutoName);
                 setLastAutoName(newAutoName);
             }
 
             // Only update Description Header if current header is empty OR matches previous auto-generated header
-            if (!descriptionHeader || descriptionHeader === lastAutoHeader) {
+            if (!descriptionHeader || (lastAutoHeader && descriptionHeader === lastAutoHeader)) {
                 setDescriptionHeader(newAutoHeader);
                 setLastAutoHeader(newAutoHeader);
             }
