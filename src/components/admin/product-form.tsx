@@ -165,6 +165,7 @@ export function ProductForm({
     // Intelligent Auto-Name & Header Generation
     const [lastAutoName, setLastAutoName] = useState("");
     const [lastAutoHeader, setLastAutoHeader] = useState("");
+    const isFirstAutoRun = useRef(true);
     useEffect(() => {
         const brand = brands.find(b => b.id === selectedBrand)?.name;
         const model = models.filter(m => m.brandId === selectedBrand).find(m => m.id === selectedModel)?.name;
@@ -176,6 +177,18 @@ export function ProductForm({
             const bodyTypeStr = bodyType ? ` ${bodyType}` : "";
             const newAutoName = `${brand} ${model}${bodyTypeStr} ${part}`;
             const newAutoHeader = `Eladó ${condLabel} ${brand} ${model}${bodyTypeStr} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
+
+            // On first run for existing items, if the current name/header matches what we would generate, 
+            // sync the 'lastAuto' states so future changes (like changing bodyType) will trigger an update.
+            if (isFirstAutoRun.current) {
+                if (productName === newAutoName || productName === `${brand} ${model} ${part}`) {
+                    setLastAutoName(productName);
+                }
+                if (descriptionHeader === newAutoHeader || descriptionHeader === `Eladó ${condLabel} ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ')) {
+                    setLastAutoHeader(descriptionHeader);
+                }
+                isFirstAutoRun.current = false;
+            }
 
             // Only update Title if current name is empty OR matches exactly the previous auto-generated name
             if (!productName || productName === lastAutoName) {
@@ -189,7 +202,7 @@ export function ProductForm({
                 setLastAutoHeader(newAutoHeader);
             }
         }
-    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj]);
+    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj, productName, descriptionHeader, lastAutoName, lastAutoHeader]);
 
     // Native Spellcheck Force
     useEffect(() => {
