@@ -61,6 +61,8 @@ export function ProductForm({
     const [engineCode, setEngineCode] = useState(initialData?.engineCode || "");
     const [bodyType, setBodyType] = useState(initialData?.bodyType || "");
     const [descriptionHeader, setDescriptionHeader] = useState("");
+    const [lastAutoName, setLastAutoName] = useState("");
+    const [lastAutoHeader, setLastAutoHeader] = useState("");
     
     // Pricing & Dimensions states (to fix data loss and naming mismatch)
     const [priceGross, setPriceGross] = useState(initialData?.priceGross?.toString() || "");
@@ -110,9 +112,33 @@ export function ProductForm({
             }
         }
 
-        // Set the extracted header if found, otherwise it stays empty and will auto-generate
-        if (foundHeader && !descriptionHeader) {
-            setTimeout(() => setDescriptionHeader(foundHeader), 0);
+        // Set the extracted header and immediately identify if it's auto-generated to avoid sync lag
+        if (foundHeader) {
+            setTimeout(() => {
+                setDescriptionHeader(foundHeader);
+                
+                // Pre-sync if it looks like an auto-header
+                const clean = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const brand = brands.find(b => b.id === initialData?.brandId)?.name || "";
+                const model = models.find(m => m.id === initialData?.modelId)?.name || "";
+                const part = partItems.find(p => p.id === initialData?.partItemId)?.name || "";
+                
+                if (brand && model && part) {
+                    const hClean = clean(foundHeader);
+                    const bClean = clean(brand);
+                    const mClean = clean(model);
+                    const pClean = clean(part);
+                    
+                    if (hClean.includes(bClean) && hClean.includes(mClean) && hClean.includes(pClean)) {
+                        setLastAutoHeader(foundHeader);
+                        // Also sync name if it matches
+                        const nameClean = clean(initialData.name || "");
+                        if (nameClean.includes(bClean) && nameClean.includes(mClean) && nameClean.includes(pClean)) {
+                            setLastAutoName(initialData.name);
+                        }
+                    }
+                }
+            }, 0);
         }
 
         return content;
@@ -163,8 +189,6 @@ export function ProductForm({
     }, [sku, initialData?.id]);
 
     // Intelligent Auto-Name & Header Generation
-    const [lastAutoName, setLastAutoName] = useState("");
-    const [lastAutoHeader, setLastAutoHeader] = useState("");
     
     useEffect(() => {
         const brand = brands.find(b => b.id === selectedBrand)?.name;
