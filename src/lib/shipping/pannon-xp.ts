@@ -113,37 +113,43 @@ export async function createPxpShipment(order: any) {
                 },
                 szolgaltatas: "24H",
                 sms: true,
-                csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
-                    const dims = [
-                        item.part.length || 30,
-                        item.part.width || 20,
-                        item.part.height || 10
-                    ]; // Raw order (Length, Width, Height)
+                csomagok: (() => {
+                    const totalWeight = order.items.reduce((sum: number, item: any) => sum + Math.max(0.1, item.part?.weight || 0.1) * (item.quantityInCart || item.quantity || 1), 0);
+                    const maxLength = Math.max(...order.items.map((item: any) => item.part?.length || 30), 1);
+                    const maxWidth = Math.max(...order.items.map((item: any) => item.part?.width || 20), 1);
+                    const maxHeight = Math.max(...order.items.map((item: any) => item.part?.height || 10), 1);
                     
-                    const internalPackageType = (item.part as any).packageType || 'doboz';
+                    // Priority package type (lokharito > others)
+                    let baseType = 'doboz';
+                    for (const item of order.items) {
+                        const pt = (item.part as any)?.packageType || 'doboz';
+                        if (['lokharito', 'lokharito_teher'].includes(pt)) {
+                            baseType = pt;
+                            break; // lokharito overrides everything
+                        }
+                        if (['csomagterajto', 'motor', 'motorhazteto', 'oldalajto', 'valto'].includes(pt)) {
+                            baseType = pt;
+                        }
+                    }
                     
-                    // Specific mapping for KSTA account as per PXP email
                     let pxpType = 'doboz';
-                    
-                    if (internalPackageType === 'lokharito') {
-                        pxpType = 'lokharito_szemelyauto';
-                    } else if (internalPackageType === 'lokharito_teher') {
-                        pxpType = 'lokharito_teherauto';
-                    } else if (['csomagterajto', 'motor', 'motorhazteto', 'oldalajto', 'valto'].includes(internalPackageType)) {
-                        pxpType = internalPackageType; // Matches exactly
+                    if (baseType === 'lokharito') pxpType = 'lokharito_szemelyauto';
+                    else if (baseType === 'lokharito_teher') pxpType = 'lokharito_teherauto';
+                    else if (['csomagterajto', 'motor', 'motorhazteto', 'oldalajto', 'valto'].includes(baseType)) {
+                        pxpType = baseType;
                     }
 
-                    const shipmentPackage: any = {
-                        db: (item as any).quantityInCart || item.quantity || 1,
-                        suly: Math.max(0.1, item.part.weight || 0.1),
-                        hosszusag: Math.min(420, Math.max(1, Math.round(dims[0]))),
-                        szelesseg: Math.min(150, Math.max(1, Math.round(dims[1]))),
-                        magassag: Math.min(160, Math.max(1, Math.round(dims[2]))),
-                        tipus: pxpType
+                    return {
+                        "0": {
+                            db: 1, // Mindig 1 csomagba vonjuk össze a rendelést
+                            suly: Math.max(0.1, Math.round(totalWeight * 100) / 100),
+                            hosszusag: Math.min(420, Math.round(maxLength)),
+                            szelesseg: Math.min(150, Math.round(maxWidth)),
+                            magassag: Math.min(160, Math.round(maxHeight)),
+                            tipus: pxpType
+                        }
                     };
-                    acc[idx.toString()] = shipmentPackage;
-                    return acc;
-                }, {}),
+                })(),
                 tartalom: tartalomText,
                 referenciaszam: refText,
                 utanvet: utanvetAmount
