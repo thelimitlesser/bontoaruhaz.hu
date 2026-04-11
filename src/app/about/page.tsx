@@ -1,4 +1,10 @@
 import { Target, Zap, Search, Award, Leaf } from "lucide-react";
+import { Metadata } from "next";
+
+export const metadata: Metadata = {
+    title: "Rólunk | Bontóáruház.hu - Minőségi bontott autóalkatrészek",
+    description: "Ismerje meg a Bontóáruház.hu küldetését! Több ezer minőségi, bevizsgált gyári bontott autóalkatrész garanciával, országos kiszállítással.",
+};
 
 export const dynamic = "force-dynamic";
 
@@ -23,9 +29,9 @@ export default function AboutPage() {
                     
                     <h2 className="text-2xl font-bold text-foreground mb-6">Kik vagyunk?</h2>
                     <p className="text-muted leading-relaxed text-lg">
-                        A <span className="text-[var(--color-primary)] font-bold">Bontóáruház.hu</span> Magyarország egyik legprecízebb online alkatrészáruháza, 
+                        A <span className="text-[var(--color-primary)] font-bold">Bontóáruház.hu</span> Magyarország egyik legprecízebb **online autóbontója** és alkatrészáruháza, 
                         ahol több ezer gyári bontott alkatrész azonnali kínálata érhető el. Küldetésünk, hogy az autósok és szerelők számára egyszerűvé, 
-                        gyorssá és tévedhetetlenné tegyük az alkatrészbeszerzést – átlátható garanciális feltételekkel és megbízható szakmai háttérrel.
+                        gyorssá és tévedhetetlenné tegyük az alkatrészbeszerzést – átlátható garanciális feltételekkel, **országos kiszállítással** és megbízható szakmai háttérrel.
                     </p>
                 </section>
 
