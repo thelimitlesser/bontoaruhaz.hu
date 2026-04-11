@@ -17,22 +17,47 @@ export default async function InventoryPage({
     const model = params.model || "";
     const partItem = params.partItem || "";
 
-    // 1. Build Filter inputs
-    const where: any = {};
+    const where: any = { AND: [] };
 
     // Text Search
     if (query) {
-        where.OR = [
-            { name: { contains: query, mode: 'insensitive' } },
-            { sku: { contains: query, mode: 'insensitive' } },
-            { productCode: { contains: query, mode: 'insensitive' } },
-            { oemNumbers: { contains: query, mode: 'insensitive' } },
-        ];
+        where.AND.push({
+            OR: [
+                { name: { contains: query, mode: 'insensitive' } },
+                { sku: { contains: query, mode: 'insensitive' } },
+                { productCode: { contains: query, mode: 'insensitive' } },
+                { oemNumbers: { contains: query, mode: 'insensitive' } },
+                // Primary vehicle names
+                { VehicleBrand: { name: { contains: query, mode: 'insensitive' } } },
+                { VehicleModel: { name: { contains: query, mode: 'insensitive' } } },
+                // Compatible vehicle names
+                { compatibilities: { some: { VehicleModel: { name: { contains: query, mode: 'insensitive' } } } } },
+                { compatibilities: { some: { VehicleModel: { VehicleBrand: { name: { contains: query, mode: 'insensitive' } } } } } },
+            ]
+        });
     }
 
-    if (make) where.brandId = make;
-    if (model) where.modelId = model;
-    if (partItem) where.partItemId = partItem;
+    if (make) {
+        where.AND.push({
+            OR: [
+                { brandId: make },
+                { compatibilities: { some: { brandId: make } } }
+            ]
+        });
+    }
+
+    if (model) {
+        where.AND.push({
+            OR: [
+                { modelId: model },
+                { compatibilities: { some: { modelId: model } } }
+            ]
+        });
+    }
+
+    if (partItem) {
+        where.AND.push({ partItemId: partItem });
+    }
 
     // 2. Fetch Dropdown Data (Hierarchical for Filters + Full for Form)
     let makeOptions: any[] = [];
@@ -52,15 +77,25 @@ export default async function InventoryPage({
             aBrands, aModels, aPartItems,
             cats, subcats
         ] = await Promise.all([
-            // FILTER DATA (Limited to active inventory)
+            // FILTER DATA (Include those with active primary or compatible parts)
             prisma.vehicleBrand.findMany({
-                where: { Part: { some: {} } },
+                where: { 
+                    OR: [
+                        { Part: { some: {} } },
+                        { VehicleModel: { some: { PartCompatibility: { some: {} } } } }
+                    ]
+                },
                 orderBy: { name: 'asc' }
             }),
             prisma.vehicleModel.findMany({
                 where: {
                     AND: [
-                        { Part: { some: {} } },
+                        { 
+                            OR: [
+                                { Part: { some: {} } },
+                                { PartCompatibility: { some: {} } }
+                            ]
+                        },
                         make ? { brandId: make } : {}
                     ]
                 },
@@ -70,8 +105,18 @@ export default async function InventoryPage({
                 where: {
                     AND: [
                         { Part: { some: {} } },
-                        make ? { Part: { some: { brandId: make } } } : {},
-                        model ? { Part: { some: { modelId: model } } } : {}
+                        make ? { 
+                            OR: [
+                                { Part: { some: { brandId: make } } },
+                                { Part: { some: { compatibilities: { some: { brandId: make } } } } }
+                            ]
+                        } : {},
+                        model ? { 
+                            OR: [
+                                { Part: { some: { modelId: model } } },
+                                { Part: { some: { compatibilities: { some: { modelId: model } } } } }
+                            ]
+                        } : {}
                     ]
                 },
                 orderBy: { name: 'asc' }
@@ -119,7 +164,9 @@ export default async function InventoryPage({
                 skip: skip,
                 orderBy: { createdAt: 'desc' },
                 include: {
-                    compatibilities: true
+                    compatibilities: true,
+                    VehicleBrand: true,
+                    VehicleModel: true
                 }
             }),
             prisma.part.count({ where })
