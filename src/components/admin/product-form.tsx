@@ -178,37 +178,39 @@ export function ProductForm({
             const newAutoName = `${brand} ${model}${bodyTypeStr} ${part}`;
             const newAutoHeader = `Eladó ${condLabel} ${brand} ${model}${bodyTypeStr} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
 
-            // SYNC LOGIC: Robustly identify if the current title/header looks auto-generated
+            // SYNC & UPDATE LOGIC
             const clean = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
             const brandClean = clean(brand);
             const modelClean = clean(model);
             const partClean = clean(part);
             
-            if (!lastAutoName && productName) {
+            // 1. Title Sync & Update
+            let effectiveLastAutoName = lastAutoName;
+            if (!effectiveLastAutoName && productName) {
                 const prodClean = clean(productName);
                 if (prodClean.includes(brandClean) && prodClean.includes(modelClean) && prodClean.includes(partClean)) {
+                    effectiveLastAutoName = productName;
                     setLastAutoName(productName);
                 }
             }
-            
-            if (!lastAutoHeader && descriptionHeader) {
-                const headClean = clean(descriptionHeader);
-                const isElado = descriptionHeader.toLowerCase().trim().startsWith('elad');
-                if (isElado && headClean.includes(brandClean) && headClean.includes(modelClean) && headClean.includes(partClean)) {
-                    setLastAutoHeader(descriptionHeader);
-                }
-            }
-
-            // Only update Title if current name is empty OR matches exactly the previous auto-generated name
-            if (!productName || (lastAutoName && productName === lastAutoName)) {
+            if (!productName || (effectiveLastAutoName && productName === effectiveLastAutoName)) {
                 if (productName !== newAutoName) {
                     setProductName(newAutoName);
                     setLastAutoName(newAutoName);
                 }
             }
 
-            // Only update Description Header if current header is empty OR matches previous auto-generated header
-            if (!descriptionHeader || (lastAutoHeader && descriptionHeader === lastAutoHeader)) {
+            // 2. Header Sync & Update
+            let effectiveLastAutoHeader = lastAutoHeader;
+            if (!effectiveLastAutoHeader && descriptionHeader) {
+                const headClean = clean(descriptionHeader);
+                const isElado = descriptionHeader.toLowerCase().trim().startsWith('elad');
+                if (isElado && headClean.includes(brandClean) && headClean.includes(modelClean) && headClean.includes(partClean)) {
+                    effectiveLastAutoHeader = descriptionHeader;
+                    setLastAutoHeader(descriptionHeader);
+                }
+            }
+            if (!descriptionHeader || (effectiveLastAutoHeader && descriptionHeader === effectiveLastAutoHeader)) {
                 if (descriptionHeader !== newAutoHeader) {
                     setDescriptionHeader(newAutoHeader);
                     setLastAutoHeader(newAutoHeader);
