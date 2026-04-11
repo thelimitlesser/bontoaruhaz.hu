@@ -30,8 +30,8 @@ export default async function Home() {
                 Minőségi Gyári Bontott<br />
                 Autóalkatrészek
               </h1>
-              <div className="inline-block mt-0 sm:mt-1 w-full flex justify-center">
-                <span className="text-[clamp(1rem,5.5vw,3rem)] sm:text-5xl lg:text-6xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-orange-500 uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] px-1 sm:px-0 whitespace-nowrap">
+              <div className="mt-2 sm:mt-4 w-full flex justify-center">
+                <span className="text-[clamp(1.1rem,6vw,3.5rem)] sm:text-5xl lg:text-7xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-orange-500 uppercase tracking-tighter drop-shadow-[0_4px_8px_rgba(0,0,0,0.5)] px-2 text-center leading-none">
                   Garanciával és kiszállítással
                 </span>
               </div>
