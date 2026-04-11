@@ -33,6 +33,7 @@ export function parseProductFormData(formData: FormData) {
         stock: getInt('stock') || 1,
         brandId: formData.get('brandId') as string,
         modelId: formData.get('modelId') as string,
+        bodyType: formData.get('bodyType') as string || "",
         categoryId: formData.get('categoryId') as string,
         subcategoryId: formData.get('subcategoryId') as string,
         partItemId: formData.get('partItemId') as string,

@@ -116,6 +116,7 @@ export async function POST(req: Request) {
             PartItem: rawFormData.partItemId ? { connect: { id: rawFormData.partItemId } } : undefined,
             VehicleBrand: rawFormData.brandId ? { connect: { id: rawFormData.brandId } } : undefined,
             VehicleModel: rawFormData.modelId ? { connect: { id: rawFormData.modelId } } : undefined,
+            bodyType: rawFormData.bodyType,
             yearFrom: rawFormData.yearFrom,
             yearTo: rawFormData.yearTo,
             tecdocKTypes: formData.get('tecdocKTypes') as string || "",
@@ -124,6 +125,7 @@ export async function POST(req: Request) {
                 create: parsedCompatibilities.map((c: any) => ({
                     brandId: c.brandId,
                     modelId: c.modelId,
+                    bodyType: c.bodyType,
                     yearFrom: c.yearFrom ? parseInt(c.yearFrom) : null,
                     yearTo: c.yearTo ? parseInt(c.yearTo) : null,
                 }))

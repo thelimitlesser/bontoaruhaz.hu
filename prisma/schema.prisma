@@ -80,6 +80,7 @@ model Part {
   weight          Float?
   width           Float?
   engineCode      String?
+  bodyType        String?
   packageType     String              @default("doboz")
   orderItems      OrderItem[]
   VehicleBrand    VehicleBrand?       @relation(fields: [brandId], references: [id])
@@ -165,6 +166,7 @@ model PartCompatibility {
   partId       String
   brandId      String
   modelId      String
+  bodyType     String?
   yearFrom     Int?
   yearTo       Int?
   VehicleModel VehicleModel @relation(fields: [modelId], references: [id])

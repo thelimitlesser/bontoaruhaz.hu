@@ -17,8 +17,10 @@ interface VehicleCompatibilitySectionProps {
     setYearFrom: (val: string) => void;
     yearTo: string;
     setYearTo: (val: string) => void;
-    compatibilities: { brandId: string; modelId: string; yearFrom?: string; yearTo?: string }[];
-    setCompatibilities: React.Dispatch<React.SetStateAction<{ brandId: string; modelId: string; yearFrom?: string; yearTo?: string }[]>>;
+    bodyType: string;
+    setBodyType: (val: string) => void;
+    compatibilities: { brandId: string; modelId: string; bodyType?: string; yearFrom?: string; yearTo?: string }[];
+    setCompatibilities: React.Dispatch<React.SetStateAction<{ brandId: string; modelId: string; bodyType?: string; yearFrom?: string; yearTo?: string }[]>>;
     errors?: string[];
     // Dynamic data from DB
     brands: any[];
@@ -31,6 +33,7 @@ export function VehicleCompatibilitySection({
     selectedModel, setSelectedModel,
     yearFrom, setYearFrom,
     yearTo, setYearTo,
+    bodyType, setBodyType,
     compatibilities, setCompatibilities,
     errors = [],
     brands,
@@ -41,14 +44,23 @@ export function VehicleCompatibilitySection({
     const [addModel, setAddModel] = useState("");
     const [addYearFrom, setAddYearFrom] = useState("");
     const [addYearTo, setAddYearTo] = useState("");
+    const [addBodyType, setAddBodyType] = useState("");
+
+    const bodyTypeOptions = [
+        { value: "Sedan", label: "Sedan" },
+        { value: "Ferdehátú", label: "Ferdehátú" },
+        { value: "Kombi", label: "Kombi" },
+        { value: "3 ajtós", label: "3 ajtós" }
+    ];
 
     const handleAddComp = () => {
         if (!addBrand || !addModel) return;
-        setCompatibilities([...compatibilities, { brandId: addBrand, modelId: addModel, yearFrom: addYearFrom, yearTo: addYearTo }]);
+        setCompatibilities([...compatibilities, { brandId: addBrand, modelId: addModel, bodyType: addBodyType, yearFrom: addYearFrom, yearTo: addYearTo }]);
         setAddBrand("");
         setAddModel("");
         setAddYearFrom("");
         setAddYearTo("");
+        setAddBodyType("");
     };
 
     const handleRemoveComp = (index: number) => {
@@ -105,6 +117,14 @@ export function VehicleCompatibilitySection({
                                     placeholder="Válassz modellt..." disabled={!selectedBrand}
                                     theme="light" />
                             </div>
+                            <div className="md:col-span-2 mt-6">
+                                <SearchableSelect
+                                    name="bodyType" label="Karosszéria típus" options={bodyTypeOptions}
+                                    value={bodyType}
+                                    onChange={setBodyType}
+                                    placeholder="Válassz típust (opcionális)..." 
+                                    theme="light" />
+                            </div>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                             <YearSelect 
@@ -136,7 +156,7 @@ export function VehicleCompatibilitySection({
                                     return (
                                         <div key={idx} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
                                             <div className="flex items-center gap-2">
-                                                <span className="font-bold text-gray-900">{bName} {mName}</span>
+                                                <span className="font-bold text-gray-900">{bName} {mName} {comp.bodyType && <span className="font-normal text-gray-500 italic">({comp.bodyType})</span>}</span>
                                                 {(comp.yearFrom || comp.yearTo) && (
                                                     <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-mono">
                                                         {comp.yearFrom || '...'} - {comp.yearTo || '...'}
@@ -172,6 +192,14 @@ export function VehicleCompatibilitySection({
                                         theme="light" />
                                 </div>
                                 <div className="md:col-span-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Kivitel</label>
+                                    <SearchableSelect
+                                        name="addBodyType" options={bodyTypeOptions}
+                                        value={addBodyType}
+                                        onChange={setAddBodyType}
+                                        placeholder="Kivitel..." theme="light" />
+                                </div>
+                                <div className="md:col-span-1">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Mettől</label>
                                     <div className="relative" style={{ height: '46px' }}>
                                         <YearSelect 
@@ -183,7 +211,7 @@ export function VehicleCompatibilitySection({
                                         />
                                     </div>
                                 </div>
-                                <div className="md:col-span-2">
+                                <div className="md:col-span-1">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Meddig</label>
                                     <div className="relative" style={{ height: '46px' }}>
                                         <YearSelect 

@@ -59,6 +59,7 @@ export function ProductForm({
     const [yearTo, setYearTo] = useState(initialData?.yearTo?.toString() || "");
     const [condition, setCondition] = useState(initialData?.condition || "used");
     const [engineCode, setEngineCode] = useState(initialData?.engineCode || "");
+    const [bodyType, setBodyType] = useState(initialData?.bodyType || "");
     const [descriptionHeader, setDescriptionHeader] = useState("");
     
     // Pricing & Dimensions states (to fix data loss and naming mismatch)
@@ -172,8 +173,9 @@ export function ProductForm({
         const condLabel = condition === 'new' ? 'gyári új' : 'gyári használt';
         
         if (brand && model && part) {
-            const newAutoName = `${brand} ${model} ${part}`;
-            const newAutoHeader = `Eladó ${condLabel} ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
+            const bodyTypeStr = bodyType ? ` ${bodyType}` : "";
+            const newAutoName = `${brand} ${model}${bodyTypeStr} ${part}`;
+            const newAutoHeader = `Eladó ${condLabel} ${brand} ${model}${bodyTypeStr} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
 
             // Only update Title if current name is empty OR matches exactly the previous auto-generated name
             if (!productName || productName === lastAutoName) {
@@ -187,7 +189,7 @@ export function ProductForm({
                 setLastAutoHeader(newAutoHeader);
             }
         }
-    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, brands, models, selectedPartItemObj]);
+    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj]);
 
     // Native Spellcheck Force
     useEffect(() => {
@@ -272,6 +274,7 @@ export function ProductForm({
             formData.set('sku', sku);
             formData.set('condition', condition);
             formData.set('engineCode', engineCode);
+            formData.set('bodyType', bodyType);
             
             if (width) formData.set('width', width);
             if (height) formData.set('height', height);
@@ -353,6 +356,7 @@ export function ProductForm({
                 selectedModel={selectedModel} setSelectedModel={setSelectedModel}
                 yearFrom={yearFrom} setYearFrom={setYearFrom}
                 yearTo={yearTo} setYearTo={setYearTo}
+                bodyType={bodyType} setBodyType={setBodyType}
                 compatibilities={compatibilities} setCompatibilities={setCompatibilities}
                 errors={validationErrors}
                 brands={brands}
