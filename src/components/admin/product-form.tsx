@@ -181,10 +181,16 @@ export function ProductForm({
             // On first run for existing items, if the current name/header matches what we would generate, 
             // sync the 'lastAuto' states so future changes (like changing bodyType) will trigger an update.
             if (isFirstAutoRun.current) {
-                if (productName === newAutoName || productName === `${brand} ${model} ${part}`) {
+                const noBodyTypeName = `${brand} ${model} ${part}`;
+                if (productName === newAutoName || productName === noBodyTypeName) {
                     setLastAutoName(productName);
                 }
-                if (descriptionHeader === newAutoHeader || descriptionHeader === `Eladó ${condLabel} ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ')) {
+                
+                const noBodyTypeHeader = `Eladó ${condLabel} ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
+                // Also check for a common manual variant "Eladó gyári {Brand}..." (without condLabel)
+                const simpleHeader = `Eladó gyári ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
+                
+                if (descriptionHeader === newAutoHeader || descriptionHeader === noBodyTypeHeader || descriptionHeader === simpleHeader) {
                     setLastAutoHeader(descriptionHeader);
                 }
                 isFirstAutoRun.current = false;
