@@ -27,12 +27,12 @@ export default async function Home() {
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0)_60%)] blur-sm -z-10 rounded-full w-[100%] h-[100%] left-0 top-0 pointer-events-none"></div>
 
               <h1 className="text-[clamp(1.25rem,6.5vw,2.5rem)] sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight uppercase italic drop-shadow-lg w-full break-words max-w-[100vw]">
-                Megbízható autóalkatrészek<br />
-                Magyarországon
+                Minőségi Gyári Bontott<br />
+                Autóalkatrészek
               </h1>
               <div className="inline-block mt-0 sm:mt-1 w-full flex justify-center">
                 <span className="text-[clamp(1rem,5.5vw,3rem)] sm:text-5xl lg:text-6xl font-black italic text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-orange-500 uppercase tracking-tighter drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] px-1 sm:px-0 whitespace-nowrap">
-                  15 év tapasztalattal
+                  Garanciával és kiszállítással
                 </span>
               </div>
             </div>

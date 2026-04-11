@@ -27,10 +27,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug_id: 
 
     const { dbPart, brandName, modelName } = data;
     
-    const title = `[Bontott] ${brandName} ${modelName} ${dbPart.name} | Bontóáruház`;
+    // SEO-ready title with powerful keywords
+    const title = `Gyári Bontott ${brandName} ${modelName} ${dbPart.name} - Garanciával | Bontóáruház`;
     const description = dbPart.description 
       ? dbPart.description.slice(0, 155) + "..." 
-      : `Minőségi bontott ${brandName} ${modelName} ${dbPart.name} alkatrész garanciával és gyors kiszállítással a Bontóáruházban Seregélyesről.`;
+      : `Minőségi, bevizsgált gyári bontott ${brandName} ${modelName} ${dbPart.name} alkatrész garanciával és gyors országos kiszállítással a Bontóáruházban.`;
 
     const images = (dbPart.images || "").split(",").filter(img => img.length > 0);
     const mainImage = images.length > 0 ? images[0] : "https://bontoaruhaz.hu/logo_orange.png";
@@ -38,6 +39,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug_id: 
     return {
       title,
       description,
+      keywords: [`${brandName} ${modelName} alkatrész`, `${dbPart.name} ára`, "bontott autóalkatrész", "gyári alkatrész", "autóbontó online"],
       openGraph: {
         title,
         description,
@@ -54,8 +56,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug_id: 
   } catch (error) {
     console.error("Product SEO Error:", error);
     return {
-      title: "Bontott Autóalkatrész | Bontóáruház",
-      description: "Válogasson minőségi bontott autóalkatrészek közül garanciával. Gyors szállítás Seregélyesről az ország egész területére."
+      title: "Gyári Bontott Autóalkatrész Garanciával | Bontóáruház",
+      description: "Válogasson minőségi, bevizsgált bontott autóalkatrészek közül garanciával. Gyors szállítás Seregélyesről az ország egész területére."
     };
   }
 }
@@ -186,7 +188,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
       "priceCurrency": dbPart.currency || "HUF",
       "price": dbPart.priceGross,
       "availability": dbPart.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
-      "itemCondition": dbPart.condition === "NEW" ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition",
+      "itemCondition": (dbPart.condition === "NEW" || dbPart.condition === "ÚJ") ? "https://schema.org/NewCondition" : "https://schema.org/UsedCondition",
       "shippingDetails": {
         "@type": "OfferShippingDetails",
         "shippingRate": {
@@ -205,7 +207,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
           "transitTime": {
             "@type": "QuantitativeValue",
             "minValue": 1,
-            "maxValue": 3,
+            "maxValue": 2,
             "unitCode": "DAY"
           }
         }
