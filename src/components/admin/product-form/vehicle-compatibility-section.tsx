@@ -179,7 +179,7 @@ export function VehicleCompatibilitySection({
 
                         <div className="bg-green-50/50 border border-green-100 p-4 rounded-xl space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
-                                <div className="md:col-span-3">
+                                <div className="md:col-span-2">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Márka</label>
                                     <SearchableSelect
                                         name="addBrandId" options={brandOptions}
@@ -187,7 +187,7 @@ export function VehicleCompatibilitySection({
                                         onChange={(val) => { setAddBrand(val); setAddModel(""); }}
                                         placeholder="Márka..." theme="light" />
                                 </div>
-                                <div className="md:col-span-3">
+                                <div className="md:col-span-2">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Modell</label>
                                     <SearchableSelect
                                         name="addModelId" options={addModelOptions}
@@ -204,7 +204,7 @@ export function VehicleCompatibilitySection({
                                         onChange={setAddBodyType}
                                         placeholder="Kivitel..." theme="light" />
                                 </div>
-                                <div className="md:col-span-1">
+                                <div className="md:col-span-2">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Mettől</label>
                                     <div className="relative" style={{ height: '46px' }}>
                                         <YearSelect 
@@ -216,7 +216,7 @@ export function VehicleCompatibilitySection({
                                         />
                                     </div>
                                 </div>
-                                <div className="md:col-span-1">
+                                <div className="md:col-span-2">
                                     <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Meddig</label>
                                     <div className="relative" style={{ height: '46px' }}>
                                         <YearSelect 
