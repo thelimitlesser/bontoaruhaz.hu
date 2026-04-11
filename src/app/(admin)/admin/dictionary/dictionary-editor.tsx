@@ -256,7 +256,16 @@ export function DictionaryEditor({
                                     <div key={seriesName} className="border border-gray-200 rounded-xl overflow-hidden mb-4 shadow-sm">
                                         <div className="bg-gray-100 px-4 py-2 border-b border-gray-200 flex items-center justify-between">
                                             <h3 className="font-bold text-gray-700 uppercase tracking-wider text-xs">{seriesName}</h3>
-                                            <span className="bg-white text-gray-400 text-xs font-bold px-2 py-0.5 rounded-full border border-gray-200">{seriesModels.length} modell</span>
+                                            <div className="flex items-center gap-3">
+                                                <span className="bg-white text-gray-400 text-xs font-bold px-2 py-0.5 rounded-full border border-gray-200">{seriesModels.length} modell</span>
+                                                <button 
+                                                    title={`Új modell hozzáadása ide: ${seriesName}`}
+                                                    onClick={() => startEditing('model', { id: 'NEW', name: '', series: seriesName === 'Egyéb modellek' ? '' : seriesName, years: '' })}
+                                                    className="text-gray-500 hover:text-[var(--color-primary)] hover:bg-orange-50 p-1 rounded transition-colors"
+                                                >
+                                                    <Plus className="w-3.5 h-3.5" />
+                                                </button>
+                                            </div>
                                         </div>
                                         <div className="divide-y divide-gray-100">
                                             {seriesModels.map((item: any) => (
