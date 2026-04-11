@@ -178,34 +178,41 @@ export function ProductForm({
             const newAutoName = `${brand} ${model}${bodyTypeStr} ${part}`;
             const newAutoHeader = `Eladó ${condLabel} ${brand} ${model}${bodyTypeStr} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
 
-            // SYNC LOGIC: If we haven't identified an 'auto' name yet, check if the current one is an auto-pattern
+            // SYNC LOGIC: Robustly identify if the current title/header looks auto-generated
+            const clean = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+            const brandClean = clean(brand);
+            const modelClean = clean(model);
+            const partClean = clean(part);
+            
             if (!lastAutoName && productName) {
-                const noBodyTypeName = `${brand} ${model} ${part}`;
-                if (productName === newAutoName || productName === noBodyTypeName) {
+                const prodClean = clean(productName);
+                if (prodClean.includes(brandClean) && prodClean.includes(modelClean) && prodClean.includes(partClean)) {
                     setLastAutoName(productName);
                 }
             }
             
-            // SYNC LOGIC for Header
             if (!lastAutoHeader && descriptionHeader) {
-                const noBodyTypeHeader = `Eladó ${condLabel} ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
-                const simpleHeader = `Eladó gyári ${brand} ${model} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
-                
-                if (descriptionHeader === newAutoHeader || descriptionHeader === noBodyTypeHeader || descriptionHeader === simpleHeader) {
+                const headClean = clean(descriptionHeader);
+                const isElado = descriptionHeader.toLowerCase().trim().startsWith('elad');
+                if (isElado && headClean.includes(brandClean) && headClean.includes(modelClean) && headClean.includes(partClean)) {
                     setLastAutoHeader(descriptionHeader);
                 }
             }
 
             // Only update Title if current name is empty OR matches exactly the previous auto-generated name
             if (!productName || (lastAutoName && productName === lastAutoName)) {
-                setProductName(newAutoName);
-                setLastAutoName(newAutoName);
+                if (productName !== newAutoName) {
+                    setProductName(newAutoName);
+                    setLastAutoName(newAutoName);
+                }
             }
 
             // Only update Description Header if current header is empty OR matches previous auto-generated header
             if (!descriptionHeader || (lastAutoHeader && descriptionHeader === lastAutoHeader)) {
-                setDescriptionHeader(newAutoHeader);
-                setLastAutoHeader(newAutoHeader);
+                if (descriptionHeader !== newAutoHeader) {
+                    setDescriptionHeader(newAutoHeader);
+                    setLastAutoHeader(newAutoHeader);
+                }
             }
         }
     }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj, productName, descriptionHeader, lastAutoName, lastAutoHeader]);
