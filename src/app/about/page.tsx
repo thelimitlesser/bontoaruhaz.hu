@@ -17,7 +17,7 @@ export default function AboutPage() {
                     <Target className="w-10 h-10 text-[var(--color-primary)]" />
                     Rólunk
                 </h1>
-                <p className="text-muted text-lg border-l-4 border-[var(--color-primary)] pl-4 max-w-2xl italic">
+                <p className="text-foreground/80 text-lg border-l-4 border-[var(--color-primary)] pl-4 max-w-2xl italic">
                     Minőség, szakértelem és fenntarthatóság az autóalkatrészek világában.
                 </p>
             </div>
@@ -28,10 +28,10 @@ export default function AboutPage() {
                     <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--color-primary)]/5 rounded-bl-full -mr-16 -mt-16 transition-transform group-hover:scale-110 duration-500" />
                     
                     <h2 className="text-2xl font-bold text-foreground mb-6">Kik vagyunk?</h2>
-                    <p className="text-muted leading-relaxed text-lg">
-                        A <span className="text-[var(--color-primary)] font-bold">Bontóáruház.hu</span> Magyarország egyik legprecízebb **online autóbontója** és alkatrészáruháza, 
+                    <p className="text-foreground/90 leading-relaxed text-lg">
+                        A <span className="text-[var(--color-primary)] font-bold">Bontóáruház.hu</span> Magyarország egyik legprecízebb autóalkatrész webáruháza, 
                         ahol több ezer gyári bontott alkatrész azonnali kínálata érhető el. Küldetésünk, hogy az autósok és szerelők számára egyszerűvé, 
-                        gyorssá és tévedhetetlenné tegyük az alkatrészbeszerzést – átlátható garanciális feltételekkel, **országos kiszállítással** és megbízható szakmai háttérrel.
+                        gyorssá és tévedhetetlenné tegyük az alkatrészbeszerzést – átlátható garanciális feltételekkel, <span className="font-bold text-foreground">országos kiszállítással</span> és megbízható szakmai háttérrel.
                     </p>
                 </section>
 
@@ -42,17 +42,17 @@ export default function AboutPage() {
                         <div className="bg-muted/5 border border-border rounded-2xl p-6 hover:border-[var(--color-primary)] transition-colors group">
                             <Search className="w-8 h-8 text-[var(--color-primary)] mb-4 group-hover:scale-110 transition-transform" />
                             <h3 className="font-bold text-foreground mb-2">Villámgyors keresés</h3>
-                            <p className="text-sm text-muted">Intelligens keresőmotorunkkal pillanatok alatt megtalálod a pontos típust.</p>
+                            <p className="text-sm text-foreground/80">Intelligens keresőmotorunkkal pillanatok alatt megtalálod a pontos típust.</p>
                         </div>
                         <div className="bg-muted/5 border border-border rounded-2xl p-6 hover:border-[var(--color-primary)] transition-colors group">
                             <Zap className="w-8 h-8 text-[var(--color-primary)] mb-4 group-hover:scale-110 transition-transform" />
                             <h3 className="font-bold text-foreground mb-2">Precíz beazonosítás</h3>
-                            <p className="text-sm text-muted">Gyári kódok és részletes fotók segítségével segítünk a tévedhetetlen választásban.</p>
+                            <p className="text-sm text-foreground/80">Gyári kódok és részletes fotók segítségével segítünk a tévedhetetlen választásban.</p>
                         </div>
                         <div className="bg-muted/5 border border-border rounded-2xl p-6 hover:border-[var(--color-primary)] transition-colors group">
                             <Award className="w-8 h-8 text-[var(--color-primary)] mb-4 group-hover:scale-110 transition-transform" />
                             <h3 className="font-bold text-foreground mb-2">Biztonságos vásárlás</h3>
-                            <p className="text-sm text-muted">Minden nálunk vásárolt alkatrészre írásos garanciát vállalunk.</p>
+                            <p className="text-sm text-foreground/80">Minden nálunk vásárolt alkatrészre írásos garanciát vállalunk.</p>
                         </div>
                     </div>
                 </section>
@@ -65,7 +65,7 @@ export default function AboutPage() {
                                 <Leaf className="w-6 h-6 text-emerald-500" />
                                 Missziónk
                             </h2>
-                            <p className="text-muted leading-relaxed">
+                            <p className="text-foreground/90 leading-relaxed">
                                 Saját feladatunknak tekintjük a környezettudatos autózást: célunk, hogy minél több kiváló állapotú, gyári alkatrészt 
                                 mentsünk meg és adjunk vissza a mindennapi használatba. Amikor a Bontóáruházon keresztül vásárolsz, nemcsak 
                                 jelentős összeget takarítasz meg, hanem egy fenntarthatóbb jövőt is támogatsz a körforgásos gazdaság révén.
