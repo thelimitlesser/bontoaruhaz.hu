@@ -24,10 +24,40 @@ export function slugify(text: string): string {
 
 /**
  * Generates a full product slug combining keywords.
+ * Prevents duplicates if the name already contains brand or model.
  */
 export function getProductSlug(name: string, brand?: string | null, model?: string | null, sku?: string | null): string {
-  const parts = [brand, model, name, sku].filter(Boolean) as string[];
-  return slugify(parts.join(' '));
+  const sName = slugify(name || "");
+  const sBrand = brand ? slugify(brand) : "";
+  const sModel = model ? slugify(model) : "";
+  
+  let prefix = "";
+  
+  // Only add brand if it's not already at the start of the name
+  if (sBrand && !sName.startsWith(sBrand)) {
+    prefix += sBrand + "-";
+  }
+  
+  // Only add model if it's not already present in the name
+  if (sModel && !sName.includes(sModel)) {
+    prefix += sModel + "-";
+  }
+  
+  let finalSlug = prefix + sName;
+  
+  // Add SKU at the end if it's not already in the slug
+  if (sku) {
+    const sSku = slugify(sku);
+    if (sSku && !finalSlug.includes(sSku)) {
+      finalSlug += "-" + sSku;
+    }
+  }
+
+  // Final cleanup of hyphens
+  return finalSlug
+    .replace(/-+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '');
 }
 
 /**
