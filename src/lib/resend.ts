@@ -156,7 +156,7 @@ export async function sendOrderReceivedEmail(order: any, customerEmail: string) 
         ${getEmailHeader(subject)}
         <h2 style="margin-top: 0; font-size: 20px;">Kedves ${billingData.firstName || billingData.name}!</h2>
         <p style="font-size: 16px; line-height: 1.6;">
-            Köszönjük rendelését! Sikeresen rögzítettük a rendelését, és megkezdtük a termék minőségi ellenőrzését.
+            Köszönjük rendelését! Sikeresen rögzítettük és megkezdtük a termék minőségi ellenőrzését.
         </p>
         <p style="font-size: 16px; line-height: 1.6;">
             Amint mindent rendben találunk, jóváhagyjuk a rendelését és értesítjük ${isPickup ? 'az átvételi információkról' : 'a szállításról'}.
