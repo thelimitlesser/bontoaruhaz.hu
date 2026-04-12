@@ -131,10 +131,6 @@ export default function CheckoutView() {
                 clearTimeout(timer);
                 // We DON'T reset syncInFlight here because the async task might still be running
             };
-        } else if (paymentMethod !== 'card') {
-            // We only hide the secret from UI, but we KEEP the ID to reuse if they switch back
-            setClientSecret(null);
-            setPaymentIntentError(null);
         }
     }, [isCurrentlyValid, grandTotal, paymentMethod, paymentIntentId, lastIntentAmount, isFetchingSecret, shippingMethod]);
 
