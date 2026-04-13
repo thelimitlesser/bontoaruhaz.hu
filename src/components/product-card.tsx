@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ShoppingCart, Tag, MapPin, Globe } from "lucide-react";
+import { ShoppingCart, Tag, MapPin, Globe, Calendar } from "lucide-react";
 import Image from "next/image";
 import { clsx } from "clsx";
 import { Product } from "@/lib/mock-data";
@@ -49,8 +49,8 @@ export function ProductCard({ product }: { product: Product | any }) {
     
     // Format year range
     const formatYear = () => {
-        const from = isPrisma ? product.yearFrom : product.yearFrom; // mock might have it too
-        const to = isPrisma ? product.yearTo : product.yearTo;
+        const from = product.yearFrom;
+        const to = product.yearTo;
         
         if (!from && !to) return null;
         if (from && to) {
@@ -77,14 +77,14 @@ export function ProductCard({ product }: { product: Product | any }) {
             <div className="glass-card p-0 pb-4 relative overflow-hidden flex flex-col h-full transition-transform duration-300 group-hover:-translate-y-1 bg-background/40 backdrop-blur-md border border-border hover:border-[var(--color-primary)]/50 hover:shadow-lg hover:shadow-[0_0_20px_rgba(219,81,60,0.1)]">
                 {/* Badge Container */}
                 <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
-                    {isPrisma && product?.isUniversal && (
+                    {product?.isUniversal && (
                         <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-orange-500/20 border-orange-500 text-orange-600 backdrop-blur-md uppercase tracking-widest flex items-center">
                             <Globe className="w-2.5 h-2.5 mr-1" /> Univerzális
                         </span>
                     )}
                     {yearRange && (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-blue-500/20 border-blue-500/50 text-blue-600 dark:text-blue-400 backdrop-blur-md uppercase tracking-widest whitespace-nowrap">
-                            {yearRange}
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-blue-500/20 border-blue-500/50 text-blue-600 dark:text-blue-400 backdrop-blur-md uppercase tracking-widest whitespace-nowrap flex items-center">
+                            <Calendar className="w-2.5 h-2.5 mr-1" /> Évjárat: {yearRange}
                         </span>
                     )}
                 </div>

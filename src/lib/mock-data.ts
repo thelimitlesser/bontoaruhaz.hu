@@ -15,6 +15,8 @@ export interface Product {
     width?: number | null;
     height?: number | null;
     subcategorySlug?: string;
+    yearFrom?: number | null;
+    yearTo?: number | null;
 }
 
 export const mockProducts: Product[] = [
@@ -33,7 +35,9 @@ export const mockProducts: Product[] = [
         weight: 3,
         length: 60,
         width: 30,
-        height: 25
+        height: 25,
+        yearFrom: 2012,
+        yearTo: 2020
     },
     {
         id: '2',
@@ -47,7 +51,9 @@ export const mockProducts: Product[] = [
         sku: 'BMW-12317789981',
         quantity: 1,
         subcategorySlug: 'generator',
-        weight: 6
+        weight: 6,
+        yearFrom: 1998,
+        yearTo: 2005
     },
     {
         id: '3',
