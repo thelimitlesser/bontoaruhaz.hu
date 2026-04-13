@@ -102,6 +102,8 @@ model Part {
   @@index([sku])
   @@index([productCode])
   @@index([engineCode])
+  @@index([createdAt])
+  @@index([priceGross])
 }
 
 model Order {
@@ -198,6 +200,7 @@ model PartItem {
   PartSubcategory PartSubcategory @relation(fields: [subcategoryId], references: [id])
 
   @@index([subcategoryId])
+  @@index([slug])
 }
 
 model PartSubcategory {
@@ -211,6 +214,7 @@ model PartSubcategory {
   PartCategory PartCategory @relation(fields: [categoryId], references: [id])
 
   @@index([categoryId])
+  @@index([slug])
 }
 
 model VehicleBrand {
@@ -237,6 +241,7 @@ model VehicleModel {
   VehicleBrand      VehicleBrand        @relation(fields: [brandId], references: [id])
 
   @@index([brandId])
+  @@index([slug])
 }
 
 model Reservation {
