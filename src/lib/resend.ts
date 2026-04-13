@@ -175,7 +175,10 @@ export async function sendOrderReceivedEmail(order: any, customerEmail: string) 
             from: 'Bontóáruház <info@bontoaruhaz.hu>',
             to: customerEmail,
             subject,
-            html
+            html,
+            headers: {
+                "X-Entity-Ref-ID": order.id,
+            }
         });
     } catch (error) {
         console.error('Error sending OrderReceived email:', error);
@@ -228,7 +231,10 @@ export async function sendOrderConfirmedEmail(order: any, customerEmail: string,
             from: 'Bontóáruház <info@bontoaruhaz.hu>',
             to: customerEmail,
             subject,
-            html
+            html,
+            headers: {
+                "X-Entity-Ref-ID": order.id,
+            }
         });
     } catch (error) {
         console.error('Error sending OrderConfirmed email:', error);

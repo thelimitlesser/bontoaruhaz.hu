@@ -257,9 +257,9 @@ export async function createOrder(data: {
         console.error("Error decrementing stock or clearing reservations after order:", error);
     }
 
-    // Send "Order Received" email (non-blocking)
+    // Send "Order Received" email
     console.log(`TRIGGERING "Order Received" email for ${customerData.email}`);
-    sendOrderReceivedEmail(order, customerData.email).catch(err => {
+    await sendOrderReceivedEmail(order, customerData.email).catch(err => {
         console.error("CRITICAL: sendOrderReceivedEmail CATCH error:", err);
     });
 
