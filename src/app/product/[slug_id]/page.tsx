@@ -117,6 +117,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
   // Filter reservations: Ignore the current user's session ID when calculating availability
   const reservationsByOthers = dbPart.reservations?.filter(r => r.sessionId !== sessionId) || [];
   const bookedByOthers = reservationsByOthers.reduce((acc, r) => acc + r.quantity, 0);
+  
+  // For the display: Count ALL active reservations (to show what's left on the shelf)
+  const bookedByAll = dbPart.reservations?.reduce((acc, r) => acc + r.quantity, 0) || 0;
+  const remainingOnShelf = Math.max(0, dbPart.stock - bookedByAll);
 
   const product: Product = {
     id: dbPart.id,
@@ -492,7 +496,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                           <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
                         )}
                       </span>
-                      {product.quantity} darab
+                      {remainingOnShelf} darab
                     </span>
                   </div>
 
