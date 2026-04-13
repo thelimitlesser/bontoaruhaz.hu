@@ -38,6 +38,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
             currentSessionId = crypto.randomUUID();
             localStorage.setItem("bontoaruhaz-session-id", currentSessionId);
         }
+        // Sync with cookie for SSR
+        document.cookie = `bontoaruhaz-session-id=${currentSessionId}; path=/; max-age=${60 * 60 * 24 * 7}`; // 7 days
         setSessionId(currentSessionId);
 
         const savedCart = localStorage.getItem("bontoaruhaz-cart");
