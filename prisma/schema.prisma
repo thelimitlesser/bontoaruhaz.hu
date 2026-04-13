@@ -82,6 +82,7 @@ model Part {
   engineCode      String?
   bodyType        String?
   packageType     String              @default("doboz")
+  originalPrice   Int?
   orderItems      OrderItem[]
   VehicleBrand    VehicleBrand?       @relation(fields: [brandId], references: [id])
   PartCategory    PartCategory?       @relation(fields: [categoryId], references: [id])

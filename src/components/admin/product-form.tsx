@@ -14,6 +14,7 @@ import { VehicleCompatibilitySection } from "./product-form/vehicle-compatibilit
 import { ImageUploadSection } from "./product-form/image-upload-section";
 import { DescriptionSection } from "./product-form/description-section";
 import { PricingSection } from "./product-form/pricing-section";
+import { DuplicateWarningModal } from "./product-form/duplicate-warning-modal";
 
 interface ProductFormProps {
     initialData?: any;
@@ -55,6 +56,11 @@ export function ProductForm({
     const [nameDuplicates, setNameDuplicates] = useState<any[]>([]);
     const [isCheckingSku, setIsCheckingSku] = useState(false);
     const [isCheckingName, setIsCheckingName] = useState(false);
+    
+    // Warning Modal States
+    const [activeWarning, setActiveWarning] = useState<{ product: any, type: 'name' | 'sku' } | null>(null);
+    const [acknowledgedNameIds, setAcknowledgedNameIds] = useState<Set<string>>(new Set());
+    const [acknowledgedSkuIds, setAcknowledgedSkuIds] = useState<Set<string>>(new Set());
     const [yearFrom, setYearFrom] = useState(initialData?.yearFrom?.toString() || "");
     const [yearTo, setYearTo] = useState(initialData?.yearTo?.toString() || "");
     const [condition, setCondition] = useState(initialData?.condition || "used");
@@ -65,13 +71,19 @@ export function ProductForm({
     const [lastAutoHeader, setLastAutoHeader] = useState("");
     
     // Pricing & Dimensions states (to fix data loss and naming mismatch)
-    const [priceGross, setPriceGross] = useState(initialData?.priceGross?.toString() || "");
+    const isSale = !!initialData?.originalPrice;
+    const [priceGross, setPriceGross] = useState(
+        isSale ? initialData.originalPrice.toString() : initialData?.priceGross?.toString() || ""
+    );
     const [weight, setWeight] = useState(initialData?.weight?.toString() || "");
     const [length, setLength] = useState(initialData?.length?.toString() || ""); // Sync with DB
     const [width, setWidth] = useState(initialData?.width?.toString() || "");
     const [height, setHeight] = useState(initialData?.height?.toString() || "");
     const [packageType, setPackageType] = useState(initialData?.packageType || "doboz");
     const [shippingPrice, setShippingPrice] = useState(initialData?.shippingPrice?.toString() || ""); // Sync with DB
+    const [originalPrice, setOriginalPrice] = useState(
+        isSale ? initialData.priceGross.toString() : initialData?.originalPrice?.toString() || ""
+    );
     const [stock, setStock] = useState(initialData?.stock?.toString() || "1");
 
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
@@ -154,12 +166,15 @@ export function ProductForm({
         if (!initialData) getNextReferenceNumber().then(setAutoRef);
     }, [initialData]);
 
-    // Real-time name duplicate check
+    // Real-time name/trio duplicate check
     useEffect(() => {
         const checkName = async () => {
-            if (productName.trim().length >= 5) {
+            // Check by name AND by trio (brand+model+partItem)
+            const hasEnoughInfo = productName.trim().length >= 5 || (selectedBrand && selectedModel && selectedPartItem);
+            
+            if (hasEnoughInfo) {
                 setIsCheckingName(true);
-                const duplicates = await checkDuplicateProduct(productName, initialData?.id);
+                const duplicates = await checkDuplicateProduct(productName, initialData?.id, selectedBrand, selectedModel, selectedPartItem);
                 setNameDuplicates(duplicates);
                 setIsCheckingName(false);
             } else {
@@ -167,9 +182,9 @@ export function ProductForm({
                 setIsCheckingName(false);
             }
         };
-        const timer = setTimeout(checkName, 600);
+        const timer = setTimeout(checkName, 300);
         return () => clearTimeout(timer);
-    }, [productName, initialData?.id]);
+    }, [productName, initialData?.id, selectedBrand, selectedModel, selectedPartItem]);
 
     // Real-time SKU duplicate check
     useEffect(() => {
@@ -187,6 +202,27 @@ export function ProductForm({
         const timer = setTimeout(checkSku, 500);
         return () => clearTimeout(timer);
     }, [sku, initialData?.id]);
+
+    // TRIGGER WARNING MODAL
+    useEffect(() => {
+        // 1. Priority to SKU duplicates
+        if (duplicateWarnings.length > 0) {
+            const match = duplicateWarnings[0];
+            if (!acknowledgedSkuIds.has(match.id)) {
+                setActiveWarning({ product: match, type: 'sku' });
+                return;
+            }
+        } 
+        
+        // 2. Then Name/Trio duplicates
+        if (nameDuplicates.length > 0) {
+            const match = nameDuplicates[0];
+            if (!acknowledgedNameIds.has(match.id)) {
+                setActiveWarning({ product: match, type: 'name' });
+                return;
+            }
+        }
+    }, [duplicateWarnings, nameDuplicates, acknowledgedNameIds, acknowledgedSkuIds]);
 
     // Intelligent Auto-Name & Header Generation
     
@@ -241,7 +277,7 @@ export function ProductForm({
                 }
             }
         }
-    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj, productName, descriptionHeader, lastAutoName, lastAutoHeader]);
+    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj]); // Removed productName/descriptionHeader to avoid loop, focus on inputs
 
     // Native Spellcheck Force
     useEffect(() => {
@@ -335,6 +371,7 @@ export function ProductForm({
             if (weight) formData.set('weight', weight);
             if (priceGross) formData.set('priceGross', priceGross);
             if (shippingPrice) formData.set('shippingPrice', shippingPrice);
+            if (originalPrice) formData.set('originalPrice', originalPrice);
             if (stock) formData.set('stock', stock);
 
             // Use XMLHttpRequest for actual upload progress tracking
@@ -444,10 +481,32 @@ export function ProductForm({
                 width={width} setWidth={setWidth}
                 height={height} setHeight={setHeight}
                 shippingPrice={shippingPrice} setShippingPrice={setShippingPrice}
+                originalPrice={originalPrice} setOriginalPrice={setOriginalPrice}
                 stock={stock} setStock={setStock}
                 initialData={initialData} 
                 isSubmitting={isSubmitting} 
                 errors={validationErrors} 
+            />
+
+            <DuplicateWarningModal 
+                isOpen={!!activeWarning}
+                onClose={() => {
+                    if (activeWarning) {
+                        const id = activeWarning.product.id;
+                        if (activeWarning.type === 'sku') {
+                            setAcknowledgedSkuIds(prev => new Set(prev).add(id));
+                        } else {
+                            setAcknowledgedNameIds(prev => new Set(prev).add(id));
+                        }
+                        setActiveWarning(null);
+                    }
+                }}
+                product={{
+                    id: activeWarning?.product.id || "",
+                    name: activeWarning?.product.name || "",
+                    productCode: activeWarning?.product.productCode,
+                    sku: activeWarning?.product.sku
+                }}
             />
 
         </form>

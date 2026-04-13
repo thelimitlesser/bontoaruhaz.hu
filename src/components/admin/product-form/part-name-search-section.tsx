@@ -55,21 +55,6 @@ export function PartNameSearchSection({
                         {isCheckingName && <div className="absolute right-3 top-3.5"><Loader2 className="w-5 h-5 text-[var(--color-primary)] animate-spin" /></div>}
                     </div>
                     
-                    {/* Name Duplicate Warning */}
-                    {nameDuplicates.length > 0 && (
-                        <div className="mt-3 bg-red-50 border border-red-200 p-3 rounded-lg animate-in fade-in slide-in-from-top-2 absolute w-full z-20 shadow-xl ring-1 ring-red-500/20">
-                            <p className="text-xs font-bold text-red-800 flex items-center gap-1.5 mb-2 uppercase tracking-tight">⚠️ FIGYELEM! Ez a termék már létezik:</p>
-                            <ul className="space-y-1.5">
-                                {nameDuplicates.map(dup => (
-                                    <li key={dup.id} className="text-[10px] text-red-900 bg-white/80 px-2 py-1.5 rounded flex justify-between items-center border border-red-100">
-                                        <span className="font-semibold truncate mr-2">{dup.name}</span>
-                                        <span className="whitespace-nowrap font-mono bg-red-200 px-1.5 py-0.5 rounded text-red-900 font-bold">Ref: {dup.productCode}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <p className="text-[10px] text-red-600 mt-2 font-medium italic">Kérjük ellenőrizze, hogy biztosan új terméket kíván-e feltölteni!</p>
-                        </div>
-                    )}
 
                     <p className={clsx("text-[10px] font-bold uppercase tracking-wider", errors.includes("productName") ? "text-red-500" : "text-[var(--color-primary)]")}>
                         {errors.includes("productName") ? "Ez a mező kötelező!" : "Intelligens névgenerálás aktív - kiegészítheted manuálisan is"}

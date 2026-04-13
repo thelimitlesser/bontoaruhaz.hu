@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { clsx } from "clsx";
 import { Box, Edit2, Trash2, X, AlertTriangle } from "lucide-react";
 import { ProductForm } from "@/components/admin/product-form";
 import { deleteProduct, updatePartStock } from "@/app/actions/product";
@@ -96,6 +97,13 @@ export function InventoryTable({
                                                     Hiv. szám: {part.productCode}
                                                 </div>
                                             )}
+                                            {part.originalPrice && part.originalPrice > part.priceGross && (
+                                                <div className="mt-2">
+                                                    <span className="text-[10px] bg-red-600 text-white font-black px-2 py-1 rounded-full animate-pulse uppercase tracking-wider">
+                                                        AKCIÓ
+                                                    </span>
+                                                </div>
+                                            )}
                                             {part.oemNumbers && (
                                                 <div className="mt-1 text-xs text-gray-500 line-clamp-1">
                                                     OEM: {part.oemNumbers}
@@ -144,7 +152,15 @@ export function InventoryTable({
                                             </div>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <div className="font-bold text-gray-900 text-lg whitespace-nowrap">
+                                            {part.originalPrice && part.originalPrice > part.priceGross && (
+                                                <div className="text-xs text-gray-400 line-through mb-1">
+                                                    {part.originalPrice.toLocaleString('hu-HU')}&nbsp;Ft
+                                                </div>
+                                            )}
+                                            <div className={clsx(
+                                                "font-bold text-lg whitespace-nowrap",
+                                                part.originalPrice && part.originalPrice > part.priceGross ? "text-red-600" : "text-gray-900"
+                                            )}>
                                                 {part.priceGross.toLocaleString('hu-HU')}&nbsp;Ft
                                             </div>
                                         </td>

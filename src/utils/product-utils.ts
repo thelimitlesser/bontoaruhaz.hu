@@ -20,12 +20,21 @@ export function parseProductFormData(formData: FormData) {
         return isNaN(num) ? 0 : num;
     };
 
+    const normalPrice = getInt('priceGross');
+    const salePrice = formData.get('originalPrice') ? getInt('originalPrice') : null;
+
+    // Logic Swap: Normal price is always entered on the left, Sale price on the right.
+    // If sale price is provided, it becomes the active price (priceGross).
+    const finalPrice = salePrice !== null && salePrice > 0 ? salePrice : normalPrice;
+    const finalOriginal = salePrice !== null && salePrice > 0 ? normalPrice : null;
+
     return {
         name: formData.get('name') as string,
         sku: formData.get('sku') as string,
         productCode: formData.get('productCode') as string,
-        priceGross: getInt('priceGross'),
-        priceNet: Math.round(getInt('priceGross') / 1.27),
+        priceGross: finalPrice,
+        priceNet: Math.round(finalPrice / 1.27),
+        originalPrice: finalOriginal,
         description: formData.get('description') as string,
         oemNumbers: formData.get('oemNumbers') as string || "",
         engineCode: formData.get('engineCode') as string || "",

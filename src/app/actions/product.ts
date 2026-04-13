@@ -1,7 +1,7 @@
 'use server';
 
 import { prisma } from "@/lib/prisma";
-import { revalidatePath, unstable_cache } from "next/cache";
+import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { getActiveSubcategoriesForModelAction, getActivePartItemsForModelAction } from "@/app/actions/vehicle";
@@ -155,6 +155,7 @@ export async function createProduct(formData: FormData) {
             length: rawFormData.length,
             packageType: rawFormData.packageType,
             shippingPrice: rawFormData.shippingPrice,
+            originalPrice: rawFormData.originalPrice,
             compatibilities: {
                 create: parsedCompatibilities.map((c: any) => ({
                     brandId: c.brandId,
@@ -166,8 +167,14 @@ export async function createProduct(formData: FormData) {
         }
     });
 
-    revalidatePath('/admin/inventory');
+    revalidatePath('/admin/inventory', 'page');
     revalidatePath('/', 'layout');
+    revalidateTag("products");
+    revalidateTag("search");
+    revalidateTag("automotive");
+    revalidateTag("parts");
+    revalidateTag("categories");
+    
     redirect('/admin/inventory');
 }
 
@@ -269,6 +276,7 @@ export async function updateProduct(id: string, formData: FormData) {
             length: rawFormData.length,
             packageType: rawFormData.packageType,
             shippingPrice: rawFormData.shippingPrice,
+            originalPrice: rawFormData.originalPrice,
             compatibilities: {
                 deleteMany: {},
                 create: parsedCompatibilities.map((c: any) => ({
@@ -284,6 +292,11 @@ export async function updateProduct(id: string, formData: FormData) {
     revalidatePath('/admin/inventory');
     revalidatePath(`/product/${id}`);
     revalidatePath('/', 'layout');
+    revalidateTag("products");
+    revalidateTag("search");
+    revalidateTag("automotive");
+    revalidateTag("parts");
+    revalidateTag("categories");
 }
 
 export async function deleteProduct(id: string) {
@@ -337,6 +350,11 @@ export async function deleteProduct(id: string) {
 
     revalidatePath('/admin/inventory');
     revalidatePath('/', 'layout');
+    revalidateTag("products");
+    revalidateTag("search");
+    revalidateTag("automotive");
+    revalidateTag("parts");
+    revalidateTag("categories");
 }
 
 /*
@@ -475,6 +493,7 @@ export async function getSearchProducts(params: {
                     id: true,
                     name: true,
                     priceGross: true,
+                    originalPrice: true,
                     images: true,
                     sku: true,
                     brandId: true,
@@ -608,7 +627,7 @@ export async function checkDuplicateSku(sku: string, excludeId?: string) {
         const parts = await prisma.part.findMany({
             where: {
                 sku: {
-                    equals: sku,
+                    equals: sku.trim(),
                     mode: 'insensitive'
                 },
                 ...(excludeId ? { id: { not: excludeId } } : {})
@@ -616,6 +635,8 @@ export async function checkDuplicateSku(sku: string, excludeId?: string) {
             select: {
                 id: true,
                 name: true,
+                productCode: true,
+                sku: true,
                 stock: true
             },
             take: 5
@@ -629,31 +650,56 @@ export async function checkDuplicateSku(sku: string, excludeId?: string) {
 }
 
 /**
- * Checks if a product with the same name already exists.
- * Used for admin real-time warning during product upload.
+ * Checks if a product with the same name or trio (brand+model+partItem) already exists.
  */
-export async function checkDuplicateProduct(name: string, excludeId?: string) {
-    if (!name || name.trim().length < 5) return [];
+export async function checkDuplicateProduct(name: string, excludeId?: string, brandId?: string, modelId?: string, partItemId?: string) {
+    if (!name || name.trim().length < 5) {
+        // Even if name is short, we can check by trio if IDs are present
+        if (!brandId || !modelId || !partItemId) return [];
+    }
+
+    const normalizeName = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim();
+    const targetedName = normalizeName(name);
 
     try {
+        const where: any = {
+            ...(excludeId ? { id: { not: excludeId } } : {})
+        };
+
+        // Priority 1: Exact Trio Match (Brand + Model + PartItem)
+        if (brandId && modelId && partItemId) {
+            where.AND = [
+                { brandId },
+                { modelId },
+                { partItemId }
+            ];
+        } 
+        // Priority 2: Brand + Model narrow search
+        else if (brandId && modelId) {
+            where.brandId = brandId;
+            where.modelId = modelId;
+        }
+
         const parts = await prisma.part.findMany({
-            where: {
-                name: {
-                    equals: name,
-                    mode: 'insensitive'
-                },
-                ...(excludeId ? { id: { not: excludeId } } : {})
-            },
+            where,
             select: {
                 id: true,
                 name: true,
                 productCode: true,
+                sku: true,
                 stock: true
             },
-            take: 3
+            take: 20
         });
 
-        return parts;
+        // If we found exact trio matches, they are all duplicates
+        if (brandId && modelId && partItemId && parts.length > 0) {
+            return parts.slice(0, 3);
+        }
+
+        // Otherwise, filter in JS for normalized name match
+        const duplicates = parts.filter(p => normalizeName(p.name) === targetedName);
+        return duplicates.slice(0, 3);
     } catch (error) {
         console.error("Error checking duplicate product:", error);
         return [];
@@ -683,6 +729,7 @@ export async function getRelatedProducts(currentProductId: string, modelId: stri
                         id: true,
                         name: true,
                         priceGross: true,
+                        originalPrice: true,
                         images: true,
                         sku: true,
                         brandId: true,
@@ -813,6 +860,8 @@ export const getProductMetadataAction = cache(async (id: string) => {
                     description: true,
                     images: true,
                     sku: true,
+                    priceGross: true,
+                    originalPrice: true,
                     VehicleBrand: { select: { name: true } },
                     VehicleModel: { select: { name: true } }
                 }
@@ -955,6 +1004,6 @@ export async function getCategoryPageDataAction(params: {
             };
         },
         ["category-page-data-v2", JSON.stringify(params)],
-        { revalidate: 3600, tags: ["automotive", "parts", "categories"] }
+        { revalidate: 3600, tags: ["automotive", "parts", "categories", "products"] }
     )(params);
 }

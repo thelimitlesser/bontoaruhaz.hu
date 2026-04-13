@@ -20,6 +20,8 @@ interface PricingSectionProps {
     setPackageType: (val: string) => void;
     shippingPrice: string;
     setShippingPrice: (val: string) => void;
+    originalPrice: string;
+    setOriginalPrice: (val: string) => void;
     stock: string;
     setStock: (val: string) => void;
     isSubmitting: boolean;
@@ -35,6 +37,7 @@ export function PricingSection({
     height, setHeight,
     packageType, setPackageType,
     shippingPrice, setShippingPrice,
+    originalPrice, setOriginalPrice,
     stock, setStock,
     isSubmitting, 
     initialData,
@@ -66,7 +69,7 @@ export function PricingSection({
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-2">
-                    <label className={clsx("text-sm font-medium", errors.includes("priceGross") ? "text-red-600" : "text-gray-700")}>Eladási Ár (Ft) *</label>
+                    <label className={clsx("text-sm font-medium", errors.includes("priceGross") ? "text-red-600" : "text-gray-700")}>Normál Ár (Ft) *</label>
                     <div className="relative">
                         <input 
                             name="priceGross" 
@@ -91,19 +94,25 @@ export function PricingSection({
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Eredeti Ár (Opcionális - Akcióhoz)</label>
+                    <label className="text-sm font-medium text-red-600">Akciós Ár (Választható)</label>
                     <div className="relative">
                         <input 
                             name="originalPrice" 
                             type="text"
                             inputMode="numeric"
-                            defaultValue={initialData?.originalPrice || ""} 
-                            placeholder="pl. 20000" 
-                            className="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 focus:outline-none focus:border-[var(--color-primary)] text-gray-900 transition-colors" 
+                            value={originalPrice} 
+                            onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, '');
+                                setOriginalPrice(val);
+                            }}
+                            placeholder="Hagyd üresen ha nincs akció" 
+                            className="w-full bg-red-50/50 border border-red-200 rounded-lg px-4 py-3 focus:outline-none focus:border-red-500 text-red-900 font-bold transition-colors" 
                         />
-                        <div className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-gray-400">Ft</div>
+                        <div className="absolute right-4 top-1/2 -translate-y-1/2 font-bold text-red-400">Ft</div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Ha kitöltöd, a rendszer automatikusan &quot;AKCIÓ&quot; címkét tesz rá.</p>
+                    <p className="text-[10px] text-gray-500 mt-1 leading-tight">
+                        Ha beírod, ez lesz az új eladási ár, az alapárat pedig áthúzzuk.
+                    </p>
                 </div>
 
                 <div className="space-y-2">

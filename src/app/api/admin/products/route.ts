@@ -111,6 +111,7 @@ export async function POST(req: Request) {
             length: rawFormData.length,
             packageType: rawFormData.packageType,
             shippingPrice: rawFormData.shippingPrice,
+            originalPrice: rawFormData.originalPrice,
             PartCategory: rawFormData.categoryId ? { connect: { id: rawFormData.categoryId } } : undefined,
             PartSubcategory: rawFormData.subcategoryId ? { connect: { id: rawFormData.subcategoryId } } : undefined,
             PartItem: rawFormData.partItemId ? { connect: { id: rawFormData.partItemId } } : undefined,

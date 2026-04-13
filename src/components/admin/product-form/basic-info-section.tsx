@@ -46,19 +46,6 @@ export function BasicInfoSection({
                         />
                         {isCheckingSku && <div className="absolute right-3 top-3.5"><Loader2 className="w-5 h-5 text-gray-400 animate-spin" /></div>}
                     </div>
-                    {duplicateWarnings.length > 0 && (
-                        <div className="mt-3 bg-orange-50 border border-orange-200 p-3 rounded-lg animate-in fade-in slide-in-from-top-2 absolute w-full md:w-[250%] z-10 shadow-xl">
-                            <p className="text-xs font-bold text-orange-800 flex items-center gap-1.5 mb-2">⚠️ Figyelem! Létező termék(ek):</p>
-                            <ul className="space-y-1.5">
-                                {duplicateWarnings.map(dup => (
-                                    <li key={dup.id} className="text-[10px] text-orange-900 bg-white/60 px-2 py-1.5 rounded flex justify-between items-center border border-orange-100">
-                                        <span className="font-semibold truncate mr-2">{dup.name}</span>
-                                        <span className="whitespace-nowrap"><span className="font-mono bg-orange-200 px-1.5 py-0.5 rounded text-orange-900 font-bold">{dup.stock} db</span> készleten</span>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    )}
                 </div>
 
                 {/* Engine Code */}

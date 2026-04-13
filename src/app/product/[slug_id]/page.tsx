@@ -10,6 +10,7 @@ import { CompatibilityWrapper } from "@/components/compatibility-wrapper";
 import { AddToCartButton } from "@/components/add-to-cart-button";
 import { Product } from "@/lib/mock-data";
 import { RelatedProductsWrapper } from "@/components/related-products-wrapper";
+import { clsx } from "clsx";
 
 
 
@@ -430,12 +431,30 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                 <div className="relative z-10 space-y-6">
                   {/* Price Block */}
                   <div>
-                    <span className="text-xs font-bold text-gray-600 uppercase tracking-widest block mb-1">Vételár</span>
+                    {dbPart.originalPrice && dbPart.originalPrice > dbPart.priceGross && (
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-sm text-gray-400 line-through font-medium">
+                          {dbPart.originalPrice.toLocaleString('hu-HU')} Ft
+                        </span>
+                        <span className="text-[10px] bg-red-600 text-white font-black px-2 py-0.5 rounded-full animate-pulse uppercase tracking-wider">
+                          -{Math.round(((dbPart.originalPrice - dbPart.priceGross) / dbPart.originalPrice) * 100)}% KEDVEZMÉNY
+                        </span>
+                      </div>
+                    )}
+                    <span className="text-xs font-bold text-gray-600 uppercase tracking-widest block mb-1">
+                      {dbPart.originalPrice && dbPart.originalPrice > dbPart.priceGross ? 'Akciós Vételár' : 'Vételár'}
+                    </span>
                     <div className="flex items-baseline gap-2">
-                      <span className="text-3xl sm:text-5xl font-black text-foreground tracking-tight">
+                      <span className={clsx(
+                        "text-3xl sm:text-5xl font-black tracking-tight",
+                        dbPart.originalPrice && dbPart.originalPrice > dbPart.priceGross ? "text-red-600" : "text-foreground"
+                      )}>
                         {product.price.toLocaleString('hu-HU')}
                       </span>
-                      <span className="text-lg sm:text-xl font-bold text-gray-600">Ft</span>
+                      <span className={clsx(
+                        "text-lg sm:text-xl font-bold",
+                        dbPart.originalPrice && dbPart.originalPrice > dbPart.priceGross ? "text-red-600/60" : "text-gray-600"
+                      )}>Ft</span>
                     </div>
                   </div>
 

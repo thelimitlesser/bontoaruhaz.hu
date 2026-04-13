@@ -118,8 +118,23 @@ export function ProductCard({ product }: { product: Product | any }) {
 
                     <div className="mt-auto flex items-end justify-between">
                         <div className="flex flex-col">
-                            <span className="text-xs text-gray-500 font-medium">Vételár:</span>
-                            <span className="text-xl font-bold text-foreground group-hover:text-[var(--color-primary)] transition-colors whitespace-nowrap">
+                            {isPrisma && product?.originalPrice && product.originalPrice > product.priceGross && (
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs text-gray-400 line-through">
+                                        {product.originalPrice.toLocaleString('hu-HU')} {displayCurrency}
+                                    </span>
+                                    <span className="text-[10px] bg-red-600 text-white font-black px-1.5 py-0.5 rounded-full animate-pulse uppercase tracking-tighter">
+                                        -{Math.round(((product.originalPrice - product.priceGross) / product.originalPrice) * 100)}%
+                                    </span>
+                                </div>
+                            )}
+                            <span className="text-xs text-gray-500 font-medium">{isPrisma && product?.originalPrice && product.originalPrice > product.priceGross ? 'Akciós ár:' : 'Vételár:'}</span>
+                            <span className={clsx(
+                                "text-xl font-bold transition-colors whitespace-nowrap",
+                                isPrisma && product?.originalPrice && product.originalPrice > product.priceGross 
+                                    ? "text-red-600 group-hover:text-red-700" 
+                                    : "text-foreground group-hover:text-[var(--color-primary)]"
+                            )}>
                                 {displayPrice?.toLocaleString('hu-HU')} {displayCurrency}
                             </span>
                         </div>
