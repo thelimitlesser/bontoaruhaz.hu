@@ -29,10 +29,10 @@ export function BrandModelsList({ brand, models }: BrandModelsListProps) {
         <div className="relative flex-grow bg-white">
           <input
             type="text"
-            placeholder="Keress modell, széria vagy kód (pl. E46) alapján..."
+            placeholder="Modell, széria vagy kód keresése..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-transparent py-5 px-8 text-gray-700 focus:outline-none placeholder:text-gray-300 text-lg font-bold"
+            className="w-full bg-transparent py-4 md:py-5 px-4 md:px-8 text-gray-700 focus:outline-none placeholder:text-gray-300 text-sm md:text-lg font-bold"
           />
         </div>
         <button className="bg-gradient-to-r from-[var(--color-primary)] to-[#f97316] hover:opacity-95 text-white px-8 sm:px-12 py-4 sm:py-5 font-black flex items-center justify-center gap-3 transition-all min-w-full md:min-w-[240px] uppercase tracking-wider text-xs sm:text-sm">
