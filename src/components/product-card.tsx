@@ -82,11 +82,6 @@ export function ProductCard({ product }: { product: Product | any }) {
                             <Globe className="w-2.5 h-2.5 mr-1" /> Univerzális
                         </span>
                     )}
-                    {yearRange && (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-blue-500/20 border-blue-500/50 text-blue-600 dark:text-blue-400 backdrop-blur-md uppercase tracking-widest whitespace-nowrap flex items-center">
-                            <Calendar className="w-2.5 h-2.5 mr-1" /> Évjárat: {yearRange}
-                        </span>
-                    )}
                 </div>
 
                 {/* Image Container (4:3 aspect ratio) */}
@@ -134,12 +129,21 @@ export function ProductCard({ product }: { product: Product | any }) {
                         </span>
                     </div>
 
-                    <h3 className={clsx("text-lg font-bold text-foreground leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-2 [overflow-wrap:anywhere] [word-break:break-word] min-w-0", (!product?.sku || product.sku === "SKU-HIÁNY") ? "mb-5" : "mb-1")}>
+                    <h3 className={clsx("text-lg font-bold text-foreground leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-2 [overflow-wrap:anywhere] [word-break:break-word] min-w-0")}>
                         {product?.name || "Név nélküli termék"}
                     </h3>
-                    {product?.sku && product.sku !== "SKU-HIÁNY" && (
-                        <p className="text-xs text-gray-400 mb-4 font-mono font-medium">{product.sku.toUpperCase()}</p>
-                    )}
+                    
+                    <div className="flex items-center gap-3 mb-4 mt-1">
+                        {product?.sku && product.sku !== "SKU-HIÁNY" && (
+                            <p className="text-xs text-gray-400 font-mono font-medium">{product.sku.toUpperCase()}</p>
+                        )}
+                        {yearRange && (
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
+                                <Calendar className="w-3 h-3" />
+                                <span>{yearRange}</span>
+                            </div>
+                        )}
+                    </div>
 
                     <div className="mt-auto flex items-end justify-between">
                         <div className="flex flex-col">
