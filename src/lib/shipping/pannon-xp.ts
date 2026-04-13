@@ -99,14 +99,14 @@ export async function createPxpShipment(order: any) {
             // 1 item: Lean labels to avoid overlap
             tartalomText = pName.slice(0, 39);
             megjegyzesText = pName.slice(0, 99);
-            // Ref gets the IDs (Max 30 chars)
-            refText = `#${shortOrderId} | ${pSku ? `${pSku} ` : ''}${pName}`.replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
+            // Ref gets ONLY the IDs (Max 30 chars) - No product name here as per user request
+            refText = `#${shortOrderId}${pSku ? ` | ${pSku}` : ''}`.replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
         } else {
-            // Multi items: Keep summary logic
+            // Multi items: Keep summary logic for content, but only Order ID for ref
             const summary = `${order.items.length} db autóalkatrész`;
             tartalomText = summary.slice(0, 39);
             megjegyzesText = (`#${shortOrderId} | ${summary}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 99);
-            refText = (`#${shortOrderId} | ${summary}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
+            refText = (`#${shortOrderId}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
         }
 
         // Prepare the shipment data
