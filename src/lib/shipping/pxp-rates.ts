@@ -77,44 +77,44 @@ export function getShippingPrice(
 }
 
 export function calculateShippingPriceForItems(items: any[]) {
-    let hasManualShippingPrice = false;
-    let manualTotalShipping = 0;
-    
+    if (!items || items.length === 0) return 0;
+
+    // 1. Calculate individual shipping price for each unit in the cart
+    const itemShippingPrices: number[] = [];
+    let totalQuantity = 0;
+
     items.forEach(item => {
+        const qty = item.quantityInCart || 1;
+        totalQuantity += qty;
+
+        let unitPrice = 0;
+        // Check manual price first
         if (item.shippingPrice !== undefined && item.shippingPrice !== null && item.shippingPrice > 0) {
-            hasManualShippingPrice = true;
-            manualTotalShipping += item.shippingPrice * (item.quantityInCart || 1);
+            unitPrice = item.shippingPrice;
+        } else {
+            // Calculate dynamic price based on weight/dimensions
+            const weight = item.weight || 2; 
+            const l = item.length || 30;
+            const w = item.width || 20;
+            const h = item.height || 10;
+            const subcategorySlug = item.subcategorySlug;
+            unitPrice = getShippingPrice(weight, l, w, h, subcategorySlug);
         }
-    });
-
-    if (hasManualShippingPrice) {
-        return manualTotalShipping;
-    }
-
-    let totalWeight = 0;
-    let maxSingleItemPrice = 0;
-    let hasSpecialCategory = false;
-
-    items.forEach(item => {
-        const weight = item.weight || 2; 
-        const l = item.length || 30;
-        const w = item.width || 20;
-        const h = item.height || 10;
-        const subcategorySlug = item.subcategorySlug;
-
-        const price = getShippingPrice(weight, l, w, h, subcategorySlug);
         
-        if (subcategorySlug && ['csomagterajto', 'lokharito', 'komplett-motor', 'motorhazteto', 'ajto', 'valto'].includes(subcategorySlug)) {
-            hasSpecialCategory = true;
-            maxSingleItemPrice = Math.max(maxSingleItemPrice, price);
+        // Add the unit price to our pool
+        for (let i = 0; i < qty; i++) {
+            itemShippingPrices.push(unitPrice);
         }
-
-        totalWeight += weight;
     });
 
-    if (hasSpecialCategory) {
-        return maxSingleItemPrice;
-    }
+    if (itemShippingPrices.length === 0) return 0;
 
-    return getShippingPrice(totalWeight);
+    // 2. Find the highest base price among all units
+    const maxBasePrice = Math.max(...itemShippingPrices);
+    
+    // 3. Add 1000 Ft for every additional unit beyond the first one
+    const additionalUnitsCount = totalQuantity - 1;
+    const finalShippingCost = maxBasePrice + (additionalUnitsCount * 1000);
+
+    return finalShippingCost;
 }
