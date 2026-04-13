@@ -82,20 +82,32 @@ export async function createPxpShipment(order: any) {
             };
         }
 
-        // Extract product details for the label and manifest
-        const productSummaries = order.items.map((i: any) => `${i.part.sku ? `[${i.part.sku}] ` : ''}${i.part.name || 'Alkatrész'}`);
-        const fullSummary = order.items.length > 1 
-            ? `${order.items.length} db autóalkatrész` 
-            : productSummaries.join(' + ');
-            
-        const packageTypeLabel = (order.items[0]?.part as any).packageType || 'doboz';
-        const formattedType = packageTypeLabel.toUpperCase().replace('_', ' ');
-        
         // PXP has strict character limits: Tartalom (~40), Megjegyzés (~100)
         // Forbidden chars: ' " \ < > ? $ ;
-        const tartalomText = fullSummary.replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 39);
-        const megjegyzesText = ("#" + order.id.slice(0, 8).toUpperCase() + " | " + fullSummary).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 99);
-        const refText = ("#" + order.id.slice(0, 8).toUpperCase() + " | " + fullSummary).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29); // Max 30 chars for ref
+        const isSingleItem = order.items.length === 1;
+        const shortOrderId = order.id.slice(0, 8).toUpperCase();
+        
+        let tartalomText: string;
+        let megjegyzesText: string;
+        let refText: string;
+
+        if (isSingleItem) {
+            const item = order.items[0];
+            const pName = cleanPxpText(item.part?.name || 'Alkatrész');
+            const pSku = cleanPxpText(item.part?.sku || '');
+            
+            // 1 item: Lean labels to avoid overlap
+            tartalomText = pName.slice(0, 39);
+            megjegyzesText = pName.slice(0, 99);
+            // Ref gets the IDs (Max 30 chars)
+            refText = `#${shortOrderId} | ${pSku ? `${pSku} ` : ''}${pName}`.replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
+        } else {
+            // Multi items: Keep summary logic
+            const summary = `${order.items.length} db autóalkatrész`;
+            tartalomText = summary.slice(0, 39);
+            megjegyzesText = (`#${shortOrderId} | ${summary}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 99);
+            refText = (`#${shortOrderId} | ${summary}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
+        }
 
         // Prepare the shipment data
         const shipmentRequest: any = {
