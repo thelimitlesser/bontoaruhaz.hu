@@ -10,7 +10,7 @@ import { loadStripe } from "@stripe/stripe-js";
 import { Elements } from "@stripe/react-stripe-js";
 import { PaymentForm } from "./payment-form";
 import { createPaymentIntent, updatePaymentIntent } from "@/app/actions/payment";
-import { calculateShippingPriceForItems } from "@/lib/shipping/pxp-rates";
+import { calculateShippingPriceForItems, ShippingCalculationResult } from "@/lib/shipping/pxp-rates";
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || "");
 
@@ -45,7 +45,7 @@ export default function CheckoutView() {
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
 
-    const [shippingCost, setShippingCost] = useState(0);
+    const [shippingData, setShippingData] = useState<ShippingCalculationResult>({ finalCost: 0, originalTotal: 0, savings: 0, totalQuantity: 0 });
 
     useEffect(() => {
         setMounted(true);
@@ -53,12 +53,13 @@ export default function CheckoutView() {
 
     useEffect(() => {
         if (items.length > 0) {
-            setShippingCost(calculateShippingPriceForItems(items));
+            setShippingData(calculateShippingPriceForItems(items));
         } else {
-            setShippingCost(0);
+            setShippingData({ finalCost: 0, originalTotal: 0, savings: 0, totalQuantity: 0 });
         }
     }, [items]);
 
+    const shippingCost = shippingData.finalCost;
     const grandTotal = totalPrice + (shippingMethod === 'delivery' ? shippingCost : 0);
 
     const validateTaxNumber = (tax: string) => /^\d{8}-\d{1}-\d{2}$/.test(tax);
@@ -282,9 +283,16 @@ export default function CheckoutView() {
                                             <p className="text-muted text-xs">Kiszállítás 1-2 munkanap alatt</p>
                                         </div>
                                     </div>
-                                    <span className="text-foreground font-bold text-sm">
-                                        {shippingCost > 0 ? `${shippingCost.toLocaleString('hu-HU')} Ft` : "Még nem elérhető"}
-                                    </span>
+                                    <div className="text-right">
+                                        <div className="text-foreground font-bold text-sm">
+                                            {shippingCost > 0 ? `${shippingCost.toLocaleString('hu-HU')} Ft` : "Még nem elérhető"}
+                                        </div>
+                                        {shippingMethod === 'delivery' && shippingData.savings > 0 && (
+                                            <div className="text-[10px] text-emerald-500 font-bold animate-in fade-in slide-in-from-right-2">
+                                                -{shippingData.savings.toLocaleString('hu-HU')} Ft csomagkedvezmény
+                                            </div>
+                                        )}
+                                    </div>
 
 
                                 </div>
@@ -524,7 +532,16 @@ export default function CheckoutView() {
                                 </div>
                                 <div className="flex items-center justify-between text-muted text-sm">
                                     <span>{shippingMethod === 'delivery' ? "Szállítás (Pannon XP)" : "Személyes átvétel"}</span>
-                                <span>{shippingMethod === 'delivery' ? (shippingCost === 0 ? "Ingyenes" : `${shippingCost.toLocaleString('hu-HU')} Ft`) : "Ingyenes"}</span>
+                                    <div className="text-right">
+                                        <div className="font-bold text-foreground">
+                                            {shippingMethod === 'delivery' ? (shippingCost === 0 ? "Ingyenes" : `${shippingCost.toLocaleString('hu-HU')} Ft`) : "Ingyenes"}
+                                        </div>
+                                        {shippingMethod === 'delivery' && shippingData.savings > 0 && (
+                                            <div className="text-[10px] text-emerald-500 font-bold">
+                                                Csomagkedvezmény: -{shippingData.savings.toLocaleString('hu-HU')} Ft
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex items-center justify-between text-foreground text-xl font-black pt-4 border-t border-border">
                                     <span>Végösszeg</span>

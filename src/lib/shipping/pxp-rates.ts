@@ -76,23 +76,31 @@ export function getShippingPrice(
     return 21248;
 }
 
-export function calculateShippingPriceForItems(items: any[]) {
-    if (!items || items.length === 0) return 0;
+export interface ShippingCalculationResult {
+    finalCost: number;
+    originalTotal: number;
+    savings: number;
+    totalQuantity: number;
+}
 
-    // 1. Calculate individual shipping price for each unit in the cart
-    const itemShippingPrices: number[] = [];
+export function calculateShippingPriceForItems(items: any[]): ShippingCalculationResult {
+    if (!items || items.length === 0) {
+        return { finalCost: 0, originalTotal: 0, savings: 0, totalQuantity: 0 };
+    }
+
+    const itemIndividualPrices: number[] = [];
     let totalQuantity = 0;
+    let originalTotal = 0;
 
     items.forEach(item => {
-        const qty = item.quantityInCart || 1;
+        const qty = Number(item.quantityInCart || 1);
         totalQuantity += qty;
 
         let unitPrice = 0;
-        // Check manual price first
+        // 1. Determine the unit shipping price for this item
         if (item.shippingPrice !== undefined && item.shippingPrice !== null && item.shippingPrice > 0) {
             unitPrice = item.shippingPrice;
         } else {
-            // Calculate dynamic price based on weight/dimensions
             const weight = item.weight || 2; 
             const l = item.length || 30;
             const w = item.width || 20;
@@ -101,20 +109,33 @@ export function calculateShippingPriceForItems(items: any[]) {
             unitPrice = getShippingPrice(weight, l, w, h, subcategorySlug);
         }
         
-        // Add the unit price to our pool
+        // Add to original total (what it would cost without consolidation)
+        originalTotal += unitPrice * qty;
+
+        // Keep track of all individual unit prices to find the absolute maximum
         for (let i = 0; i < qty; i++) {
-            itemShippingPrices.push(unitPrice);
+            itemIndividualPrices.push(unitPrice);
         }
     });
 
-    if (itemShippingPrices.length === 0) return 0;
+    if (itemIndividualPrices.length === 0) {
+        return { finalCost: 0, originalTotal: 0, savings: 0, totalQuantity: 0 };
+    }
 
-    // 2. Find the highest base price among all units
-    const maxBasePrice = Math.max(...itemShippingPrices);
+    // 2. Find the highest single unit price among all items in the cart
+    const maxBasePrice = Math.max(...itemIndividualPrices);
     
-    // 3. Add 1000 Ft for every additional unit beyond the first one
+    // 3. Consolidated calculation: Base Price + 1000 Ft for every additional unit
     const additionalUnitsCount = totalQuantity - 1;
-    const finalShippingCost = maxBasePrice + (additionalUnitsCount * 1000);
+    const finalCost = maxBasePrice + (additionalUnitsCount * 1000);
 
-    return finalShippingCost;
+    // 4. Calculate savings
+    const savings = originalTotal - finalCost;
+
+    return {
+        finalCost,
+        originalTotal,
+        savings: Math.max(0, savings), // Savings shouldn't be negative
+        totalQuantity
+    };
 }
