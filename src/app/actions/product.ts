@@ -523,7 +523,8 @@ export async function getSearchProducts(params: {
             ...part,
             availableStock: part.stock - (part.reservations?.length || 0),
             brandName: part.VehicleBrand?.name || part.brandId,
-            modelName: part.VehicleModel?.name || part.modelId
+            modelName: part.VehicleModel?.name || part.modelId,
+            isCompatibilityMatch: brand && part.brandId !== brand && !part.isUniversal
         }));
 
         // Fuzzy search logic removed as per user request to restrict to technical IDs only

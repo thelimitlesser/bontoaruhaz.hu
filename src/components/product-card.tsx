@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { ShoppingCart, Tag, MapPin, Globe, Calendar } from "lucide-react";
+import { ShoppingCart, Tag, MapPin, Globe, Calendar, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
 import { clsx } from "clsx";
 import { Product } from "@/lib/mock-data";
@@ -22,6 +22,7 @@ export interface PrismaPart {
     yearFrom?: number | null;
     yearTo?: number | null;
     isUniversal?: boolean;
+    isCompatibilityMatch?: boolean;
     partner?: {
         businessName: string;
     } | null;
@@ -133,7 +134,7 @@ export function ProductCard({ product }: { product: Product | any }) {
                         {product?.name || "Név nélküli termék"}
                     </h3>
                     
-                    <div className="flex items-center gap-3 mb-4 mt-1">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4 mt-1">
                         {product?.sku && product.sku !== "SKU-HIÁNY" && (
                             <p className="text-xs text-gray-400 font-mono font-medium">{product.sku.toUpperCase()}</p>
                         )}
@@ -141,6 +142,12 @@ export function ProductCard({ product }: { product: Product | any }) {
                             <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
                                 <Calendar className="w-3 h-3" />
                                 <span>{yearRange}</span>
+                            </div>
+                        )}
+                        {product?.isCompatibilityMatch && (
+                            <div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 uppercase tracking-widest animate-in fade-in zoom-in duration-300">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Ellenőrzött illeszkedés</span>
                             </div>
                         )}
                     </div>
