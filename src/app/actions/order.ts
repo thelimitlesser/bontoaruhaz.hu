@@ -29,37 +29,67 @@ export async function createPendingOrder(data: {
     const billingAddress = billingSameAsShipping ? customerData.address : customerData.billingAddress;
     const taxNumber = isCompany ? customerData.taxNumber : '';
 
+    const existingOrder = await prisma.order.findFirst({
+        where: {
+            stripePaymentIntentId: stripePaymentIntentId,
+            paymentStatus: 'PENDING'
+        }
+    });
+
+    const orderData = {
+        userId,
+        totalAmount,
+        shippingCost: shippingCost || 0,
+        shippingAddress: JSON.stringify({
+            name: `${customerData.lastName} ${customerData.firstName}`,
+            address: customerData.address,
+            city: customerData.city,
+            postalCode: customerData.postalCode,
+            phone: customerData.phone,
+            email: customerData.email
+        }),
+        billingAddress: JSON.stringify({
+            name: billingName,
+            address: billingAddress,
+            city: billingCity,
+            postalCode: billingPostalCode,
+            taxNumber: taxNumber,
+            email: customerData.email,
+            companyName: customerData.companyName,
+            lastName: customerData.lastName,
+            firstName: customerData.firstName
+        }),
+        shippingMethod,
+        paymentMethod,
+        stripePaymentIntentId,
+        // @ts-ignore
+        isCompany: !!isCompany,
+        status: 'PENDING',
+        paymentStatus: 'PENDING',
+    };
+
+    if (existingOrder) {
+        console.log(`[UPSERT] Updating existing Pending order: ${existingOrder.id} for intent: ${stripePaymentIntentId}`);
+        return await prisma.order.update({
+            where: { id: existingOrder.id },
+            data: {
+                ...orderData,
+                items: {
+                    deleteMany: {}, // Clear old items to avoid messy quantity merges
+                    create: items.map(item => ({
+                        partId: item.id,
+                        quantity: item.quantityInCart,
+                        priceAtTime: item.price
+                    }))
+                }
+            },
+            include: { items: { include: { part: true } } }
+        });
+    }
+
     const order = await prisma.order.create({
         data: {
-            userId,
-            totalAmount,
-            shippingCost: shippingCost || 0,
-            shippingAddress: JSON.stringify({
-                name: `${customerData.lastName} ${customerData.firstName}`,
-                address: customerData.address,
-                city: customerData.city,
-                postalCode: customerData.postalCode,
-                phone: customerData.phone,
-                email: customerData.email
-            }),
-            billingAddress: JSON.stringify({
-                name: billingName,
-                address: billingAddress,
-                city: billingCity,
-                postalCode: billingPostalCode,
-                taxNumber: taxNumber,
-                email: customerData.email,
-                companyName: customerData.companyName,
-                lastName: customerData.lastName,
-                firstName: customerData.firstName
-            }),
-            shippingMethod,
-            paymentMethod,
-            stripePaymentIntentId,
-            // @ts-ignore
-            isCompany: !!isCompany,
-            status: 'PENDING',
-            paymentStatus: 'PENDING',
+            ...orderData,
             items: {
                 create: items.map(item => ({
                     partId: item.id,
@@ -82,14 +112,30 @@ export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: s
     console.log(`[FINALIZE] Triggered for Intent: ${paymentIntentId}`);
     if (!stripe) throw new Error("Stripe beállítások hiányoznak.");
 
-    // 1. Find the order first
+    // 1. Find the order first - prioritize the PENDING one
     const order = await prisma.order.findFirst({
-        where: { stripePaymentIntentId: paymentIntentId },
+        where: { 
+            stripePaymentIntentId: paymentIntentId,
+            paymentStatus: 'PENDING' 
+        },
         include: { items: { include: { part: true } } }
     });
 
     if (!order) {
-        console.error(`[FINALIZE] Order not found for Intent: ${paymentIntentId}`);
+        // Double check if ANY order exists with this ID and is already finalized
+        const finalizedOrder = await prisma.order.findFirst({
+            where: { 
+                stripePaymentIntentId: paymentIntentId,
+                paymentStatus: { in: ['AUTHORIZED', 'PAID'] }
+            }
+        });
+        
+        if (finalizedOrder) {
+            console.log(`[FINALIZE] Order ${finalizedOrder.id} already finalized for intent ${paymentIntentId}. Skipping.`);
+            return { success: true, alreadyFinalized: true };
+        }
+
+        console.error(`[FINALIZE] No PENDING order found for Intent: ${paymentIntentId}`);
         return { success: false, error: "Order not found" };
     }
     

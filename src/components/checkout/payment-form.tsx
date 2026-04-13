@@ -114,11 +114,21 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, b
                 
                 <button
                     data-testid="checkout-submit-button"
+                    type="submit"
                     disabled={isLoading || !stripe || !elements}
-                    className="w-full mt-8 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-600/50 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
+                    className="w-full mt-8 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-600/50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-3"
                 >
-                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <CreditCard className="w-5 h-5" />}
-                    RENDELÉS LEADÁSA ÉS FIZETÉS
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span>RENDELÉS FELDOLGOZÁSA...</span>
+                        </>
+                    ) : (
+                        <>
+                            <CreditCard className="w-5 h-5" />
+                            <span>RENDELÉS LEADÁSA ÉS FIZETÉS</span>
+                        </>
+                    )}
                 </button>
 
                 {message && (
@@ -182,11 +192,21 @@ function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid, is
             <div className="space-y-6">
                 <button
                     data-testid="checkout-submit-button"
+                    type="submit"
                     disabled={isLoading || !isFormValid}
-                    className="w-full mt-8 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-600/50 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
+                    className="w-full mt-8 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-600/50 disabled:cursor-not-allowed text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-3"
                 >
-                    {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : (shippingMethod === 'PICKUP' ? <ShoppingBag className="w-5 h-5" /> : <Truck className="w-5 h-5" />)}
-                    RENDELÉS LEADÁSA
+                    {isLoading ? (
+                        <>
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                            <span>RENDELÉS MENTÉSE...</span>
+                        </>
+                    ) : (
+                        <>
+                            {shippingMethod === 'PICKUP' ? <ShoppingBag className="w-5 h-5" /> : <Truck className="w-5 h-5" />}
+                            <span>RENDELÉS LEADÁSA</span>
+                        </>
+                    )}
                 </button>
 
                 {message && (
