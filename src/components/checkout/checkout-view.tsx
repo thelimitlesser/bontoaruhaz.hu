@@ -274,16 +274,16 @@ export default function CheckoutView() {
                                     onClick={() => setShippingMethod('delivery')}
                                     className={`relative border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${shippingMethod === 'delivery' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${shippingMethod === 'delivery' ? "border-[var(--color-primary)]" : "border-muted"}`}>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${shippingMethod === 'delivery' ? "border-[var(--color-primary)]" : "border-muted"}`}>
                                             {shippingMethod === 'delivery' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
                                         </div>
-                                        <div>
-                                            <h4 className="text-foreground font-bold text-sm">Pannon XP Futárszolgálat</h4>
-                                            <p className="text-muted text-xs">Kiszállítás 1-2 munkanap alatt</p>
+                                        <div className="min-w-0">
+                                            <h4 className="text-foreground font-bold text-sm truncate">Pannon XP Futárszolgálat</h4>
+                                            <p className="text-muted text-xs truncate">Kiszállítás 1-3 munkanap alatt</p>
                                         </div>
                                     </div>
-                                    <div className="text-right">
+                                    <div className="text-right shrink-0 ml-2">
                                         <div className="text-foreground font-bold text-sm">
                                             {shippingCost > 0 ? `${shippingCost.toLocaleString('hu-HU')} Ft` : "Még nem elérhető"}
                                         </div>
@@ -301,16 +301,16 @@ export default function CheckoutView() {
                                     onClick={() => setShippingMethod('pickup')}
                                     className={`relative border rounded-xl p-4 flex items-center justify-between cursor-pointer transition-all ${shippingMethod === 'pickup' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${shippingMethod === 'pickup' ? "border-[var(--color-primary)]" : "border-muted"}`}>
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${shippingMethod === 'pickup' ? "border-[var(--color-primary)]" : "border-muted"}`}>
                                             {shippingMethod === 'pickup' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
                                         </div>
-                                        <div>
-                                            <h4 className="text-foreground font-bold text-sm">Személyes átvétel</h4>
-                                            <p className="text-muted text-xs">8111 Seregélyes-Jánosmajor</p>
+                                        <div className="min-w-0">
+                                            <h4 className="text-foreground font-bold text-sm truncate">Személyes átvétel</h4>
+                                            <p className="text-muted text-xs truncate">8111 Seregélyes-Jánosmajor</p>
                                         </div>
                                     </div>
-                                    <span className="text-[var(--color-primary)] font-bold text-sm">Ingyenes</span>
+                                    <span className="text-[var(--color-primary)] font-bold text-sm shrink-0 ml-2">Ingyenes</span>
                                 </div>
                             </div>
                         </section>
