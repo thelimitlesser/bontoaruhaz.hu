@@ -113,7 +113,7 @@ export function ProductCard({ product }: { product: Product | any }) {
                         {product?.name || "Név nélküli termék"}
                     </h3>
                     {product?.sku && product.sku !== "SKU-HIÁNY" && (
-                        <p className="text-xs text-gray-400 mb-4 font-mono font-medium">{product.sku}</p>
+                        <p className="text-xs text-gray-400 mb-4 font-mono font-medium">{product.sku.toUpperCase()}</p>
                     )}
 
                     <div className="mt-auto flex items-end justify-between">

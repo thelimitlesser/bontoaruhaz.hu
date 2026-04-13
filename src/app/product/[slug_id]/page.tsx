@@ -361,7 +361,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                       <Factory className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />
                       <div>
                         <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Gyári Cikkszám</div>
-                        <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5 truncate max-w-[80px] sm:max-w-none">{product.sku}</div>
+                        <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5 truncate max-w-[80px] sm:max-w-none">{product.sku.toUpperCase()}</div>
                       </div>
                     </div>
                   )}
