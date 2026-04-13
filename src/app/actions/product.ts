@@ -442,23 +442,11 @@ export async function getSearchProducts(params: {
 
         if (query) {
             const textSearch: any[] = [
-                { name: { contains: query, mode: 'insensitive' } },
                 { sku: { contains: query, mode: 'insensitive' } },
+                { productCode: { contains: query, mode: 'insensitive' } },
                 { oemNumbers: { contains: query, mode: 'insensitive' } },
-                // Include brand/model name search directly in the query
-                { VehicleBrand: { name: { contains: query, mode: 'insensitive' } } },
-                { VehicleModel: { name: { contains: query, mode: 'insensitive' } } },
-                { VehicleModel: { series: { contains: query, mode: 'insensitive' } } }
+                { engineCode: { contains: query, mode: 'insensitive' } }
             ];
-
-            const queryWords = query.toLowerCase().split(/\s+/).filter((w: string) => w.length > 2);
-            queryWords.forEach((word: string) => {
-                if (partSynonyms[word]) {
-                    partSynonyms[word].forEach((synonym: string) => {
-                        textSearch.push({ name: { contains: synonym, mode: 'insensitive' } });
-                    });
-                }
-            });
 
             if (where.OR) {
                 where.AND = [
@@ -517,39 +505,7 @@ export async function getSearchProducts(params: {
             modelName: part.VehicleModel?.name || part.modelId
         }));
 
-        // Fuzzy search logic if no results found
-        if (enhancedParts.length === 0 && query && query.length > 2) {
-            const [allBrands, allModels, dbCats, dbSubcats, dbItems] = await Promise.all([
-                prisma.vehicleBrand.findMany({ select: { name: true } }),
-                prisma.vehicleModel.findMany({ select: { name: true } }),
-                prisma.partCategory.findMany({ select: { name: true, keywords: true } }),
-                prisma.partSubcategory.findMany({ select: { name: true, keywords: true } }),
-                prisma.partItem.findMany({ select: { name: true } })
-            ]);
-
-            const dictionary = [
-                ...allBrands.map(b => b.name),
-                ...allModels.map(m => m.name),
-                ...dbItems.map(p => p.name),
-                ...dbCats.map(c => c.name),
-                ...dbSubcats.map(s => s.name),
-                ...dbCats.flatMap(c => (c as any).keywords ? (c as any).keywords.split(',').map((k: string) => k.trim()) : []),
-                ...dbSubcats.flatMap(s => (s as any).keywords ? (s as any).keywords.split(',').map((k: string) => k.trim()) : [])
-            ];
-
-            const queryWithoutYear = query.replace(/\b(19|20)\d{2}\b/g, '').trim();
-            const words = queryWithoutYear.split(/\s+/);
-            const correctedWords = words.map((word: string) => {
-                if (word.length < 4) return word;
-                const matches = findClosestMatches(word, dictionary, 0.75);
-                return matches.length > 0 ? matches[0].word : word;
-            });
-
-            const correctedQuery = correctedWords.join(' ');
-            if (correctedQuery.toLowerCase() !== query.toLowerCase()) {
-                suggestion = correctedQuery;
-            }
-        }
+        // Fuzzy search logic removed as per user request to restrict to technical IDs only
 
         return {
             parts: enhancedParts,
@@ -773,7 +729,8 @@ export async function getPartSuggestionsAction(query: string) {
                         OR: [
                             { sku: { contains: cleanQuery, mode: 'insensitive' } },
                             { productCode: { contains: cleanQuery, mode: 'insensitive' } },
-                            { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } }
+                            { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } },
+                            { engineCode: { contains: cleanQuery, mode: 'insensitive' } }
                         ]
                     },
                     select: {

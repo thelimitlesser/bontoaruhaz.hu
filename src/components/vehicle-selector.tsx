@@ -170,12 +170,14 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                     let url = `/brand/${brand.slug}`;
                     if (model) {
                         url += `/${model.slug}`;
-                        if (partItem && partItem.categorySlug && partItem.subcatSlug) {
+                        if (partItem && partItem.categorySlug) {
                             url += `/${partItem.categorySlug}`;
-                            const params = new URLSearchParams();
-                            params.set("subcat", partItem.subcatSlug);
-                            params.set("item", partItem.slug);
-                            url += `?${params.toString()}`;
+                            if (partItem.subcatSlug) {
+                                url += `/${partItem.subcatSlug}`;
+                                if (partItem.slug) {
+                                    url += `/${partItem.slug}`;
+                                }
+                            }
                         }
                     }
                     router.push(url);
@@ -290,6 +292,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
 
                             <div className="p-2 flex items-center justify-center bg-gray-50/30 md:bg-transparent">
                                 <button
+                                    data-testid="search-button"
                                     onClick={() => handleSearch()}
                                     disabled={!selectedBrand || !selectedModel || !selectedPartItem || isPending}
                                     className={clsx(
@@ -386,6 +389,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
 
                             <div className="p-2 flex items-center justify-center bg-gray-50/30 md:bg-transparent">
                                 <button
+                                    data-testid="search-button"
                                     onClick={() => handleSearch()}
                                     disabled={!codeQuery.trim() || isPending}
                                     className={clsx(

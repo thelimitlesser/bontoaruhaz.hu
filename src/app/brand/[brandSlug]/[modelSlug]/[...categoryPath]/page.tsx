@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
 import { Suspense } from "react";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Navbar } from "@/components/navbar";
 import { prisma } from "@/lib/prisma";
 import { CategoryProductsContent } from "@/components/category-products-content";
@@ -11,13 +11,21 @@ export async function generateMetadata({
     params,
     searchParams 
 }: { 
-    params: Promise<{ brandSlug: string; modelSlug: string; categorySlug: string }>;
+    params: Promise<{ brandSlug: string; modelSlug: string; categoryPath: string[] }>;
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }): Promise<Metadata> {
     try {
-        const { brandSlug, modelSlug, categorySlug } = await params;
+        const { brandSlug, modelSlug, categoryPath } = await params;
         const resolvedSearchParams = await searchParams;
-        const subcatSlug = resolvedSearchParams.subcat as string | undefined;
+
+        // Extraction logic
+        const categorySlug = categoryPath[0];
+        const subcatSlugFromPath = categoryPath[1];
+        const partItemSlugFromPath = categoryPath[2];
+        
+        // Use either path or query param (for transition)
+        const subcatSlug = subcatSlugFromPath || (resolvedSearchParams.subcat as string | undefined);
+        const partItemSlug = partItemSlugFromPath || (resolvedSearchParams.item as string | undefined);
 
         const [brand, category] = await Promise.all([
             prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } }),
@@ -40,7 +48,6 @@ export async function generateMetadata({
             ? await prisma.partSubcategory.findFirst({ where: { slug: subcatSlug, categoryId: category.id } })
             : null;
         
-        const partItemSlug = resolvedSearchParams.item as string | undefined;
         const partItem = (partItemSlug && subcat)
             ? await prisma.partItem.findFirst({ where: { slug: partItemSlug, subcategoryId: subcat.id } })
             : null;
@@ -73,11 +80,37 @@ export default async function CategoryProductsPage({
     params,
     searchParams 
 }: { 
-    params: Promise<{ brandSlug: string; modelSlug: string; categorySlug: string }>;
+    params: Promise<{ brandSlug: string; modelSlug: string; categoryPath: string[] }>;
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
     const resolvedParams = await params;
-    const { brandSlug, modelSlug, categorySlug } = resolvedParams;
+    const { brandSlug, modelSlug, categoryPath } = resolvedParams;
+    const { searchParams: resolvedSearchParams } = { searchParams: await searchParams };
+
+    const categorySlug = categoryPath[0];
+    const subcatSlugFromPath = categoryPath[1];
+    const partItemSlugFromPath = categoryPath[2];
+
+    // LEGACY REDIRECTION (SEO Continuity)
+    // If someone visits /brand/audi/a6/kijelzo?subcat=muszer&item=ora
+    // Redirect to /brand/audi/a6/kijelzo/muszer/ora
+    if (resolvedSearchParams.subcat || resolvedSearchParams.item) {
+        const s = resolvedSearchParams.subcat as string;
+        const i = resolvedSearchParams.item as string;
+        
+        let newPath = `/brand/${brandSlug}/${modelSlug}/${categorySlug}`;
+        if (s) newPath += `/${s}`;
+        if (i) newPath += `/${i}`;
+        
+        // Preserve other filters (year, page, sortBy)
+        const newParams = new URLSearchParams();
+        if (resolvedSearchParams.year) newParams.set("year", resolvedSearchParams.year as string);
+        if (resolvedSearchParams.sortBy) newParams.set("sortBy", resolvedSearchParams.sortBy as string);
+        if (resolvedSearchParams.page) newParams.set("page", resolvedSearchParams.page as string);
+        
+        const queryString = newParams.toString();
+        redirect(queryString ? `${newPath}?${queryString}` : newPath);
+    }
 
     const [brand, category] = await Promise.all([
         prisma.vehicleBrand.findUnique({ where: { slug: brandSlug } }),
@@ -92,9 +125,8 @@ export default async function CategoryProductsPage({
         notFound();
     }
 
-    const { searchParams: resolvedSearchParams } = { searchParams: await searchParams };
-    const subcatSlug = resolvedSearchParams.subcat as string | undefined;
-    const partItemSlug = resolvedSearchParams.item as string | undefined;
+    const subcatSlug = subcatSlugFromPath;
+    const partItemSlug = partItemSlugFromPath;
     const yearStr = resolvedSearchParams.year as string | undefined;
     const year = yearStr ? parseInt(yearStr) : null;
     const pageStr = resolvedSearchParams.page as string | undefined;
@@ -117,7 +149,11 @@ export default async function CategoryProductsPage({
         <div className="min-h-screen bg-[var(--color-background)] font-[family-name:var(--font-geist-sans)]">
             <div className="min-h-[800px] flex flex-col">
                 <CategoryProductsContent 
-                    params={resolvedParams} 
+                    params={{
+                        brandSlug,
+                        modelSlug,
+                        categoryPath
+                    }} 
                     brand={brand}
                     model={model}
                     category={category}
@@ -127,3 +163,4 @@ export default async function CategoryProductsPage({
         </div>
     );
 }
+

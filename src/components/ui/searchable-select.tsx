@@ -7,8 +7,19 @@ import clsx from "clsx";
 interface Option {
     value: string;
     label: string;
+    keywords?: string[]; // Optional keywords for improved searchability
     group?: string; // Optional grouping capability
 }
+
+// Utility to remove accents and normalize string for searching
+const normalizeString = (str: string) => {
+    return str
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[űü]/g, "u")
+        .replace(/[őö]/g, "o");
+};
 
 interface SearchableSelectProps {
     options: Option[];
@@ -61,10 +72,14 @@ export function SearchableSelect({
         }
     }, [isOpen]);
 
-    const filteredOptions = options.filter((option) =>
-        option.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (option.group && option.group.toLowerCase().includes(searchQuery.toLowerCase()))
-    );
+    const filteredOptions = options.filter((option) => {
+        const search = normalizeString(searchQuery);
+        const labelMatch = normalizeString(option.label).includes(search);
+        const keywordMatch = option.keywords?.some(kw => normalizeString(kw).includes(search));
+        const groupMatch = option.group && normalizeString(option.group).includes(search);
+        
+        return labelMatch || keywordMatch || groupMatch;
+    });
 
     const selectedOption = options.find((o) => o.value === value);
 

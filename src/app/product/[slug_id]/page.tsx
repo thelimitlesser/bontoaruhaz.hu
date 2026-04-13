@@ -268,7 +268,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
           {subcategorySlug && subcategoryName && (
             <>
               <span className="mx-2 text-gray-300 shrink-0">/</span>
-              <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}?subcat=${subcategorySlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
+              <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}/${subcategorySlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
                 {subcategoryName}
               </Link>
             </>
@@ -276,7 +276,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
           {partItemSlug && partItemName && (
             <>
               <span className="mx-2 text-gray-300 shrink-0">/</span>
-              <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}?subcat=${subcategorySlug}&item=${partItemSlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
+              <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}/${subcategorySlug}/${partItemSlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
                 {partItemName}
               </Link>
             </>

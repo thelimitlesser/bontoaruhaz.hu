@@ -15,7 +15,7 @@ export function CategoryProductsContent({
     category,
     initialData
 }: { 
-    params: { brandSlug: string; modelSlug: string; categorySlug: string };
+    params: { brandSlug: string; modelSlug: string; categoryPath: string[] };
     brand: any;
     model: any;
     category: any;
@@ -28,11 +28,15 @@ export function CategoryProductsContent({
         perPage: number;
     };
 }) {
-    const { brandSlug, modelSlug, categorySlug } = params;
+    const { brandSlug, modelSlug, categoryPath } = params;
+    const categorySlug = categoryPath[0];
+    const subcatSlug = categoryPath[1] || null;
+    const partItemSlug = categoryPath[2] || null;
+
     const searchParams = useSearchParams();
     const router = useRouter();
-    const subcatSlug = searchParams.get("subcat");
-    const partItemSlug = searchParams.get("item");
+    
+    // Filters that stay as query params
     const urlPage = searchParams.get("page") ? parseInt(searchParams.get("page")!) : 1;
     const urlYear = searchParams.get("year") || "";
     const urlSort = searchParams.get("sortBy") || "newest";
@@ -145,15 +149,35 @@ export function CategoryProductsContent({
 
     const totalPages = Math.ceil(totalCount / initialData.perPage);
 
+    // Helper to build the hierarchical path
+    const buildBasePath = (newSubcat?: string | null, newItem?: string | null) => {
+        let path = `/brand/${brandSlug}/${modelSlug}/${categorySlug}`;
+        
+        // Use provided values or current state
+        const s = newSubcat !== undefined ? newSubcat : subcatSlug;
+        const i = newItem !== undefined ? newItem : partItemSlug;
+
+        if (s) path += `/${s}`;
+        if (i) path += `/${i}`;
+        
+        return path;
+    };
+
     const updateFilters = (updates: Record<string, string | null>) => {
-        const params = new URLSearchParams(searchParams.toString());
+        const queryParams = new URLSearchParams(searchParams.toString());
+        
+        // Handle search query updates
         Object.entries(updates).forEach(([key, value]) => {
-            if (value === null) params.delete(key);
-            else params.set(key, value);
+            if (value === null) queryParams.delete(key);
+            else queryParams.set(key, value);
         });
+
         // Always reset to page 1 on filter change, UNLESS explicitly setting page
-        if (!updates.page) params.set("page", "1");
-        router.push(`?${params.toString()}`, { scroll: false });
+        if (!updates.page) queryParams.set("page", "1");
+
+        const queryString = queryParams.toString();
+        const base = buildBasePath();
+        router.push(queryString ? `${base}?${queryString}` : base, { scroll: false });
     };
 
     const handlePageChange = (newPage: number) => {
@@ -179,14 +203,26 @@ export function CategoryProductsContent({
                 <span className="shrink-0 text-gray-400">/</span>
                 <Link href={`/brand/${brand.slug}/${model.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg">{model.name}</Link>
                 <span className="shrink-0 text-gray-400">/</span>
-                {currentSubcategory ? (
+                
+                {/* Always link to the base category */}
+                <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}`} className={`hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg ${!subcatSlug ? 'text-gray-900 font-bold' : ''}`}>
+                    {category.name}
+                </Link>
+
+                {currentSubcategory && (
                     <>
-                        <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg">{category.name}</Link>
                         <span className="shrink-0 text-gray-400">/</span>
-                        <span className="text-gray-900 font-bold uppercase shrink-0 py-1">{currentSubcategory.name}</span>
+                        <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}/${currentSubcategory.slug}`} className={`hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg ${!partItemSlug ? 'text-gray-900 font-bold' : ''}`}>
+                            {currentSubcategory.name}
+                        </Link>
                     </>
-                ) : (
-                    <span className="text-gray-900 font-bold uppercase shrink-0 py-1">{category.name}</span>
+                )}
+
+                {currentPartItem && (
+                    <>
+                        <span className="shrink-0 text-gray-400">/</span>
+                        <span className="text-gray-900 font-bold uppercase shrink-0 py-1">{currentPartItem.name}</span>
+                    </>
                 )}
             </nav>
 
@@ -194,7 +230,7 @@ export function CategoryProductsContent({
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 w-full min-w-0">
                 <header className="w-full min-w-0">
                     <h1 className="text-xl sm:text-3xl md:text-4xl font-bold text-gray-900 uppercase tracking-tight [overflow-wrap:anywhere] [word-break:break-word]">
-                        {brand.name} {model.name} {currentSubcategory ? currentSubcategory.name : category.name}
+                        {brand.name} {model.name} {currentPartItem ? currentPartItem.name : (currentSubcategory ? currentSubcategory.name : category.name)}
                     </h1>
                 </header>
 
@@ -251,7 +287,7 @@ export function CategoryProductsContent({
                     </h3>
                     <div className="flex flex-wrap gap-2 pb-2">
                         <Link
-                            href={`/brand/${brand.slug}/${model.slug}/${category.slug}`}
+                            href={buildBasePath(null, null)}
                             className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 active:scale-95 ${!currentSubcategory ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
                         >
                             Összes
@@ -259,7 +295,7 @@ export function CategoryProductsContent({
                         {activeSubcategories.sort((a, b) => a.name.localeCompare(b.name, 'hu')).map((subcat) => (
                             <Link
                                 key={subcat.id}
-                                href={`?subcat=${subcat.slug}`}
+                                href={buildBasePath(subcat.slug, null)}
                                 className={`px-4 py-2 rounded-full text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 active:scale-95 ${currentSubcategory?.id === subcat.id ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200 hover:text-gray-900 border border-gray-200'}`}
                             >
                                 {subcat.name}
@@ -278,7 +314,7 @@ export function CategoryProductsContent({
                             {activePartItems.length > 0 ? (
                                 <div className="flex flex-wrap gap-2 pb-2">
                                     <Link
-                                        href={`?subcat=${currentSubcategory.slug}`}
+                                        href={buildBasePath(currentSubcategory.slug, null)}
                                         className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 active:scale-95 ${!currentPartItem ? 'bg-gray-900 text-white shadow-md' : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
                                     >
                                         Bármelyik
@@ -286,7 +322,7 @@ export function CategoryProductsContent({
                                     {activePartItems.sort((a, b) => a.name.localeCompare(b.name, 'hu')).map((item) => (
                                         <Link
                                             key={item.id}
-                                            href={`?subcat=${currentSubcategory.slug}&item=${item.slug}`}
+                                            href={buildBasePath(currentSubcategory.slug, item.slug)}
                                             className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 shrink-0 active:scale-95 ${currentPartItem?.id === item.id ? 'bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/20' : 'bg-white text-gray-500 hover:bg-gray-100 hover:text-gray-900 border border-gray-200'}`}
                                         >
                                             {item.name}
@@ -401,3 +437,4 @@ export function CategoryProductsContent({
         </div >
     );
 }
+

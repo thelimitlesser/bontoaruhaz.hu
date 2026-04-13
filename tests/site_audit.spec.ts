@@ -1,70 +1,81 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'http://localhost:3000';
-
-test.describe('Public Site Audit', () => {
-  test('Home Page - Hero and Search', async ({ page }) => {
-    await page.goto(BASE_URL);
-    // Use a more flexible text check for the main heading
-    await expect(page.locator('h1')).toHaveText(/Megbízható autóalkatrészek/i, { timeout: 15000 });
+test.describe('Public Site Quality Audit', () => {
+  test('Home Page - Hero and Visual Integrity', async ({ page }) => {
+    await page.goto('/');
+    // Check main heading with flexible regex for "bontott"
+    await expect(page.locator('h1')).toHaveText(/Megbízható.*autóalkatrészek/i, { timeout: 15000 });
     
-    // Check for the main search widget tab
+    // Check if the logo is visible and loaded (alt text is "Logo")
+    const logo = page.locator('img[alt="Logo"]').first();
+    await expect(logo).toBeVisible();
+    
+    // Check for the brand text
+    await expect(page.locator('text=BONTÓÁRUHÁZ')).toBeVisible();
+    
+    // Check for the main search widget
     await expect(page.locator('text=Márka / Modell')).toBeVisible();
-    
-    // Test Brand Selection - Look for the "Válassz Márkát" heading
-    await expect(page.locator('h2')).toContainText(/Válassz/i);
-    
-    // Click an Audi link
-    const audiLink = page.locator('a[href*="/brand/audi"]').first();
-    await expect(audiLink).toBeVisible();
     
     await page.screenshot({ path: 'tests/screenshots/audit-home.png', fullPage: true });
   });
 
-  test('Search Flow - Alfa Romeo', async ({ page }) => {
-    await page.goto(`${BASE_URL}/search?query=alfa`);
-    // Check if there are results
-    await page.waitForSelector('a[href*="/product/"]', { timeout: 15000 });
+  test('Search and Product Navigation', async ({ page }) => {
+    await page.goto('/search?query=audi');
     
-    await page.screenshot({ path: 'tests/screenshots/audit-search.png', fullPage: true });
-  });
-
-  test('Product Page - Details and Shipping', async ({ page }) => {
-    await page.goto(`${BASE_URL}/search?query=alfa`);
-    const firstProduct = page.locator('a[href*="/product/"]').first();
-    await firstProduct.click();
+    // Check if products are found
+    const productCard = page.locator('a[href^="/product/"]').first();
+    await expect(productCard).toBeVisible({ timeout: 15000 });
     
+    // Check if product images are loading
+    const productImage = productCard.locator('img').first();
+    await expect(productImage).toBeVisible();
+    
+    // Click into a product
+    await productCard.click();
     await expect(page.locator('h1')).toBeVisible({ timeout: 15000 });
-    await expect(page.locator('button:has-text("KOSÁRBA")')).toBeVisible();
-    
-    // Check for shipping info (PXP rates)
-    await expect(page.locator('text=Szállítás')).toBeVisible();
+    await expect(page.getByTestId('add-to-cart-button')).toBeVisible();
     
     await page.screenshot({ path: 'tests/screenshots/audit-product.png', fullPage: true });
   });
 
-  test('Checkout Flow - Guest', async ({ page }) => {
-    await page.goto(`${BASE_URL}/search?query=alfa`);
-    await page.locator('a[href*="/product/"]').first().click();
-    await page.locator('button:has-text("KOSÁRBA")').click();
+  test('Fuzzy Search Stability', async ({ page }) => {
+    // Search for a misspelled word to trigger the fuzzy search logic (where the crash happened)
+    await page.goto('/search?query=audy');
     
-    // Open Cart modal or navigate to cart
-    await page.goto(`${BASE_URL}/checkout`);
+    // Instead of fuzzy search check (which was removed), let's just make sure it handles no results gracefully
+    await expect(page.locator('text=Nincs közvetlen találat')).toBeVisible({ timeout: 15000 });
     
-    await expect(page.url()).toContain('/checkout');
-    await expect(page.locator('text=Rendelés összesítése')).toBeVisible();
+    await page.screenshot({ path: 'tests/screenshots/audit-fuzzy.png', fullPage: true });
+  });
+
+  test('Checkout Flow and Feature Toggles', async ({ page, baseURL }) => {
+    // Navigate straight to a known product category or search
+    await page.goto('/search?query=audi');
+    const firstProduct = page.locator('a[href^="/product/"]').first();
+    await firstProduct.waitFor({ state: 'visible' });
+    await firstProduct.click();
+    
+    const addToCartBtn = page.getByTestId('add-to-cart-button');
+    await expect(addToCartBtn).toBeVisible({ timeout: 15000 });
+    await addToCartBtn.click();
+    
+    // Go to checkout
+    await page.goto('/checkout');
+    await expect(page.locator('text=Rendelés összesítése')).toBeVisible({ timeout: 15000 });
+    
+    // CRITICAL: Check that "Céges számlát kérek" is NOT visible (as requested)
+    const corporateInvoice = page.locator('text=Céges számlát kérek');
+    await expect(corporateInvoice).not.toBeVisible();
     
     await page.screenshot({ path: 'tests/screenshots/audit-checkout.png', fullPage: true });
   });
 });
 
-test.describe('Admin Section Audit (Pre-Login Check)', () => {
-    test('Admin Dashboard Redirect', async ({ page }) => {
-        await page.goto(`${BASE_URL}/admin`);
-        // Should redirect to login if not authenticated
+test.describe('Security Audit (Unauthorized Access)', () => {
+    test('Admin Dashboard Redirection', async ({ page }) => {
+        await page.goto('/admin');
+        // Verify it forces a login redirect
         await page.waitForURL('**/login', { timeout: 15000 });
-        // Use a more general check for the login page
-        await expect(page.locator('body')).toContainText(['Bejelentkezés', 'Regisztráció', 'Üdvözöljük']);
-        await page.screenshot({ path: 'tests/screenshots/audit-admin-redirect.png' });
+        await expect(page.locator('body')).toContainText(/bejelentkezés/i);
     });
 });

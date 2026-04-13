@@ -118,14 +118,27 @@ export async function getActivePartOptionsAction(brandId?: string, modelId?: str
             orderBy: { name: 'asc' }
         });
 
-        return activePartItems.map(item => ({
-            value: item.id,
-            label: item.name,
-            group: item.PartSubcategory.PartCategory.name || "Egyéb",
-            slug: item.slug,
-            subcatSlug: item.PartSubcategory.slug,
-            categorySlug: item.PartSubcategory.PartCategory.slug
-        }));
+        return activePartItems.map(item => {
+            // Combine keywords from category, subcategory, and item for better searchability
+            const combinedKeywords = [
+                ...(item.keywords || []),
+                ...(item.PartSubcategory?.keywords || []),
+                ...(item.PartSubcategory?.PartCategory?.keywords || []),
+                // Add the category/subcategory names as keywords too
+                item.PartSubcategory?.name,
+                item.PartSubcategory?.PartCategory?.name
+            ].filter((k, i, self) => k && self.indexOf(k) === i); // Unique non-null keywords
+
+            return {
+                value: item.id,
+                label: item.name,
+                group: item.PartSubcategory.PartCategory.name || "Egyéb",
+                slug: item.slug,
+                subcatSlug: item.PartSubcategory.slug,
+                categorySlug: item.PartSubcategory.PartCategory.slug,
+                keywords: combinedKeywords
+            };
+        });
     } catch (error) {
         console.error("ERROR: getActivePartOptionsAction failed. Database unreachable from Vercel runtime?", error);
         return [];

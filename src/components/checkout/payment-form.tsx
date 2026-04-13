@@ -113,6 +113,7 @@ function StripePaymentForm({ formData, totalAmount, shippingMethod, isCompany, b
                 <PaymentElement id="payment-element" options={{ layout: "tabs" }} />
                 
                 <button
+                    data-testid="checkout-submit-button"
                     disabled={isLoading || !stripe || !elements}
                     className="w-full mt-8 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-600/50 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
                 >
@@ -180,6 +181,7 @@ function CODPaymentForm({ formData, totalAmount, shippingMethod, isFormValid, is
         <form id="payment-form" onSubmit={handleSubmit}>
             <div className="space-y-6">
                 <button
+                    data-testid="checkout-submit-button"
                     disabled={isLoading || !isFormValid}
                     className="w-full mt-8 bg-[var(--color-primary)] hover:bg-orange-600 disabled:bg-orange-600/50 text-white font-bold py-4 rounded-xl transition-all active:scale-[0.98] shadow-lg flex items-center justify-center gap-2"
                 >

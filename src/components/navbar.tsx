@@ -121,6 +121,7 @@ export function Navbar() {
                     {/* Actions */}
                     <div className="flex items-center gap-0 sm:gap-4">
                         <button
+                            data-testid="cart-icon"
                             className="relative group p-2 sm:p-3 rounded-full hover:bg-foreground/5 transition-colors" onClick={() => setIsCartOpen(true)}
                             aria-label="Kosár"
                         >

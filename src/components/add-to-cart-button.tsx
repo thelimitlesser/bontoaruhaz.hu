@@ -29,6 +29,7 @@ export function AddToCartButton({ product }: AddToCartButtonProps) {
 
     return (
         <button
+            data-testid="add-to-cart-button"
             onClick={handleAddToCart}
             disabled={isDisabled}
             className={`w-full min-h-[4rem] px-4 text-white font-bold rounded-xl flex items-center justify-center gap-3 transition-transform active:scale-[0.98] shadow-lg ${
