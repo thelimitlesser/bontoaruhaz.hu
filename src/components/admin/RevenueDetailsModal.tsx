@@ -66,7 +66,7 @@ export function RevenueDetailsModal({ isOpen, onClose, orders, periodLabel, tota
                         {/* Summary Bar */}
                         <div className="px-6 py-4 bg-[var(--color-primary)] text-white flex items-center justify-between shadow-inner">
                             <span className="font-bold uppercase tracking-widest text-xs opacity-80">Időszaki Összesített Bevétel</span>
-                            <span className="text-2xl font-black">{totalRevenue.toLocaleString()} Ft</span>
+                            <span className="text-2xl font-black">{totalRevenue.toLocaleString('hu-HU')} Ft</span>
                         </div>
 
                         {/* List */}
@@ -103,7 +103,7 @@ export function RevenueDetailsModal({ isOpen, onClose, orders, periodLabel, tota
                                                 </div>
                                                 <div className="text-right flex flex-col items-end gap-2">
                                                     <div className="text-lg font-black text-gray-900 tracking-tight">
-                                                        {order.totalAmount.toLocaleString()} Ft
+                                                        {order.totalAmount.toLocaleString('hu-HU')} Ft
                                                     </div>
                                                     <Link
                                                         href={`/admin/orders/${order.id}`}

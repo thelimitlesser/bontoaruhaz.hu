@@ -42,7 +42,7 @@ export default async function ReturnsPage() {
                                     <td className="px-6 py-4 font-mono text-xs">{order.id.split('-')[0]}...</td>
                                     <td className="px-6 py-4 text-gray-900 font-medium">{order.user?.fullName ||'Vendég'}</td>
                                     <td className="px-6 py-4">{new Date(order.createdAt).toLocaleDateString()}</td>
-                                    <td className="px-6 py-4 font-bold text-gray-900">{order.totalAmount.toLocaleString()} Ft</td>
+                                    <td className="px-6 py-4 font-bold text-gray-900">{order.totalAmount.toLocaleString('hu-HU')} Ft</td>
                                     <td className="px-6 py-4">
                                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${order.status ==='REFUNDED' ?"bg-green-500/20 text-green-500 border-green-500/50" :"bg-orange-500/20 text-orange-500 border-orange-500/50" }`}>
                                             {order.status ==='REFUNDED' ?'Visszatérítve' :'Visszaküldve'}

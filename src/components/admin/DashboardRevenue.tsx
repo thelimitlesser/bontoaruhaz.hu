@@ -89,7 +89,7 @@ export function DashboardRevenue({ initialStats }: { initialStats: Stats }) {
                                     {periodLabels[period]}
                                 </p>
                                 <p className="text-4xl font-black text-gray-900 tracking-tighter mt-1">
-                                    {isMounted ? currentRevenue.toLocaleString() : "---"} Ft
+                                    {isMounted ? currentRevenue.toLocaleString('hu-HU') : "---"} Ft
                                 </p>
                             </div>
                         </div>

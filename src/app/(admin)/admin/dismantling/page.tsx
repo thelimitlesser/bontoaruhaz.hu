@@ -62,7 +62,7 @@ export default async function DismantlingPage() {
                                         <div>{car.engineCode ||'-'}</div>
                                         <div className="text-xs text-gray-500">{car.colorCode ||'-'}</div>
                                     </td>
-                                    <td className="px-6 py-4">{car.mileage?.toLocaleString() || 0} km</td>
+                                    <td className="px-6 py-4">{car.mileage?.toLocaleString('hu-HU') || 0} km</td>
                                     <td className="px-6 py-4 text-center">
                                         <span className="bg-gray-100 text-gray-700 px-2 py-1 rounded text-xs font-bold border border-gray-200">
                                             -

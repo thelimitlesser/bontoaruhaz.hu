@@ -364,7 +364,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                                                     </div>
                                                                 )}
                                                                 <div className="ml-auto bg-[var(--color-primary)] text-white text-[11px] font-black px-2 py-1 rounded-lg shadow-sm group-hover:bg-orange-600 transition-colors shrink-0">
-                                                                    {part.priceGross.toLocaleString()} Ft
+                                                                    {part.priceGross.toLocaleString('hu-HU')} Ft
                                                                 </div>
                                                             </div>
                                                         </div>

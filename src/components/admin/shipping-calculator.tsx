@@ -58,7 +58,7 @@ export function ShippingCalculator({
                 {shippingFee !== null && (
                     <div className="text-right">
                         <div className="text-[10px] text-blue-600 font-bold uppercase tracking-wider">Szállítási díj</div>
-                        <div className="text-xl font-black text-blue-700">{shippingFee.toLocaleString()} Ft</div>
+                        <div className="text-xl font-black text-blue-700">{shippingFee.toLocaleString('hu-HU')} Ft</div>
                     </div>
                 )}
             </div>

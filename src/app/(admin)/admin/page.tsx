@@ -132,14 +132,14 @@ export default async function AdminDashboard() {
                     subtitle="Kiszállításra váró csomagok" />
                 <StatCard
                     title="Raktárkészlet" 
-                    value={`${stats.products.toLocaleString()} db`}
+                    value={`${stats.products.toLocaleString('hu-HU')} db`}
                     icon={<Package className="w-6 h-6" />}
                     color="orange"
                     subtitle="Összes feltöltött alkatrész"
                 />
                 <StatCard
                     title="Ügyfelek" 
-                    value={stats.users.toLocaleString()}
+                    value={stats.users.toLocaleString('hu-HU')}
                     icon={<Users className="w-6 h-6" />}
                     color="purple"
                     subtitle="Regisztrált felhasználók"
@@ -206,7 +206,7 @@ export default async function AdminDashboard() {
                                         </div>
                                     </div>
                                     <div className="font-black text-gray-900 tabular-nums">
-                                        {item.total.toLocaleString()} Ft
+                                        {item.total.toLocaleString('hu-HU')} Ft
                                     </div>
                                 </div>
                             ))}

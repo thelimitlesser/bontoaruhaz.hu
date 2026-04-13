@@ -96,7 +96,7 @@ export default async function OrdersPage() {
                                         <div className="text-right">
                                             <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Összeg</p>
                                             <p className="text-xl font-black text-gray-900">
-                                                {order.totalAmount.toLocaleString()} HUF
+                                                {order.totalAmount.toLocaleString('hu-HU')} HUF
                                             </p>
                                         </div>
                                         <ChevronRight className="w-6 h-6 text-gray-300 group-hover:text-[var(--color-primary)] group-hover:translate-x-1 transition-all" />

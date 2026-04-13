@@ -96,14 +96,14 @@ export default async function OrderDetailPage({ params }: { params: { orderId: s
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm font-bold text-gray-500">{item.quantity} db</p>
-                                            <p className="font-black text-gray-900">{item.priceAtTime.toLocaleString()} HUF</p>
+                                            <p className="font-black text-gray-900">{item.priceAtTime.toLocaleString('hu-HU')} HUF</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                             <div className="p-6 bg-gray-50 flex justify-between items-center text-xl font-black">
                                 <span className="text-gray-900 uppercase tracking-tighter">Összesen</span>
-                                <span className="text-[var(--color-primary)]">{order.totalAmount.toLocaleString()} HUF</span>
+                                <span className="text-[var(--color-primary)]">{order.totalAmount.toLocaleString('hu-HU')} HUF</span>
                             </div>
                         </section>
                     </div>
