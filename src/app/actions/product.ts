@@ -503,6 +503,8 @@ export async function getSearchProducts(params: {
                     productCode: true,
                     condition: true,
                     isUniversal: true,
+                    yearFrom: true,
+                    yearTo: true,
                     VehicleBrand: { select: { name: true } },
                     VehicleModel: { select: { name: true, series: true } },
                     reservations: {
@@ -733,7 +735,9 @@ export async function getRelatedProducts(currentProductId: string, modelId: stri
                         images: true,
                         sku: true,
                         brandId: true,
-                        modelId: true
+                        modelId: true,
+                        yearFrom: true,
+                        yearTo: true
                     }
                 });
 

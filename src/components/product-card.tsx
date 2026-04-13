@@ -17,6 +17,10 @@ export interface PrismaPart {
     sku: string;
     brandId?: string | null;
     modelId?: string | null;
+    brandName?: string | null;
+    modelName?: string | null;
+    yearFrom?: number | null;
+    yearTo?: number | null;
     isUniversal?: boolean;
     partner?: {
         businessName: string;
@@ -42,7 +46,23 @@ export function ProductCard({ product }: { product: Product | any }) {
         : [product.image];
 
     const mainImage = imageList[0] || 'https://placehold.co/600x400/1a1a1a/cccccc?text=Bontóáruház';
-    const displayBrand = isPrisma ? product.brandId : product.brand;
+    
+    // Format year range
+    const formatYear = () => {
+        const from = isPrisma ? product.yearFrom : product.yearFrom; // mock might have it too
+        const to = isPrisma ? product.yearTo : product.yearTo;
+        
+        if (!from && !to) return null;
+        if (from && to) {
+            if (from === to) return `${from}`;
+            return `${from} - ${to}`;
+        }
+        if (from) return `${from}-`;
+        if (to) return `${to}-ig`;
+        return null;
+    };
+    
+    const yearRange = formatYear();
 
     const productUrl = getProductUrl({
         id: product.id,
@@ -56,10 +76,15 @@ export function ProductCard({ product }: { product: Product | any }) {
         <Link href={productUrl} className="block h-full group active:scale-[0.98] transition-transform">
             <div className="glass-card p-0 pb-4 relative overflow-hidden flex flex-col h-full transition-transform duration-300 group-hover:-translate-y-1 bg-background/40 backdrop-blur-md border border-border hover:border-[var(--color-primary)]/50 hover:shadow-lg hover:shadow-[0_0_20px_rgba(219,81,60,0.1)]">
                 {/* Badge Container */}
-                <div className="absolute top-4 left-4 z-10 flex gap-2">
+                <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
                     {isPrisma && product?.isUniversal && (
-                        <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-orange-500/20 border-orange-500 text-orange-600 backdrop-blur-md uppercase tracking-widest">
-                            <Globe className="w-2.5 h-2.5 inline mr-1" /> Univerzális
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-orange-500/20 border-orange-500 text-orange-600 backdrop-blur-md uppercase tracking-widest flex items-center">
+                            <Globe className="w-2.5 h-2.5 mr-1" /> Univerzális
+                        </span>
+                    )}
+                    {yearRange && (
+                        <span className="px-3 py-1 rounded-full text-[10px] font-bold border bg-blue-500/20 border-blue-500/50 text-blue-600 dark:text-blue-400 backdrop-blur-md uppercase tracking-widest whitespace-nowrap">
+                            {yearRange}
                         </span>
                     )}
                 </div>
