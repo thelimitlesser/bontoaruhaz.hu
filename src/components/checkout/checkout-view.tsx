@@ -272,24 +272,24 @@ export default function CheckoutView() {
                             <div className="space-y-4">
                                 <div
                                     onClick={() => setShippingMethod('delivery')}
-                                    className={`relative border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer transition-all ${shippingMethod === 'delivery' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
+                                    className={`relative border rounded-xl p-4 flex items-center justify-between gap-4 cursor-pointer transition-all ${shippingMethod === 'delivery' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${shippingMethod === 'delivery' ? "border-[var(--color-primary)]" : "border-muted"}`}>
                                             {shippingMethod === 'delivery' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <h4 className="text-foreground font-bold text-sm">Pannon XP Futárszolgálat</h4>
-                                            <p className="text-muted text-xs leading-relaxed">Kiszállítás 1-3 munkanap alatt</p>
+                                            <p className="text-muted text-[10px] leading-snug">Kiszállítás 1-3 munkanap alatt</p>
                                         </div>
                                     </div>
-                                    <div className="text-left sm:text-right shrink-0 pl-8 sm:pl-0">
-                                        <div className="text-foreground font-bold text-sm">
+                                    <div className="text-right shrink-0">
+                                        <div className="text-foreground font-bold text-sm leading-none">
                                             {shippingCost > 0 ? `${shippingCost.toLocaleString('hu-HU')} Ft` : "Még nem elérhető"}
                                         </div>
                                         {shippingMethod === 'delivery' && shippingData.savings > 0 && (
-                                            <div className="text-[10px] text-emerald-500 font-bold animate-in fade-in slide-in-from-right-2">
-                                                -{shippingData.savings.toLocaleString('hu-HU')} Ft csomagkedvezmény
+                                            <div className="text-[10px] text-emerald-500 font-bold mt-1 leading-none">
+                                                -{shippingData.savings.toLocaleString('hu-HU')} Ft
                                             </div>
                                         )}
                                     </div>
@@ -297,18 +297,18 @@ export default function CheckoutView() {
 
                                 <div
                                     onClick={() => setShippingMethod('pickup')}
-                                    className={`relative border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer transition-all ${shippingMethod === 'pickup' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
+                                    className={`relative border rounded-xl p-4 flex items-center justify-between gap-4 cursor-pointer transition-all ${shippingMethod === 'pickup' ? "bg-[var(--color-primary)]/10 border-[var(--color-primary)] shadow-[0_0_20px_-5px_rgba(219,81,60,0.3)]" : "bg-muted/5 border-border hover:border-muted"}`}
                                 >
-                                    <div className="flex items-center gap-3">
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${shippingMethod === 'pickup' ? "border-[var(--color-primary)]" : "border-muted"}`}>
                                             {shippingMethod === 'pickup' && <div className="w-2.5 h-2.5 rounded-full bg-[var(--color-primary)]" />}
                                         </div>
-                                        <div>
+                                        <div className="min-w-0">
                                             <h4 className="text-foreground font-bold text-sm">Személyes átvétel</h4>
-                                            <p className="text-muted text-xs">8111 Seregélyes-Jánosmajor</p>
+                                            <p className="text-muted text-[10px] leading-snug">8111 Seregélyes-Jánosmajor</p>
                                         </div>
                                     </div>
-                                    <span className="text-[var(--color-primary)] font-bold text-sm shrink-0 pl-8 sm:pl-0">Ingyenes</span>
+                                    <span className="text-[var(--color-primary)] font-bold text-sm shrink-0">Ingyenes</span>
                                 </div>
                             </div>
                         </section>
