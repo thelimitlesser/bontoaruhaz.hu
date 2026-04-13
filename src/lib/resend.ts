@@ -75,7 +75,7 @@ const getItemsTableHtml = (items: any[], total: number, shippingCost: number = 0
                 <p style="margin: 0; font-weight: bold; color: ${COLORS.text};">${item.part.name}</p>
             </td>
             <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: center; white-space: nowrap;">${item.quantity} db</td>
-            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; font-weight: bold; white-space: nowrap;">${item.priceAtTime.toLocaleString()} Ft</td>
+            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; font-weight: bold; white-space: nowrap;">${item.priceAtTime.toLocaleString('hu-HU')} Ft</td>
         </tr>
     `).join('');
 
@@ -85,7 +85,7 @@ const getItemsTableHtml = (items: any[], total: number, shippingCost: number = 0
         footerRows += `
             <tr>
                 <td colspan="2" style="padding: 10px 0; text-align: right; color: ${COLORS.textLight}; font-size: 14px;">Szállítási díj:</td>
-                <td style="padding: 10px 0; text-align: right; color: ${COLORS.text}; font-size: 14px; white-space: nowrap;">${shippingCost.toLocaleString()} Ft</td>
+                <td style="padding: 10px 0; text-align: right; color: ${COLORS.text}; font-size: 14px; white-space: nowrap;">${shippingCost.toLocaleString('hu-HU')} Ft</td>
             </tr>
         `;
     }
@@ -93,7 +93,7 @@ const getItemsTableHtml = (items: any[], total: number, shippingCost: number = 0
     footerRows += `
         <tr>
             <td colspan="2" style="padding: 15px 0; text-align: right; font-weight: bold; white-space: nowrap;">Összesen:</td>
-            <td style="padding: 15px 0; text-align: right; font-weight: bold; font-size: 18px; color: ${COLORS.primary}; white-space: nowrap;">${total.toLocaleString()} Ft</td>
+            <td style="padding: 15px 0; text-align: right; font-weight: bold; font-size: 18px; color: ${COLORS.primary}; white-space: nowrap;">${total.toLocaleString('hu-HU')} Ft</td>
         </tr>
     `;
 
@@ -303,7 +303,7 @@ export async function sendOrderManualInvoiceEmail(order: any, customerEmail: str
 
         <div style="margin: 30px 0; border-top: 1px solid ${COLORS.border}; pt-20px;">
             <p style="font-size: 14px; color: ${COLORS.textLight};">
-                <strong>Rendelés összege:</strong> ${order.totalAmount.toLocaleString()} Ft
+                <strong>Rendelés összege:</strong> ${order.totalAmount.toLocaleString('hu-HU')} Ft
             </p>
         </div>
         ${getEmailFooter()}
