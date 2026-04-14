@@ -44,8 +44,8 @@ export default function FaqPage() {
                     a: "Fizethetsz biztonságos bankkártyás fizetéssel a Stripe rendszerén keresztül, utánvéttel a futárnál (készpénz vagy kártya), illetve személyes átvétel esetén készpénzzel vagy kártyával a helyszínen."
                 },
                 { 
-                    q: "Kapok számlát a vásárlásról? Céges számla kérhető?", 
-                    a: "Igen, minden vásárlásról elektronikus számlát állítunk ki, amit e-mailben küldünk el. A pénztár oldalon lehetőség van céges számla igénylésére is az adószám megadásával. Invoicunkat a Billingo rendszere állítja ki."
+                    q: "Kapok számlát a vásárlásról?", 
+                    a: "Igen, minden vásárlásról elektronikus számlát állítunk ki, amit e-mailben küldünk el. A bizonylatokat a Billingo rendszere állítja ki."
                 }
             ]
         },
@@ -55,7 +55,7 @@ export default function FaqPage() {
             questions: [
                 { 
                     q: "Honnan származnak az alkatrészek?", 
-                    a: "Minden alkatrészünk saját bontásból származik. Bevizsgált, szakszerűen kiszerelt és fedett helyen tárolt termékeket értékesítünk."
+                    a: "Alkatrészeink nagy része Olaszországból származik. Bevizsgált, szakszerűen kiszerelt és fedett helyen tárolt termékeket értékesítünk."
                 },
                 { 
                     q: "Valódi fotók vannak az oldalon?", 
