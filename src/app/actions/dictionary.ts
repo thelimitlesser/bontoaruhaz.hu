@@ -137,7 +137,48 @@ export async function createPartItem(data: any) {
 }
 
 export async function updatePartItem(id: string, data: any) {
+    // 1. Megszerezzük a régi nevet a módosítás előtt
+    const oldItem = await prisma.partItem.findUnique({ 
+        where: { id },
+        select: { name: true }
+    });
+
+    // 2. Frissítjük magát az alkatrész-típust
     const item = await prisma.partItem.update({ where: { id }, data });
+
+    // 3. Ha megváltozott a név, lefuttatjuk a szinkronizációt a termékeken
+    if (oldItem && data.name && oldItem.name !== data.name) {
+        const parts = await prisma.part.findMany({
+            where: { partItemId: id },
+            select: { id: true, name: true, description: true }
+        });
+
+        // Végigfutunk az érintett termékeken és lecseréljük a régi nevet az újra
+        for (const part of parts) {
+            let needsUpdate = false;
+            const updateData: any = {};
+
+            // Név csere
+            if (part.name.includes(oldItem.name)) {
+                updateData.name = part.name.replaceAll(oldItem.name, data.name);
+                needsUpdate = true;
+            }
+
+            // Leírás (fejléc) csere
+            if (part.description && part.description.includes(oldItem.name)) {
+                updateData.description = part.description.replaceAll(oldItem.name, data.name);
+                needsUpdate = true;
+            }
+
+            if (needsUpdate) {
+                await prisma.part.update({
+                    where: { id: part.id },
+                    data: updateData
+                });
+            }
+        }
+    }
+
     clearDictionaryCache('parts');
     return item;
 }
