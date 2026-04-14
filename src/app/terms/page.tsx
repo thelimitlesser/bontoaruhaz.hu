@@ -63,7 +63,7 @@ export default function TermsPage() {
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">5. Szállítás és átvétel</h2>
                 <p>
-                    A kiszállítást a Pannon XP futárszolgálat végzi, vagy lehetőség van személyes átvételre a telephelyünkön (8111 Seregélyes-Jánosmajor). A szállítási feltételekről részletes tájékoztatást a szállítási információs oldalon talál.
+                    A kiszállítást a Pannon XP futárszolgálat végzi, vagy lehetőség van személyes átvételre a telephelyünkön (8111 Seregélyes-Jánosmajor). A szállítási feltételekről részletes tájékoztatást a <Link href="/shipping" className="text-[var(--color-primary)] underline">szállítási információs</Link> oldalon talál.
                 </p>
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">6. Elállási jog (14 napos visszavétel)</h2>

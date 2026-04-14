@@ -46,6 +46,7 @@ export function Footer() {
                             <Link href="/about" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Rólunk</Link>
                             <Link href="/faq" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Gyakori Kérdések</Link>
                             <Link href="/warranty" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Garancia és Visszaküldés</Link>
+                            <Link href="/shipping" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Szállítási Információk</Link>
                             <Link href="/terms" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Általános Szerződési Feltételek</Link>
                             <Link href="/privacy" className="hover:text-[var(--color-primary)] transition-colors text-sm py-2 px-2 sm:-ml-2 rounded-lg text-center sm:text-left w-full sm:w-auto">Adatvédelmi Tájékoztató</Link>
                         </div>
@@ -74,6 +75,7 @@ export function Footer() {
                 <div className="flex flex-col sm:flex-row items-center justify-between text-xs text-gray-500 gap-4 text-center sm:text-left">
                     <p>© {new Date().getFullYear()} BONTÓÁRUHÁZ. Minden jog fenntartva.</p>
                     <div className="flex flex-wrap items-center justify-center gap-6">
+                        <Link href="/shipping" className="hover:text-background transition-colors py-2 px-3 -my-2 rounded-md">Szállítás</Link>
                         <Link href="/terms" className="hover:text-background transition-colors py-2 px-3 -my-2 rounded-md">ÁSZF</Link>
                         <Link href="/privacy" className="hover:text-background transition-colors py-2 px-3 -my-2 rounded-md">Adatvédelem</Link>
                         <Link href="/impressum" className="hover:text-background transition-colors py-2 px-3 -my-2 rounded-md">Impresszum</Link>
