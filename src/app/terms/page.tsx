@@ -55,27 +55,44 @@ export default function TermsPage() {
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">4. Vásárlás menete, árak</h2>
                 <p>
-                    A megjelenített árak forintban értendő bruttó árak. A Szolgáltató <strong>alanyi adómentes (AAM)</strong> státuszú, így a termékeket áfa-mentesen értékesíti (ÁFA tartalom: 0%). Az árak nem tartalmazzák a házhoz szállítás díját, amely a Pénztár folyamat során kerül kiszámításra.
+                    A megjelenített árak forintban értendő bruttó árak. A Szolgáltató <strong>alanyi adómentes (AAM)</strong> státuszú, így a termékeket áfa-mentesen értékesíti (ÁFA tartalom: 0%). Az árak nem tartalmazzák a házhoz szállítás díját.
                 </p>
-                <p>
-                    A rendelés leadása elektronikus úton megkötött szerződésnek minősül, amely fizetési kötelezettséget von maga után.
-                </p>
+                <p><strong>A vásárlás menete:</strong></p>
+                <ol className="list-decimal pl-6 space-y-2 mb-6 text-sm">
+                    <li><strong>Termék kiválasztása:</strong> A kereső vagy a kategóriák segítségével kiválasztott alkatrész kosárba helyezése.</li>
+                    <li><strong>Pénztár:</strong> A szállítási és számlázási (szükség esetén adószámos) adatok megadása.</li>
+                    <li><strong>Bankkártyás fizetés (Stripe):</strong> A fizetés indításakor a Vásárló bankja az összeget **csak zárolja (authorization)**. A pénz ekkor még nem kerül levonásra, csak foglalva marad a tranzakció részére.</li>
+                    <li><strong>Minőségellenőrzés:</strong> A rendelés beérkezése után kollégáink elvégzik az alkatrész végső minőségellenőrzését (valós állapot és cikkszám egyeztetés).</li>
+                    <li><strong>Jóváhagyás és Levonás (Capture):</strong> Amennyiben a termék megfelel, a Szolgáltató jóváhagyja a rendelést, és a tényleges **levonás (capture)** csak ekkor történik meg.</li>
+                    <li><strong>Visszaigazolás:</strong> A rendszer e-mailben értesíti a Vásárlót a rendelés rögzítéséről, majd a jóváhagyásról és a szállítás indításáról.</li>
+                </ol>
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">5. Szállítás és átvétel</h2>
                 <p>
                     A kiszállítást a Pannon XP futárszolgálat végzi, vagy lehetőség van személyes átvételre a telephelyünkön (8111 Seregélyes-Jánosmajor). A szállítási feltételekről részletes tájékoztatást a <Link href="/shipping" className="text-[var(--color-primary)] underline">szállítási információs</Link> oldalon talál.
                 </p>
 
-                <h2 className="text-xl font-bold text-foreground mt-8 mb-4">6. Elállási jog (14 napos visszavétel)</h2>
+                <h2 className="text-xl font-bold text-foreground mt-8 mb-4">6. Elállási jog szabályozása</h2>
                 <p>
-                    A fogyasztónak minősülő Vásárló (magánszemély) 14 napon belül indokolás nélkül elállhat a szerződéstől.
+                    A távollevők között kötött szerződésekről szóló kormányrendelet alapján az elállási jog gyakorlása az alábbiak szerint alakul:
                 </p>
-                <ul>
-                    <li>Az elállási jog a termék átvételének napjától számít.</li>
-                    <li>Téves rendelés esetén a visszaszállítás költsége a Vásárlót terheli.</li>
-                    <li>Amennyiben bizonyíthatóan hibás terméket küldtünk ki, a visszaszállítás költségét is megtérítjük (előzetes egyeztetés után).</li>
-                    <li>Részletes szabályok a <Link href="/warranty" className="text-[var(--color-primary)] underline">Garancia és Visszaküldés</Link> oldalon találhatók.</li>
+                <ul className="space-y-4">
+                    <li>
+                        <strong>Fogyasztókra (magánszemélyekre) vonatkozó szabályok:</strong> A fogyasztónak minősülő Vásárló 14 napon belül indokolás nélkül elállhat a szerződéstől. Az elállási jog a termék átvételétől számít. A visszaszállítás költsége a Vásárlót terheli.
+                    </li>
+                    <li>
+                        <strong>Üzleti vásárlókra (cégekre, egyéni vállalkozókra) vonatkozó szabályok:</strong> A Ptk. és a vonatkozó kormányrendelet alapján az **indokolás nélküli elállási jog kizárólag a fogyasztókat illeti meg**. Gazdasági társaságokat, adószámmal rendelkező üzleti vásárlókat elállási jog nem illeti meg. Számukra kizárólag a beépítési garancia (7. pont) keretein belül, bizonyított hiba esetén biztosítunk visszavételt.
+                    </li>
+                    <li>
+                        <strong>Téves rendelés:</strong> A kompatibilitás ellenőrzése (cikkszám, évjárat, fotó alapján) minden esetben a Vásárló felelőssége. Téves rendelés (nem kompatibilis alkatrész választása) önmagában nem alap az elállásra üzleti vásárlók esetén.
+                    </li>
+                    <li>
+                        <strong>Védőjelzések:</strong> Bármilyen elállás vagy visszaküldés feltétele a terméken elhelyezett cégjelzések, plombák és és jelölőfestések sértetlensége.
+                    </li>
                 </ul>
+                <p className="text-xs text-muted mt-4 italic">
+                    Részletes szabályok a <Link href="/warranty" className="text-[var(--color-primary)] underline">Garancia és Visszaküldés</Link> oldalon találhatók.
+                </p>
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">7. Garancia és Szavatosság</h2>
                 <p>
