@@ -10,6 +10,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
  */
 function clearDictionaryCache(type: 'brands' | 'models' | 'categories' | 'parts') {
     revalidatePath('/admin');
+    revalidatePath('/admin/inventory');
     // @ts-ignore
     revalidateTag('automotive');
     
