@@ -1,6 +1,6 @@
 export const dynamic = "force-dynamic";
-import { ShieldAlert, Info } from"lucide-react";
-import Link from"next/link";
+import { ShieldAlert, Info } from "lucide-react";
+import Link from "next/link";
 
 export default function PrivacyPage() {
     return (
@@ -12,7 +12,7 @@ export default function PrivacyPage() {
                         Adatvédelmi Tájékoztató
                     </h1>
                     <p className="text-muted text-sm border-l-2 border-[var(--color-primary)] pl-3">
-                        Hatályos: 2026. 04. 02.
+                        Utolsó frissítés: 2026. 04. 14.
                     </p>
                 </div>
             </div>
@@ -28,8 +28,10 @@ export default function PrivacyPage() {
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">1. Az Adatkezelő adatai</h2>
                 <ul className="list-none space-y-2 p-6 sm:p-8 bg-muted/5 rounded-2xl border border-border m-0">
-                    <li><strong className="text-foreground">Cégnév:</strong> [CÉGNÉV] (Kérjük, töltse ki hivatalos adataival)</li>
+                    <li><strong className="text-foreground">Cégnév:</strong> Nardai Mónika E.V.</li>
                     <li><strong className="text-foreground">Székhely:</strong> 8111 Seregélyes-Jánosmajor</li>
+                    <li><strong className="text-foreground">Adószám:</strong> 53061937-1-33</li>
+                    <li><strong className="text-foreground">Nyilvántartási szám:</strong> 55807986</li>
                     <li><strong className="text-foreground">E-mail:</strong> info@bontoaruhaz.hu</li>
                     <li><strong className="text-foreground">Telefon:</strong> +36 70 612 1277</li>
                 </ul>
@@ -54,32 +56,30 @@ export default function PrivacyPage() {
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">3. Adattovábbítás, adatfeldolgozók</h2>
                 <p>Annak érdekében, hogy a megrendelt termékeket eljuttassuk Hozzád, és a rendszereink működjenek, az alábbi partnereink felé továbbítjuk a szükséges adatokat:</p>
                 <ul>
-                    <li><strong>Futárszolgálat:</strong> Pannon XP Kft. (Szállítási név, cím, telefonszám átadása a csomag kézbesítéséhez).</li>
+                    <li><strong>Futárszolgálat:</strong> Pannon XP Kft. (Szállítási név, cím, telefonszám átadás)– a csomag kézbesítéséhez.</li>
                     <li><strong>Tárhelyszolgáltató / Adatbázis:</strong> Vercel Inc., Supabase (Szerver és adatbázis biztosítása).</li>
                     <li><strong>Fizetési szolgáltató:</strong> Stripe (Online bankkártyás fizetés esetén a tranzakció lebonyolítása - a kártyaadatokat a BONTÓÁRUHÁZ nem látja és nem tárolja).</li>
-                    <li><strong>E-mail küldő rendszer:</strong> Resend (Rendszerüzenetek kiküldése).</li>
-                    <li><strong>Könyvelés:</strong> A jogszabályoknak megfelelő számviteli bizonylatok könyvelése céljából.</li>
+                    <li><strong>Számlázó rendszer:</strong> Billingo (Szabályszerű számla kiállítása céljából).</li>
+                    <li><strong>E-mail küldő rendszer:</strong> Resend (Rendszerüzenetek, visszaigazolások kiküldése).</li>
                 </ul>
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">4. Adatok megőrzési ideje</h2>
                 <p>
-                    A számlákat a számviteli törvény előírása alapján a kiállítástól számított 8 évig őrizzük meg. A regisztrált fiók adatait a felhasználó törlési kérelméig, vagy az utolsó bejelentkezéstől számított 5 év elteltével töröljük.
+                    A számlákat a számviteli törvény előírása alapján a kiállítástól számított legalább 8 évig őrizzük meg. A regisztrált fiók adatait a felhasználó törlési kérelméig őrizzük meg.
                 </p>
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">5. Érintettek (Vásárlók) jogai</h2>
                 <p>A GDPR alapján a felhasználók (érintettek) jogosultak:</p>
                 <ul>
-                    <li>Tájékoztatást kérni személyes adataik kezeléséről (hozzáférési jog).</li>
+                    <li>Tájékoztatást kérni személyes adataik kezeléséről.</li>
                     <li>Kérni a pontatlan adatok helyesbítését.</li>
-                    <li>Kérni adataik törlését ("elfeledtetéshez való jog"), ha annak jogszabályi akadálya nincs (pl. számla megőrzése).</li>
-                    <li>Kérni az adatkezelés korlátozását.</li>
+                    <li>Kérni adataik törlését, ha annak jogszabályi akadálya nincs (pl. adózási kötelezettség).</li>
                     <li>Tiltakozni a személyes adataik kezelése ellen.</li>
-                    <li>Adataikat hordozható formátumban elkérni.</li>
                 </ul>
 
                 <h2 className="text-xl font-bold text-foreground mt-8 mb-4">6. Jogorvoslat</h2>
                 <p>
-                    Amennyiben úgy érzed, hogy a BONTÓÁRUHÁZ megsértette az adatkezelésre vonatkozó törvényi előírásokat, kérjük, első lépésben vedd fel velünk a kapcsolatot az <strong>info@bontoaruhaz.hu</strong> e-mail címen. Panaszoddal a Nemzeti Adatvédelmi és Információszabadság Hatósághoz (NAIH) is fordulhatsz (cím: 1055 Budapest, Falk Miksa utca 9-11., web: naih.hu).
+                    Amennyiben úgy érzed, hogy a BONTÓÁRUHÁZ megsértette az adatkezelésre vonatkozó törvényi előírásokat, kérjük, első lépésben vedd fel velünk a kapcsolatot az <strong>info@bontoaruhaz.hu</strong> e-mail címen. Panaszoddal a Nemzeti Adatvédelmi és Információszabadság Hatósághoz (NAIH) is fordulhatsz (naih.hu).
                 </p>
 
                 <div className="mt-12 pt-8 border-t border-border flex items-center justify-between">
