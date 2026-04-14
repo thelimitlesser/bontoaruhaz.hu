@@ -86,6 +86,10 @@ export function ProductForm({
     );
     const [stock, setStock] = useState(initialData?.stock?.toString() || "1");
 
+    // Flags to track if user manually edited the fields
+    const [isManualName, setIsManualName] = useState(false);
+    const [isManualHeader, setIsManualHeader] = useState(false);
+
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
     const [manualDescription, setManualDescription] = useState(() => {
@@ -239,45 +243,22 @@ export function ProductForm({
             const newAutoHeader = `Eladó ${condLabel} ${brand} ${model}${bodyTypeStr} ${part} ${yearsStr}.`.replace(/\s+/g, ' ');
 
             // SYNC & UPDATE LOGIC
-            const clean = (s: string) => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-            const brandClean = clean(brand);
-            const modelClean = clean(model);
-            const partClean = clean(part);
             
-            // 1. Title Sync & Update
-            let effectiveLastAutoName = lastAutoName;
-            if (!effectiveLastAutoName && productName) {
-                const prodClean = clean(productName);
-                if (prodClean.includes(brandClean) && prodClean.includes(modelClean) && prodClean.includes(partClean)) {
-                    effectiveLastAutoName = productName;
-                    setLastAutoName(productName);
-                }
-            }
-            if (!productName || (effectiveLastAutoName && productName === effectiveLastAutoName)) {
+            // 1. Title Update - Sync if not manually edited or empty
+            if (!isManualName || !productName) {
                 if (productName !== newAutoName) {
                     setProductName(newAutoName);
-                    setLastAutoName(newAutoName);
                 }
             }
 
-            // 2. Header Sync & Update
-            let effectiveLastAutoHeader = lastAutoHeader;
-            if (!effectiveLastAutoHeader && descriptionHeader) {
-                const headClean = clean(descriptionHeader);
-                const isElado = descriptionHeader.toLowerCase().trim().startsWith('elad');
-                if (isElado && headClean.includes(brandClean) && headClean.includes(modelClean) && headClean.includes(partClean)) {
-                    effectiveLastAutoHeader = descriptionHeader;
-                    setLastAutoHeader(descriptionHeader);
-                }
-            }
-            if (!descriptionHeader || (effectiveLastAutoHeader && descriptionHeader === effectiveLastAutoHeader)) {
+            // 2. Header Update - Sync if not manually edited or empty
+            if (!isManualHeader || !descriptionHeader) {
                 if (descriptionHeader !== newAutoHeader) {
                     setDescriptionHeader(newAutoHeader);
-                    setLastAutoHeader(newAutoHeader);
                 }
             }
         }
-    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj]); // Removed productName/descriptionHeader to avoid loop, focus on inputs
+    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj, isManualName, isManualHeader]); // Removed productName/descriptionHeader to avoid loop, focus on inputs
 
     // Native Spellcheck Force
     useEffect(() => {
@@ -430,7 +411,12 @@ export function ProductForm({
             />
 
             <PartNameSearchSection 
-                productName={productName} setProductName={setProductName} nameRef={nameRef}
+                productName={productName} 
+                setProductName={(val) => {
+                    setProductName(val);
+                    setIsManualName(true);
+                }} 
+                nameRef={nameRef}
                 selectedPartItem={selectedPartItem} setSelectedPartItem={setSelectedPartItem}
                 isCheckingName={isCheckingName} nameDuplicates={nameDuplicates}
                 errors={validationErrors}
@@ -466,7 +452,11 @@ export function ProductForm({
                 selectedPartItemObj={selectedPartItemObj} yearFrom={yearFrom} yearTo={yearTo}
                 autoRef={autoRef} manualDescription={manualDescription}
                 setManualDescription={setManualDescription} descriptionRef={descriptionRef}
-                descriptionHeader={descriptionHeader} setDescriptionHeader={setDescriptionHeader}
+                descriptionHeader={descriptionHeader} 
+                setDescriptionHeader={(val) => {
+                    setDescriptionHeader(val);
+                    setIsManualHeader(true);
+                }}
                 condition={condition}
                 errors={validationErrors}
                 brands={brands}
