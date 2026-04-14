@@ -337,7 +337,7 @@ export default function ShippingPage() {
                             <table className="w-full text-left">
                                 <thead className="bg-gray-50 border-b border-gray-100">
                                     <tr>
-                                        <th className="px-6 py-4 text-xs font-black uppercase text-gray-400 tracking-wider">Rendelés</th>
+                                        <th className="px-6 py-4 text-xs font-black uppercase text-gray-400 tracking-wider">Rendelés ID</th>
                                         <th className="px-6 py-4 text-xs font-black uppercase text-gray-400 tracking-wider">Címzett</th>
                                         <th className="px-6 py-4 text-xs font-black uppercase text-gray-400 tracking-wider">Követési Szám</th>
                                         <th className="px-6 py-4 text-center"></th>
@@ -349,8 +349,10 @@ export default function ShippingPage() {
                                         return (
                                             <tr key={order.id} className="hover:bg-gray-50 transition-colors">
                                                 <td className="px-6 py-4">
-                                                    <div className="font-bold text-sm">#{order.id.slice(0, 8)}</div>
-                                                    <div className="text-[10px] text-gray-500 uppercase font-black">{new Date(order.createdAt).toLocaleDateString()}</div>
+                                                    <div className="font-mono text-xs px-2.5 py-1.5 bg-gray-200 dark:bg-white/20 rounded-lg w-fit font-black text-gray-900 dark:text-white shadow-sm ring-1 ring-gray-300 dark:ring-white/10 uppercase mb-1">
+                                                        #{order.id.slice(0, 8)}
+                                                    </div>
+                                                    <div className="text-[10px] text-gray-500 uppercase font-black">{new Date(order.createdAt).toLocaleDateString('hu-HU', { year: 'numeric', month: '2-digit', day: '2-digit' })}</div>
                                                 </td>
                                                 <td className="px-6 py-4">
                                                     <div className="font-bold text-sm text-gray-900">{address.name}</div>
