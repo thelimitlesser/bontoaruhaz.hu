@@ -111,20 +111,40 @@ export function ProductForm({
         let foundHeader = "";
         for (const pattern of patternsToStrip) {
             if (content.trim().startsWith(pattern)) {
-                const firstDot = content.indexOf(".");
+                // Heuristic: Header is the first block separated by double newline
                 const firstDoubleNL = content.indexOf("\n\n");
-                
-                let splitIndex = -1;
-                if (firstDot !== -1 && (firstDoubleNL === -1 || firstDot < firstDoubleNL)) {
-                    splitIndex = firstDot + 1;
-                } else if (firstDoubleNL !== -1) {
-                    splitIndex = firstDoubleNL;
-                }
+                let splitIndex = firstDoubleNL;
 
                 if (splitIndex !== -1) {
                     foundHeader = content.substring(0, splitIndex).trim();
-                    content = content.substring(splitIndex).trim();
+                    let remaining = content.substring(splitIndex).trim();
+                    
+                    // --- HEALING LOGIC ---
+                    // Detect if it was split mid-number (e.g. "Facelift 2." and "0 Diesel")
+                    if (foundHeader.match(/\d\.$/) && remaining.match(/^\d/)) {
+                        const nextDot = remaining.indexOf(".");
+                        const nextNL = remaining.indexOf("\n");
+                        let subSplit = -1;
+                        if (nextDot !== -1 && (nextNL === -1 || nextDot < nextNL)) subSplit = nextDot + 1;
+                        else if (nextNL !== -1) subSplit = nextNL;
+                        
+                        if (subSplit !== -1) {
+                            foundHeader += " " + remaining.substring(0, subSplit);
+                            remaining = remaining.substring(subSplit).trim();
+                        }
+                    }
+                    
+                    foundHeader = foundHeader.trim();
+                    content = remaining;
                     break;
+                } else {
+                    // Fallback to dot only if it's NOT a decimal (dot not followed by digit)
+                    const dotMatch = content.match(/\.(?!\d)/);
+                    if (dotMatch && dotMatch.index !== undefined) {
+                        foundHeader = content.substring(0, dotMatch.index + 1).trim();
+                        content = content.substring(dotMatch.index + 1).trim();
+                        break;
+                    }
                 }
             }
         }
