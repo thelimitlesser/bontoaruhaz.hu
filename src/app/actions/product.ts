@@ -9,9 +9,10 @@ import { createClient } from "@/lib/supabase/server";
 import sharp from "sharp";
 import path from "path";
 import { promises as fs } from "fs";
-import { partSynonyms } from "@/lib/search-synonyms";
 import { findClosestMatches } from "@/lib/string-similarity";
 import { parseProductFormData } from "@/utils/product-utils";
+import { expandQueryWithSynonyms } from "@/utils/query-utils";
+import { calculateTechnicalScore } from "@/utils/ranking-utils";
 
 export async function createProduct(formData: FormData) {
     const rawFormData = parseProductFormData(formData);
@@ -459,17 +460,26 @@ export async function getSearchProducts(params: {
         let suggestion: string | undefined;
 
         if (query) {
+            const expandedQueryWords = expandQueryWithSynonyms(query);
+            
             const textSearch: any[] = [
-                { sku: { contains: query, mode: 'insensitive' } },
-                { productCode: { contains: query, mode: 'insensitive' } },
-                { oemNumbers: { contains: query, mode: 'insensitive' } },
-                { engineCode: { contains: query, mode: 'insensitive' } }
+                {
+                    AND: expandedQueryWords.map(forms => ({
+                        OR: forms.flatMap(word => [
+                            { name: { contains: word, mode: 'insensitive' } },
+                            { sku: { contains: word, mode: 'insensitive' } },
+                            { productCode: { contains: word, mode: 'insensitive' } },
+                            { oemNumbers: { contains: word, mode: 'insensitive' } },
+                            { engineCode: { contains: word, mode: 'insensitive' } }
+                        ])
+                    }))
+                }
             ];
 
             if (where.OR) {
                 where.AND = [
                     { OR: where.OR },
-                    { OR: textSearch }
+                    ...textSearch
                 ];
                 delete where.OR;
             } else {
@@ -526,13 +536,19 @@ export async function getSearchProducts(params: {
             brandName: part.VehicleBrand?.name || part.brandId,
             modelName: part.VehicleModel?.name || part.modelId,
             partItemName: part.PartItem?.name || null,
-            isCompatibilityMatch: ((brand && part.brandId !== brand) || (model && part.modelId !== model)) && !part.isUniversal
+            isCompatibilityMatch: ((brand && part.brandId !== brand) || (model && part.modelId !== model)) && !part.isUniversal,
+            relevanceScore: query ? calculateTechnicalScore(part.name, query, part.sku, part.productCode) : 0
         }));
 
         // Fuzzy search logic removed as per user request to restrict to technical IDs only
 
+        // If no explicit price/date sorting is requested, sort by relevance score
+        const sortedParts = query && sortBy === 'newest'
+            ? [...enhancedParts].sort((a, b) => (b.relevanceScore || 0) - (a.relevanceScore || 0))
+            : enhancedParts;
+
         return {
-            parts: enhancedParts,
+            parts: sortedParts,
             total,
             meta: {
                 detectedYear: searchYear,
@@ -849,19 +865,25 @@ export async function getPartSuggestionsAction(query: string) {
         async (query: string) => {
             if (!query || query.trim().length < 2) return [];
 
-            const cleanQuery = query.trim().toLowerCase();
+            const expandedQueryWords = expandQueryWithSynonyms(query);
 
             try {
+                // Multi-word AND search with synonym OR expansion
+                const where: any = {
+                    stock: { gt: 0 },
+                    AND: expandedQueryWords.map(forms => ({
+                        OR: forms.flatMap(word => [
+                            { name: { contains: word, mode: 'insensitive' } },
+                            { sku: { contains: word, mode: 'insensitive' } },
+                            { productCode: { contains: word, mode: 'insensitive' } },
+                            { oemNumbers: { contains: word, mode: 'insensitive' } },
+                            { engineCode: { contains: word, mode: 'insensitive' } }
+                        ])
+                    }))
+                };
+
                 const parts = await prisma.part.findMany({
-                    where: {
-                        stock: { gt: 0 },
-                        OR: [
-                            { sku: { contains: cleanQuery, mode: 'insensitive' } },
-                            { productCode: { contains: cleanQuery, mode: 'insensitive' } },
-                            { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } },
-                            { engineCode: { contains: cleanQuery, mode: 'insensitive' } }
-                        ]
-                    },
+                    where,
                     select: {
                         id: true,
                         name: true,
@@ -871,10 +893,16 @@ export async function getPartSuggestionsAction(query: string) {
                         images: true,
                         oemNumbers: true
                     },
-                    take: 6
+                    take: 20 // Take more to allow better sorting
                 });
 
-                return parts;
+                // Calculate scores and sort
+                const sortedParts = parts.map(p => ({
+                    ...p,
+                    score: calculateTechnicalScore(p.name, query, p.sku, p.productCode)
+                })).sort((a, b) => b.score - a.score).slice(0, 6);
+
+                return sortedParts;
             } catch (error) {
                 console.error("Part suggestions error:", error);
                 return [];
@@ -891,37 +919,47 @@ export async function getDirectMatchAction(query: string) {
             if (!query || query.trim().length < 3) return null;
 
             const cleanQuery = query.trim();
+            const simplifiedQuery = cleanQuery.toLowerCase().replace(/[^a-z0-9]/g, "");
 
             try {
-                const parts = await prisma.part.findMany({
+                // 1. First try strict matches (exactly as typed)
+                const strictMatch = await prisma.part.findFirst({
                     where: {
                         stock: { gt: 0 },
                         OR: [
                             { sku: { equals: cleanQuery, mode: 'insensitive' } },
-                            { productCode: { equals: cleanQuery, mode: 'insensitive' } },
-                            { oemNumbers: { contains: cleanQuery, mode: 'insensitive' } }
+                            { productCode: { equals: cleanQuery, mode: 'insensitive' } }
+                        ]
+                    },
+                    select: { id: true }
+                });
+
+                if (strictMatch) return strictMatch.id;
+
+                // 2. Try simplified match (no hyphens/spaces) for SKU or ProductCode
+                // This handles cases like searching for "1062" when it's "10-62" in DB or vice versa
+                // Note: Prisma doesn't have a direct 'simplified' DB index here usually, 
+                // so we do a slightly broader search and filter
+                const candidateParts = await prisma.part.findMany({
+                    where: {
+                        stock: { gt: 0 },
+                        OR: [
+                            { sku: { contains: simplifiedQuery, mode: 'insensitive' } },
+                            { productCode: { contains: simplifiedQuery, mode: 'insensitive' } }
                         ]
                     },
                     select: { id: true, sku: true, productCode: true },
-                    take: 5
+                    take: 10
                 });
 
-                if (parts.length === 0) return null;
+                const fuzzyStrictMatch = candidateParts.find(p => {
+                    const sSku = p.sku?.toLowerCase().replace(/[^a-z0-9]/g, "");
+                    const sCode = p.productCode?.toLowerCase().replace(/[^a-z0-9]/g, "");
+                    return sSku === simplifiedQuery || sCode === simplifiedQuery;
+                });
 
-                const strictMatch = parts.find(p => 
-                    (p.sku && p.sku.toLowerCase() === cleanQuery.toLowerCase()) || 
-                    (p.productCode && p.productCode.toLowerCase() === cleanQuery.toLowerCase())
-                );
+                return fuzzyStrictMatch?.id || null;
 
-                if (strictMatch) {
-                    return strictMatch.id;
-                }
-
-                if (parts.length === 1) {
-                    return parts[0].id;
-                }
-
-                return null;
             } catch (error) {
                 console.error("Direct match check error:", error);
                 return null;

@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { ChevronDown, Search, Check, X } from "lucide-react";
+import { useState, useRef, useEffect, useMemo } from "react";
+import { ChevronDown, Search, Check, X, Info } from "lucide-react";
 import clsx from "clsx";
+import { fuzzyMatch, findClosestMatches } from "@/lib/string-similarity";
+import { expandQueryWithSynonyms } from "@/utils/query-utils";
+import { calculateTechnicalScore } from "@/utils/ranking-utils";
 
 interface Option {
     value: string;
@@ -10,16 +13,6 @@ interface Option {
     keywords?: string[]; // Optional keywords for improved searchability
     group?: string; // Optional grouping capability
 }
-
-// Utility to remove accents and normalize string for searching
-const normalizeString = (str: string) => {
-    return str
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[űü]/g, "u")
-        .replace(/[őö]/g, "o");
-};
 
 interface SearchableSelectProps {
     options: Option[];
@@ -72,14 +65,41 @@ export function SearchableSelect({
         }
     }, [isOpen]);
 
-    const filteredOptions = options.filter((option) => {
-        const search = normalizeString(searchQuery);
-        const labelMatch = normalizeString(option.label).includes(search);
-        const keywordMatch = option.keywords?.some(kw => normalizeString(kw).includes(search));
-        const groupMatch = option.group && normalizeString(option.group).includes(search);
-        
-        return labelMatch || keywordMatch || groupMatch;
-    });
+    // 1. Filter and 2. Sort by score
+    const filteredOptions = useMemo(() => {
+        const query = searchQuery;
+        if (!query) return options;
+
+        const filtered = options.filter((option) => {
+            // Fuzzy match on label/group/keywords
+            const labelMatch = fuzzyMatch(option.label, query);
+            const keywordMatch = option.keywords?.some(kw => fuzzyMatch(kw, query));
+            const groupMatch = option.group && fuzzyMatch(option.group, query);
+            if (labelMatch || keywordMatch || groupMatch) return true;
+
+            // Synonym expansion match
+            const expandedTerms = expandQueryWithSynonyms(query);
+            const synonymMatch = expandedTerms.some(forms => 
+                forms.some(form => 
+                    option.label.toLowerCase().includes(form.toLowerCase()) ||
+                    option.keywords?.some(kw => kw.toLowerCase().includes(form.toLowerCase()))
+                )
+            );
+
+            return synonymMatch;
+        });
+
+        // Add scores and sort
+        return filtered.map(option => ({
+            ...option,
+            score: calculateTechnicalScore(option.label, query)
+        })).sort((a, b) => b.score - a.score);
+    }, [options, searchQuery]);
+
+    // Closest match logic for "Did you mean" behavior
+    const closeMatches = searchQuery.length >= 3 && filteredOptions.length === 0 
+        ? findClosestMatches(searchQuery, options.map(o => o.label), 0.5)
+        : [];
 
     const selectedOption = options.find((o) => o.value === value);
 
@@ -202,8 +222,39 @@ export function SearchableSelect({
                             </button>
                         )}
                         {filteredOptions.length === 0 ? (
-                            <div className={clsx("px-4 py-8 text-center text-sm", theme === "dark" ? "text-muted" : "text-gray-500")}>
-                                Nincs találat.
+                            <div className="flex flex-col">
+                                <div className={clsx("px-4 py-8 text-center text-sm", theme === "dark" ? "text-muted" : "text-gray-500")}>
+                                    Nincs találat.
+                                </div>
+                                
+                                {/* "Did you mean" suggestions */}
+                                {closeMatches.length > 0 && (
+                                    <div className={clsx("px-4 pb-6", theme === "dark" ? "bg-foreground/5" : "bg-gray-50")}>
+                                        <div className="flex items-center gap-2 mb-3 text-[10px] font-black uppercase tracking-widest text-[var(--color-primary)]">
+                                            <Info className="w-3 h-3" /> Erre gondoltál?
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            {closeMatches.slice(0, 3).map((match) => (
+                                                <button
+                                                    key={match.word}
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setSearchQuery(match.word);
+                                                        // We don't close yet, let the user see the match
+                                                    }}
+                                                    className={clsx(
+                                                        "px-3 py-1.5 rounded-full text-xs font-bold transition-all border",
+                                                        theme === "dark" 
+                                                            ? "bg-foreground/10 border-border text-foreground hover:bg-[var(--color-primary)]/20 hover:border-[var(--color-primary)]" 
+                                                            : "bg-white border-gray-200 text-gray-700 hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+                                                    )}
+                                                >
+                                                    {match.word}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ) : (
                             <div className="flex flex-col">
