@@ -48,32 +48,7 @@ export default function ShippingPage() {
         }
     };
 
-    const triggerDownload = (pdfBase64: string, filename: string) => {
-        try {
-            const byteCharacters = atob(pdfBase64.replace(/\s/g, ''));
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-                byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: 'application/pdf' });
-            const url = URL.createObjectURL(blob);
-            
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = filename;
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            // Cleanup with delay to avoid issues in some browsers
-            setTimeout(() => URL.revokeObjectURL(url), 100);
-            return true;
-        } catch (err) {
-            console.error("Download trigger error:", err);
-            return false;
-        }
-    };
+    // triggerDownload removed in favor of direct API links for better browser compatibility
 
     const handleManifest = async () => {
         setShowConfirmModal(false);
@@ -89,12 +64,9 @@ export default function ShippingPage() {
                     pdfBase64: result.pdfBase64 || '' 
                 });
                 
-                // Attempt auto-download
-                if (result.pdfBase64) {
-                    triggerDownload(
-                        result.pdfBase64, 
-                        `PXP_Gyujtolista_${new Date().toISOString().split('T')[0]}.pdf`
-                    );
+                // Open manifest in new tab automatically if needed (mostly legacy, manual is better)
+                if (result.success && result.count && result.count > 0) {
+                    setMessage({ type: 'success', text: "Napi zárás sikeres!" });
                 }
                 
                 // Refresh list
@@ -110,19 +82,8 @@ export default function ShippingPage() {
     };
 
     const handleDownloadManifest = async (id: string, dateStr: string) => {
-        try {
-            const res = await getManifestPdf(id);
-            if (res.success && res.pdfBase64) {
-                triggerDownload(
-                    res.pdfBase64, 
-                    `PXP_Gyujtolista_${new Date(dateStr).toISOString().split('T')[0]}.pdf`
-                );
-            } else {
-                setMessage({ type: 'error', text: res.error || "Nem sikerült letölteni a PDF-et." });
-            }
-        } catch (error: any) {
-             setMessage({ type: 'error', text: error.message });
-        }
+            // Open directly in new tab
+            window.open(`/api/admin/shipping/manifest/${id}`, '_blank');
     };
 
     const handleBulkLabels = async () => {
@@ -131,16 +92,9 @@ export default function ShippingPage() {
 
         setIsPrinting(true);
         try {
-            const res = await getBulkShippingLabels(trackingNumbers);
-            if (res.success && res.pdfBase64) {
-                triggerDownload(
-                    res.pdfBase64, 
-                    `PXP_Osszes_Cimke_${new Date().toISOString().split('T')[0]}.pdf`
-                );
-                setMessage({ type: 'success', text: "Tömeges címke letöltés sikeres!" });
-            } else {
-                setMessage({ type: 'error', text: res.error || "Nem sikerült a tömeges címke letöltés." });
-            }
+            const ids = trackingNumbers.join(',');
+            window.open(`/api/admin/shipping/bulk-labels?ids=${ids}`, '_blank');
+            setMessage({ type: 'success', text: "Címkék megnyitása folyamatban..." });
         } catch (error: any) {
             setMessage({ type: 'error', text: error.message });
         } finally {
@@ -267,11 +221,11 @@ export default function ShippingPage() {
 
                             <div className="flex flex-col gap-3 pt-4">
                                 <button
-                                    onClick={() => triggerDownload(manifestResult.pdfBase64, `PXP_Gyujtolista_${new Date().toISOString().split('T')[0]}.pdf`)}
+                                    onClick={() => window.open(`/api/admin/shipping/bulk-labels?ids=${orders.map(o => o.trackingNumber).join(',')}`, '_blank')}
                                     className="w-full bg-blue-600 hover:bg-blue-700 text-white py-4 rounded-2xl font-bold shadow-lg shadow-blue-500/20 flex items-center justify-center gap-2 transition-all active:scale-95"
                                 >
-                                    <Download className="w-5 h-5" />
-                                    PDF LETÖLTÉSE ÚJRA
+                                    <Printer className="w-5 h-5" />
+                                    CÍMKÉK MEGNYITÁSA ÚJ ABLAKBAN
                                 </button>
                                 <button
                                     onClick={() => setManifestResult(null)}

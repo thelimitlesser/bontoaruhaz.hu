@@ -93,12 +93,12 @@ export async function createPxpShipment(order: any) {
 
         if (isSingleItem) {
             const item = order.items[0];
-            const pName = cleanPxpText(item.part?.name || 'Alkatrész');
             const pSku = cleanPxpText(item.part?.sku || '');
             
             // 1 item: Lean labels to avoid overlap
-            tartalomText = pName.slice(0, 39);
-            megjegyzesText = pName.slice(0, 99);
+            const itemName = item.productName || item.part?.name || 'Alkatrész';
+            tartalomText = cleanPxpText(itemName).slice(0, 39);
+            megjegyzesText = cleanPxpText(itemName).slice(0, 99);
             // Ref gets ONLY the IDs (Max 30 chars) - No product name here as per user request
             refText = `#${shortOrderId}${pSku ? ` | ${pSku}` : ''}`.replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
         } else {

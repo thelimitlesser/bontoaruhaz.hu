@@ -253,7 +253,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                                     {order.items.map((item: any, idx: number) => (
                                         <div key={item.id} className="bg-gray-50 dark:bg-white/5 p-2 rounded-lg border border-gray-100 dark:border-white/5">
                                             <p className="text-[10px] font-bold text-gray-900 dark:text-white truncate mb-1">
-                                                {idx + 1}. {item.part?.name}
+                                                {idx + 1}. {item.productName || item.part?.name}
                                             </p>
                                             <div className="flex items-center gap-3 text-xs font-mono text-[var(--color-primary)]">
                                                 <span className="flex items-center gap-1">

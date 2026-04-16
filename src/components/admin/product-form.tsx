@@ -87,8 +87,9 @@ export function ProductForm({
     const [stock, setStock] = useState(initialData?.stock?.toString() || "1");
 
     // Flags to track if user manually edited the fields
-    const [isManualName, setIsManualName] = useState(false);
-    const [isManualHeader, setIsManualHeader] = useState(false);
+    const [isManualName, setIsManualName] = useState(!!initialData);
+    const [isManualHeader, setIsManualHeader] = useState(false); // Session-level manual flag
+    const hasMountedSync = useRef(false);
 
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
 
@@ -259,6 +260,27 @@ export function ProductForm({
             }
         }
     }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj, isManualName, isManualHeader]); // Removed productName/descriptionHeader to avoid loop, focus on inputs
+
+    // --- Manual Title to Header Synchronization ---
+    useEffect(() => {
+        // Skip the very first execution on mount to protect DB values
+        if (!hasMountedSync.current) {
+            hasMountedSync.current = true;
+            return;
+        }
+
+        if (!isManualHeader && productName) {
+            const condLabel = condition === 'new' ? 'gyári új' : 'gyári használt';
+            const yearsStr = yearFrom || yearTo ? ` (${yearFrom || '?'}-${yearTo || '?'})` : "";
+            
+            // Standardize the header format: [Prefix] [Full Product Name] [Years]
+            const newHeader = `Eladó ${condLabel} ${productName}${yearsStr}.`.replace(/\s+/g, ' ');
+            
+            if (descriptionHeader !== newHeader) {
+                setDescriptionHeader(newHeader);
+            }
+        }
+    }, [productName, condition, yearFrom, yearTo, isManualHeader]);
 
     // Native Spellcheck Force
     useEffect(() => {

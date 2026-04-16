@@ -171,9 +171,12 @@ export default function CheckoutView() {
 
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
-                    <Link href="/" className="flex items-center gap-2 text-muted hover:text-foreground transition-colors text-xs sm:text-sm font-medium">
+                    <button 
+                        onClick={() => router.back()}
+                        className="flex items-center gap-2 text-muted hover:text-foreground transition-colors text-xs sm:text-sm font-medium"
+                    >
                         <ArrowLeft className="w-4 h-4" /> Vissza
-                    </Link>
+                    </button>
                     <h1 className="text-xl sm:text-2xl font-bold text-foreground">Pénztár</h1>
                     <div className="w-12 sm:w-24" />
                 </div>

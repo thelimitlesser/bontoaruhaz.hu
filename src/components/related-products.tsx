@@ -70,7 +70,7 @@ export function RelatedProducts({ products, brandName, modelName, brandSlug, mod
                                 </span>
                             </div>
                             
-                            <h3 className="font-bold text-base leading-tight text-foreground group-hover:text-[var(--color-primary)] transition-colors line-clamp-2 min-h-[3rem]">
+                            <h3 className="font-bold text-base leading-tight text-foreground group-hover:text-[var(--color-primary)] transition-colors line-clamp-3 min-h-[4.5rem]">
                                 {p.name}
                             </h3>
 

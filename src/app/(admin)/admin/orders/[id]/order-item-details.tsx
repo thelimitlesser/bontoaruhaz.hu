@@ -162,7 +162,7 @@ export function OrderItemDetails({ item }: OrderItemDetailsProps) {
             {/* Info Section */}
             <div className="flex-1 min-w-0 space-y-1.5">
                 <div className="flex flex-col gap-1">
-                    <p className="font-bold text-gray-900 dark:text-white leading-tight">{item.part?.name || 'Ismeretlen termék'}</p>
+                    <p className="font-bold text-gray-900 dark:text-white leading-tight">{item.productName || item.part?.name || 'Ismeretlen termék'}</p>
                     <p className="text-sm font-medium text-[var(--color-primary)]">
                         {item.part?.VehicleBrand?.name} {item.part?.VehicleModel?.name}
                     </p>

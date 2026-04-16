@@ -55,7 +55,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 
                 if (activeItems.length !== parsed.length) {
                     // Some items expired
-                    alert("Bizonyos termékek foglalási ideje lejárt, így törlődtek a kosaradból.");
+                    console.log("Certain items have expired and were removed from the cart.");
                 }
                 setItems(activeItems);
             } catch (e) {
@@ -90,8 +90,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
                 });
                 
                 if (hasExpired) {
-                    // Optional: could trigger a softer toast here
-                    alert("Egy vagy több termék foglalási ideje lejárt, kikerültek a kosaradból.");
+                    // Silent update to avoid disrupting checkout flow
+                    console.log("One or more items have expired and were removed from the cart.");
                     return activeItems;
                 }
                 return prev;

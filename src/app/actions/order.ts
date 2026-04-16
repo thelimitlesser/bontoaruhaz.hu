@@ -38,8 +38,8 @@ export async function createPendingOrder(data: {
 
     const orderData = {
         userId,
-        totalAmount,
-        shippingCost: shippingCost || 0,
+        totalAmount: Math.round(Number(totalAmount)),
+        shippingCost: Math.round(Number(shippingCost)) || 0,
         shippingAddress: JSON.stringify({
             name: `${customerData.lastName} ${customerData.firstName}`,
             address: customerData.address,
@@ -78,8 +78,9 @@ export async function createPendingOrder(data: {
                     deleteMany: {}, // Clear old items to avoid messy quantity merges
                     create: items.map(item => ({
                         partId: item.id,
-                        quantity: item.quantityInCart,
-                        priceAtTime: item.price
+                        quantity: Math.round(Number(item.quantityInCart)) || 1,
+                        priceAtTime: Math.round(Number(item.price)),
+                        productName: item.name || null
                     }))
                 }
             },
@@ -93,8 +94,9 @@ export async function createPendingOrder(data: {
             items: {
                 create: items.map(item => ({
                     partId: item.id,
-                    quantity: item.quantityInCart,
-                    priceAtTime: item.price
+                    quantity: Math.round(Number(item.quantityInCart)) || 1,
+                    priceAtTime: Math.round(Number(item.price)),
+                    productName: item.name || null
                 }))
             }
         },
@@ -189,7 +191,17 @@ export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: s
         const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress;
         
         try {
-            await sendOrderReceivedEmail(order as any, billingData.email);
+            // RE-FETCH order to ensure we have exactly what's in the DB (including any auto-generated fields or relations)
+            // even though we have an 'order' object, re-fetching is the safest way to guarantee hydration for the email.
+            const freshOrder = await prisma.order.findUnique({
+                where: { id: order.id },
+                include: { items: { include: { part: true } } }
+            });
+            
+            if (freshOrder) {
+                console.log(`[FINALIZE] Sending "Order Received" email for ${billingData.email} with fresh order data.`);
+                await sendOrderReceivedEmail(freshOrder as any, billingData.email);
+            }
         } catch (err) {
             console.error("[FINALIZE] Email sending error:", err);
         }
@@ -235,8 +247,8 @@ export async function createOrder(data: {
     const order = await prisma.order.create({
         data: {
             userId,
-            totalAmount,
-            shippingCost: shippingCost || 0,
+            totalAmount: Math.round(Number(totalAmount)),
+            shippingCost: Math.round(Number(shippingCost)) || 0,
             shippingAddress: JSON.stringify({
                 name: `${customerData.lastName} ${customerData.firstName}`,
                 address: customerData.address,
@@ -266,8 +278,9 @@ export async function createOrder(data: {
             items: {
                 create: items.map(item => ({
                     partId: item.id,
-                    quantity: item.quantityInCart,
-                    priceAtTime: item.price
+                    quantity: Math.round(Number(item.quantityInCart)) || 1,
+                    priceAtTime: Math.round(Number(item.price)),
+                    productName: item.name || null
                 }))
             }
         },
@@ -305,9 +318,20 @@ export async function createOrder(data: {
 
     // Send "Order Received" email
     console.log(`TRIGGERING "Order Received" email for ${customerData.email}`);
-    await sendOrderReceivedEmail(order, customerData.email).catch(err => {
-        console.error("CRITICAL: sendOrderReceivedEmail CATCH error:", err);
-    });
+    
+    try {
+        // RE-FETCH order to ensure we have the exact saved state from the DB for the email
+        const freshOrder = await prisma.order.findUnique({
+            where: { id: order.id },
+            include: { items: { include: { part: true } } }
+        });
+        
+        if (freshOrder) {
+            await sendOrderReceivedEmail(freshOrder, customerData.email);
+        }
+    } catch (err) {
+        console.error("CRITICAL: sendOrderReceivedEmail ERROR:", err);
+    }
 
     revalidatePath('/admin/orders');
     revalidatePath('/', 'layout'); // Ensure public pages reflect the new stock immediately

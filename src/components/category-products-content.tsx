@@ -374,7 +374,14 @@ export function CategoryProductsContent({
                     ) : realProducts.length > 0 ? (
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                             {realProducts.map((product) => (
-                                <ProductCard key={product.id} product={product} />
+                                <ProductCard 
+                                    key={product.id} 
+                                    product={product} 
+                                    contextBrandId={brand.id}
+                                    contextModelId={model.id}
+                                    contextBrandName={brand.name}
+                                    contextModelName={model.name}
+                                />
                             ))}
                         </div>
                     ) : (

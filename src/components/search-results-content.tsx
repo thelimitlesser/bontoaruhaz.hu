@@ -292,7 +292,14 @@ export function SearchResultsContent() {
                 <div className="space-y-12">
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         {products.map((product) => (
-                            <ProductCard key={product.id} product={product} />
+                            <ProductCard 
+                                key={product.id} 
+                                product={product} 
+                                contextBrandId={brand} 
+                                contextModelId={model}
+                                contextBrandName={detectedMeta.detectedBrand || (brand ? products.find(p => p.brandId === brand)?.brandName : undefined)}
+                                contextModelName={detectedMeta.detectedModel || (model ? products.find(p => p.modelId === model)?.modelName : undefined)}
+                            />
                         ))}
                     </div>
 

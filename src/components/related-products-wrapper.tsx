@@ -10,10 +10,15 @@ interface RelatedProductsWrapperProps {
     modelName: string;
     brandSlug: string;
     modelSlug: string;
+    contextBrandId?: string | null;
+    contextModelId?: string | null;
 }
 
-async function RelatedProductsList({ productId, modelId, brandId, brandName, modelName, brandSlug, modelSlug }: RelatedProductsWrapperProps) {
-    const products = await getRelatedProducts(productId, modelId, brandId, 4);
+async function RelatedProductsList({ 
+    productId, modelId, brandId, brandName, modelName, brandSlug, modelSlug,
+    contextBrandId, contextModelId 
+}: RelatedProductsWrapperProps) {
+    const products = await getRelatedProducts(productId, modelId, brandId, 4, contextBrandId, contextModelId);
     return <RelatedProducts products={products} brandName={brandName} modelName={modelName} brandSlug={brandSlug} modelSlug={modelSlug} />;
 }
 

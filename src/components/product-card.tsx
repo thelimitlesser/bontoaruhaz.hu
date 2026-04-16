@@ -30,7 +30,19 @@ export interface PrismaPart {
 
 import { useState } from "react";
 
-export function ProductCard({ product }: { product: Product | any }) {
+export function ProductCard({ 
+    product, 
+    contextBrandId, 
+    contextModelId,
+    contextBrandName,
+    contextModelName
+}: { 
+    product: Product | any,
+    contextBrandId?: string,
+    contextModelId?: string,
+    contextBrandName?: string,
+    contextModelName?: string
+}) {
     const [isLoaded, setIsLoaded] = useState(false);
     // Adapter for Prisma Part
     const isPrisma = 'priceGross' in product;
@@ -50,6 +62,12 @@ export function ProductCard({ product }: { product: Product | any }) {
     
     // Format year range
     const formatYear = () => {
+        // If we have context identification and it's a compatibility match,
+        // we might want to prioritize years from the compatibility?
+        // Actually, the 'product' object passed here normally contains the 'primary' years
+        // in PrismaPart. But if we are in compatibility mode, the parent wrapper
+        // should have provided the correct years.
+        
         const from = product.yearFrom;
         const to = product.yearTo;
         
@@ -58,20 +76,30 @@ export function ProductCard({ product }: { product: Product | any }) {
             if (from === to) return `${from}`;
             return `${from} - ${to}`;
         }
-        if (from) return `${from}-`;
+        if (from) return `${from}-től`;
         if (to) return `${to}-ig`;
         return null;
     };
     
     const yearRange = formatYear();
 
-    const productUrl = getProductUrl({
+    const baseUrl = getProductUrl({
         id: product.id,
         name: product.name,
         brandName: isPrisma ? product.brandName : product.brand,
         modelName: isPrisma ? product.modelName : product.model,
         sku: product.sku
     });
+
+    // Append context parameters for dynamic display
+    let productUrl = baseUrl;
+    if (contextBrandId || contextModelId) {
+        const params = new URLSearchParams();
+        if (contextBrandId) params.set("v_make", contextBrandId);
+        if (contextModelId) params.set("v_model", contextModelId);
+        const separator = productUrl.includes('?') ? '&' : '?';
+        productUrl = `${productUrl}${separator}${params.toString()}`;
+    }
 
     return (
         <Link href={productUrl} className="block h-full group active:scale-[0.98] transition-transform">
@@ -126,12 +154,57 @@ export function ProductCard({ product }: { product: Product | any }) {
                     <div className="flex items-center gap-2 mb-2 min-w-0">
                         <Tag className="w-3 h-3 text-[var(--color-primary)] shrink-0" />
                         <span className="text-xs text-gray-500 font-medium uppercase tracking-wider truncate">
-                            {isPrisma ? `${product?.brandName || product?.brandId || ''} ${product?.modelName || ''}`.trim() || 'Egyéb' : product?.brand}
+                            {contextBrandName && contextModelName 
+                                ? `${contextBrandName} ${contextModelName}` 
+                                : isPrisma ? `${product?.brandName || product?.brandId || ''} ${product?.modelName || ''}`.trim() || 'Egyéb' : product?.brand}
                         </span>
                     </div>
 
-                    <h3 className={clsx("text-lg font-bold text-foreground leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-2 [overflow-wrap:anywhere] [word-break:break-word] min-w-0")}>
-                        {product?.name || "Név nélküli termék"}
+                    <h3 className={clsx("text-lg font-bold text-foreground leading-tight group-hover:text-[var(--color-primary)] transition-colors line-clamp-3 [overflow-wrap:anywhere] [word-break:break-word] min-w-0 min-h-[4.5rem]")}>
+                        {(() => {
+                            if (!product?.name) return "Név nélküli termék";
+                            if (!product.isCompatibilityMatch || !contextBrandName || !contextModelName) return product.name;
+                            
+                            // Note: We used to use partItemName directly, but that strips manual segments like "Facelift".
+                            // Now we fall back to the replacement logic below which is more robust.
+
+                            // Fallback: Swap primary brand/model in title with context ones 
+                            const primaryBrand = product.brandName || "";
+                            const primaryModel = product.modelName || "";
+                            
+                            let newName = product.name;
+                            if (primaryBrand && primaryModel) {
+                                const primaryFull = `${primaryBrand} ${primaryModel}`;
+                                if (newName.toLowerCase().includes(primaryFull.toLowerCase())) {
+                                    // Case-insensitive specific replacement
+                                    const regex = new RegExp(primaryFull.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                                    newName = newName.replace(regex, `${contextBrandName} ${contextModelName}`);
+                                } else if (newName.toLowerCase().includes(primaryBrand.toLowerCase())) {
+                                    // If only brand is found
+                                    const regex = new RegExp(primaryBrand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                                    newName = newName.replace(regex, contextBrandName);
+                                }
+                            }
+                            
+                            // NEW: Year replacement logic in card
+                            if (product.yearFrom || product.yearTo) {
+                                const newYearStr = (product.yearFrom && product.yearTo) 
+                                    ? `(${product.yearFrom} - ${product.yearTo})` 
+                                    : product.yearFrom ? `(${product.yearFrom}-től)` : `(${product.yearTo}-ig)`;
+                                
+                                const yearRegex = /\(\d{4}\s*-\s*\d{4}\)|\(\d{4}-től\)|\(\d{4}-ig\)/g;
+                                if (yearRegex.test(newName)) {
+                                    newName = newName.replace(yearRegex, newYearStr);
+                                }
+                            }
+
+                            // Fallback: if swap didn't happen and name doesn't start with context brand, prepend it
+                            if (newName === product.name && !newName.toLowerCase().startsWith(contextBrandName.toLowerCase())) {
+                                return `${contextBrandName} ${contextModelName} ${newName}`;
+                            }
+                            
+                            return newName;
+                        })()}
                     </h3>
                     
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4 mt-1">

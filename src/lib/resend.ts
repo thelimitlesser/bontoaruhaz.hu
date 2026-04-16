@@ -69,15 +69,25 @@ const getEmailFooter = () => `
  * Items Table Component
  */
 const getItemsTableHtml = (items: any[], total: number, shippingCost: number = 0) => {
-    const rows = items.map((item: any) => `
-        <tr>
-            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border};">
-                <p style="margin: 0; font-weight: bold; color: ${COLORS.text};">${item.part.name}</p>
-            </td>
-            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: center; white-space: nowrap;">${item.quantity} db</td>
-            <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; font-weight: bold; white-space: nowrap;">${item.priceAtTime.toLocaleString('hu-HU')} Ft</td>
-        </tr>
-    `).join('');
+    const rows = items.map((item: any) => {
+        // Log for debugging (will show up in server logs)
+        console.log(`[EMAIL_ITEM] ID: ${item.id}, productName: "${item.productName}", partName: "${item.part?.name}"`);
+        
+        // Priority: Saved contextual name > Original part name
+        const displayName = (item.productName && item.productName.trim() !== "") 
+            ? item.productName 
+            : (item.part?.name || "Ismeretlen termék");
+
+        return `
+            <tr>
+                <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border};">
+                    <p style="margin: 0; font-weight: bold; color: ${COLORS.text};">${displayName}</p>
+                </td>
+                <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: center; white-space: nowrap;">${item.quantity} db</td>
+                <td style="padding: 10px 0; border-bottom: 1px solid ${COLORS.border}; text-align: right; font-weight: bold; white-space: nowrap;">${item.priceAtTime.toLocaleString('hu-HU')} Ft</td>
+            </tr>
+        `;
+    }).join('');
 
     let footerRows = "";
     
@@ -171,6 +181,7 @@ export async function sendOrderReceivedEmail(order: any, customerEmail: string) 
     `;
 
     try {
+        console.log(`[RESEND] Order items for ${order.id}:`, order.items?.map((i: any) => ({ name: i.productName, part: i.part?.name })));
         await resend.emails.send({
             from: 'Bontóáruház <info@bontoaruhaz.hu>',
             to: customerEmail,

@@ -16,6 +16,7 @@ export function Navbar() {
     const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [isMounted, setIsMounted] = useState(false);
 
     const pathname = usePathname();
     const { totalItems, setIsCartOpen } = useCart();
@@ -23,6 +24,7 @@ export function Navbar() {
     const supabase = createClient();
 
     useEffect(() => {
+        setIsMounted(true);
         const getUser = async () => {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
@@ -126,7 +128,7 @@ export function Navbar() {
                             aria-label="Kosár"
                         >
                             <ShoppingCart className="w-5 h-5 sm:w-6 sm:h-6 text-muted group-hover:text-foreground transition-colors" />
-                            {totalItems > 0 && (
+                            {isMounted && totalItems > 0 && (
                                 <span className="absolute top-0.5 right-0.5 w-4 h-4 sm:w-5 sm:h-5 bg-[var(--color-primary)] rounded-full text-[9px] sm:text-[10px] font-bold flex items-center justify-center text-white shadow-sm">
                                     {totalItems}
                                 </span>

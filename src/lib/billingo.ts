@@ -113,7 +113,7 @@ export async function createBillingoInvoice(order: any, customerData: any) {
 
         // 2. Prepare items
         const items: BillingoDocumentItem[] = order.items.map((item: any) => ({
-            name: item.part.name,
+            name: item.productName || item.part.name,
             unit_price: item.priceAtTime,
             unit_price_type: 'gross',
             quantity: item.quantity,

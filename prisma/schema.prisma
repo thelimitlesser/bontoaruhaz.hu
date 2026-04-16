@@ -134,6 +134,7 @@ model OrderItem {
   partId      String
   quantity    Int
   priceAtTime Int
+  productName String? // The name shown to the customer (e.g. contextual vehicle branding)
   order       Order  @relation(fields: [orderId], references: [id])
   part        Part   @relation(fields: [partId], references: [id])
 }
@@ -194,7 +195,7 @@ model PartItem {
   id              String          @id
   subcategoryId   String
   name            String
-  slug            String
+  slug            String          @unique
   keywords        String[]
   Part            Part[]
   PartSubcategory PartSubcategory @relation(fields: [subcategoryId], references: [id])
@@ -207,7 +208,7 @@ model PartSubcategory {
   id           String       @id
   categoryId   String
   name         String
-  slug         String
+  slug         String       @unique
   keywords     String[]
   Part         Part[]
   PartItem     PartItem[]
@@ -232,7 +233,7 @@ model VehicleModel {
   id                String              @id
   brandId           String
   name              String
-  slug              String
+  slug              String              @unique
   series            String?
   keywords          String[]
   years             String?

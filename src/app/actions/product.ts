@@ -507,6 +507,7 @@ export async function getSearchProducts(params: {
                     yearTo: true,
                     VehicleBrand: { select: { name: true } },
                     VehicleModel: { select: { name: true, series: true } },
+                    PartItem: { select: { name: true } },
                     reservations: {
                         where: { expiresAt: { gt: new Date() } },
                         select: { id: true }
@@ -524,7 +525,8 @@ export async function getSearchProducts(params: {
             availableStock: part.stock - (part.reservations?.length || 0),
             brandName: part.VehicleBrand?.name || part.brandId,
             modelName: part.VehicleModel?.name || part.modelId,
-            isCompatibilityMatch: brand && part.brandId !== brand && !part.isUniversal
+            partItemName: part.PartItem?.name || null,
+            isCompatibilityMatch: ((brand && part.brandId !== brand) || (model && part.modelId !== model)) && !part.isUniversal
         }));
 
         // Fuzzy search logic removed as per user request to restrict to technical IDs only
@@ -709,18 +711,43 @@ export async function checkDuplicateProduct(name: string, excludeId?: string, br
     }
 }
 
-export async function getRelatedProducts(currentProductId: string, modelId: string | null, brandId: string | null, take: number = 4) {
+export async function getRelatedProducts(
+    currentProductId: string, 
+    modelId: string | null, 
+    brandId: string | null, 
+    take: number = 4,
+    contextBrandId?: string | null,
+    contextModelId?: string | null
+) {
     return unstable_cache(
-        async (currentProductId: string, modelId: string | null, brandId: string | null, take: number) => {
+        async (currentProductId: string, modelId: string | null, brandId: string | null, take: number, contextBrandId?: string | null, contextModelId?: string | null) => {
             try {
+                // Use contextual IDs if provided, otherwise fallback to primary IDs
+                const activeBrandId = contextBrandId || brandId;
+                const activeModelId = contextModelId || modelId;
+
                 const products = await prisma.part.findMany({
                     where: {
                         id: { not: currentProductId },
                         stock: { gt: 0 },
-                        brandId: brandId,
                         OR: [
-                            { modelId: modelId },
-                            { isUniversal: true }
+                            // 1. Same primary brand/model
+                            {
+                                brandId: activeBrandId,
+                                OR: [
+                                    { modelId: activeModelId },
+                                    { isUniversal: true }
+                                ]
+                            },
+                            // 2. Or part is explicitely compatible with the active brand/model
+                            ...(activeBrandId && activeModelId ? [{
+                                compatibilities: {
+                                    some: {
+                                        brandId: activeBrandId,
+                                        modelId: activeModelId
+                                    }
+                                }
+                            }] : [])
                         ]
                     },
                     take: take,
@@ -742,30 +769,80 @@ export async function getRelatedProducts(currentProductId: string, modelId: stri
                     }
                 });
 
-                const [dbBrands, dbModels] = await Promise.all([
+                const [dbBrands, dbModels, contextBrand, contextModel, allCompats] = await Promise.all([
                     prisma.vehicleBrand.findMany({ where: { id: { in: products.map(p => p.brandId).filter(Boolean) as string[] } } }),
-                    prisma.vehicleModel.findMany({ where: { id: { in: products.map(p => p.modelId).filter(Boolean) as string[] } } })
+                    prisma.vehicleModel.findMany({ where: { id: { in: products.map(p => p.modelId).filter(Boolean) as string[] } } }),
+                    contextBrandId ? prisma.vehicleBrand.findUnique({ where: { id: contextBrandId } }) : Promise.resolve(null),
+                    contextModelId ? prisma.vehicleModel.findUnique({ where: { id: contextModelId } }) : Promise.resolve(null),
+                    (contextBrandId && contextModelId) ? prisma.partCompatibility.findMany({
+                        where: {
+                            partId: { in: products.map(p => p.id) },
+                            brandId: contextBrandId,
+                            modelId: contextModelId
+                        }
+                    }) : Promise.resolve([])
                 ]);
+                
+                return products.map(p => {
+                    let brandName = dbBrands.find(b => b.id === p.brandId)?.name || p.brandId || "";
+                    let modelName = dbModels.find(m => m.id === p.modelId)?.name || p.modelId || "";
+                    let displayName = p.name;
+                    
+                    // If context exists, perform contextual name shift for EACH item
+                    if (contextBrand && contextModel) {
+                        const originalFull = `${brandName} ${modelName}`;
+                        
+                        // Find if this specific part has context years
+                        const compat = allCompats.find(c => c.partId === p.id);
+                        let contextYears = "";
+                        if (compat) {
+                            if (compat.yearFrom && compat.yearTo) {
+                                contextYears = `(${compat.yearFrom} - ${compat.yearTo})`;
+                            } else if (compat.yearFrom) {
+                                contextYears = `(${compat.yearFrom}-től)`;
+                            } else if (compat.yearTo) {
+                                contextYears = `(${compat.yearTo}-ig)`;
+                            }
+                        }
 
-                return products.map(p => ({
-                    ...p,
-                    brandName: dbBrands.find(b => b.id === p.brandId)?.name || p.brandId,
-                    modelName: dbModels.find(m => m.id === p.modelId)?.name || p.modelId
-                }));
+                        if (displayName.toLowerCase().includes(originalFull.toLowerCase())) {
+                            const regex = new RegExp(originalFull.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                            displayName = displayName.replace(regex, `${contextBrand.name} ${contextModel.name}`);
+                        } else if (displayName.toLowerCase().includes(brandName.toLowerCase())) {
+                            const regex = new RegExp(brandName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                            displayName = displayName.replace(regex, contextBrand.name);
+                        }
+                        
+                        // Replace year range in the name
+                        if (contextYears) {
+                            const yearRegex = /\(\d{4}\s*-\s*\d{4}\)|\(\d{4}-től\)|\(\d{4}-ig\)/g;
+                            displayName = displayName.replace(yearRegex, contextYears);
+                        }
+
+                        // Shift identification labels too
+                        brandName = contextBrand.name;
+                        modelName = contextModel.name;
+                    }
+
+                    return {
+                        ...p,
+                        name: displayName,
+                        brandName: brandName,
+                        modelName: modelName
+                    };
+                });
             } catch (error) {
                 console.error("Error fetching related products:", error);
                 return [];
             }
         },
-        ["related-products", currentProductId],
+        ["related-products", currentProductId, contextBrandId || "", contextModelId || ""], // Include context in cache key
         { revalidate: 3600, tags: ["products"] }
-    )(currentProductId, modelId, brandId, take);
+    )(currentProductId, modelId, brandId, take, contextBrandId, contextModelId);
 }
 
 /**
- * Checks if a search query matches exactly one product by SKU or Product Code.
- * Returns the product ID if a single unique match is found, or if there is 
- * an exact SKU/Product Code match despite other partial matches.
+ * Fetches part suggestions based on a search query.
  */
 export async function getPartSuggestionsAction(query: string) {
     return unstable_cache(
@@ -1008,7 +1085,7 @@ export async function getCategoryPageDataAction(params: {
                 perPage
             };
         },
-        ["category-page-data-v2", JSON.stringify(params)],
+        ["category-page-data-v3", JSON.stringify(params)],
         { revalidate: 3600, tags: ["automotive", "parts", "categories", "products"] }
     )(params);
 }

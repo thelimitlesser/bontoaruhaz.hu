@@ -15,9 +15,19 @@ import { clsx } from "clsx";
 
 
 
-export async function generateMetadata({ params }: { params: Promise<{ slug_id: string }> }): Promise<import("next").Metadata> {
+export async function generateMetadata({ 
+  params,
+  searchParams
+}: { 
+  params: Promise<{ slug_id: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}): Promise<import("next").Metadata> {
   try {
     const { slug_id } = await params;
+    const resolvedSearchParams = await searchParams;
+    const v_make = resolvedSearchParams.v_make as string | undefined;
+    const v_model = resolvedSearchParams.v_model as string | undefined;
+
     const id = extractIdFromSlug(slug_id);
     const data = await getProductMetadataAction(id);
     if (!data) {
@@ -27,10 +37,46 @@ export async function generateMetadata({ params }: { params: Promise<{ slug_id: 
       };
     }
 
-    const { dbPart, brandName, modelName } = data;
+    const { dbPart } = data;
+    let { brandName, modelName } = data;
+
+    // Handle Dynamic Compatibility Context for SEO Meta
+    let contextYears = "";
+    if (v_make || v_model) {
+      const { prisma } = await import("@/lib/prisma");
+      const [compatBrand, compatModel, compatRecord] = await Promise.all([
+        v_make ? prisma.vehicleBrand.findUnique({ where: { id: v_make }, select: { name: true } }) : Promise.resolve(null),
+        v_model ? prisma.vehicleModel.findUnique({ where: { id: v_model }, select: { name: true } }) : Promise.resolve(null),
+        (v_make && v_model) ? prisma.partCompatibility.findFirst({
+          where: { partId: id, brandId: v_make, modelId: v_model },
+          select: { yearFrom: true, yearTo: true }
+        }) : Promise.resolve(null)
+      ]);
+
+      if (compatBrand) brandName = compatBrand.name;
+      if (compatModel) modelName = compatModel.name;
+
+      if (compatRecord) {
+        if (compatRecord.yearFrom && compatRecord.yearTo) {
+          contextYears = `(${compatRecord.yearFrom} - ${compatRecord.yearTo})`;
+        } else if (compatRecord.yearFrom) {
+          contextYears = `(${compatRecord.yearFrom}-től)`;
+        } else if (compatRecord.yearTo) {
+          contextYears = `(${compatRecord.yearTo}-ig)`;
+        }
+      }
+    }
     
     // SEO-ready title with powerful keywords
-    const title = `Gyári Bontott ${brandName} ${modelName} ${dbPart.name} - Garanciával | Bontóáruház`;
+    let partNameClean = dbPart.name.includes(brandName) ? dbPart.name.split(brandName)[1].trim() : dbPart.name;
+    
+    // NEW: If we have context years, try to strip ANY year pattern from the part name clean
+    // to avoid double years like "Légzsák (2009-2015) (2010-2017)"
+    if (contextYears) {
+      partNameClean = partNameClean.replace(/\(\d{4}\s*-\s*\d{4}\)/g, '').replace(/\(\d{4}-től\)/g, '').replace(/\(\d{4}-ig\)/g, '').trim();
+    }
+
+    const title = `Gyári Bontott ${brandName} ${modelName} ${partNameClean} ${contextYears}`.trim() + " - Garanciával | Bontóáruház";
     const description = dbPart.description 
       ? dbPart.description.slice(0, 155) + "..." 
       : `Minőségi, bevizsgált gyári bontott ${brandName} ${modelName} ${dbPart.name} alkatrész garanciával és gyors országos kiszállítással a Bontóáruházban.`;
@@ -65,10 +111,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug_id: 
 }
 
 
-export default async function ProductPage({ params }: { params: Promise<{ slug_id: string }> }) {
+export default async function ProductPage({ 
+  params,
+  searchParams
+}: { 
+  params: Promise<{ slug_id: string }>,
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
   const { slug_id } = await params;
-  const id = extractIdFromSlug(slug_id);
+  const resolvedSearchParams = await searchParams;
+  const v_make = resolvedSearchParams.v_make as string | undefined;
+  const v_model = resolvedSearchParams.v_model as string | undefined;
 
+  const id = extractIdFromSlug(slug_id);
   const data = await getProductPageDataAction(id);
 
   if (!data) {
@@ -77,24 +132,63 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
 
   const { dbPart, brandObj, modelObj, categoryObj, subcategoryObj, partItemObj } = data;
 
-  const brandName = brandObj?.name || dbPart.brandId || "Ismeretlen";
-  const modelName = modelObj?.name || dbPart.modelId || "Ismeretlen";
+  let brandName = brandObj?.name || dbPart.brandId || "Ismeretlen";
+  let modelName = modelObj?.name || dbPart.modelId || "Ismeretlen";
   const categoryName = categoryObj?.name || dbPart.categoryId || null;
   const subcategoryName = subcategoryObj?.name || dbPart.subcategoryId || null;
   const partItemName = partItemObj?.name || dbPart.partItemId || null;
 
-  const brandSlug = brandObj?.slug || dbPart.brandId;
-  const modelSlug = modelObj?.slug || dbPart.modelId;
+  let brandSlug = brandObj?.slug || dbPart.brandId;
+  let modelSlug = modelObj?.slug || dbPart.modelId;
+
+  // --- Dynamic Compatibility Logic ---
+  let isDynamicNaming = false;
+  let contextBrand = null;
+  let contextModel = null;
+  let displayYearFrom = dbPart.yearFrom;
+  let displayYearTo = dbPart.yearTo;
+
+  if (v_make || v_model) {
+    const { prisma } = await import("@/lib/prisma");
+    const [compatBrand, compatModel, compatRecord] = await Promise.all([
+      v_make ? prisma.vehicleBrand.findUnique({ where: { id: v_make } }) : Promise.resolve(null),
+      v_model ? prisma.vehicleModel.findUnique({ where: { id: v_model } }) : Promise.resolve(null),
+      (v_make && v_model) ? prisma.partCompatibility.findFirst({
+        where: { partId: id, brandId: v_make, modelId: v_model }
+      }) : Promise.resolve(null)
+    ]);
+
+    contextBrand = compatBrand;
+    contextModel = compatModel;
+
+    if (compatBrand) {
+      brandName = compatBrand.name;
+      brandSlug = compatBrand.slug;
+      isDynamicNaming = true;
+    }
+    if (compatModel) {
+      modelName = compatModel.name;
+      modelSlug = compatModel.slug;
+      isDynamicNaming = true;
+    }
+    if (compatRecord && (compatRecord.yearFrom || compatRecord.yearTo)) {
+      displayYearFrom = compatRecord.yearFrom;
+      displayYearTo = compatRecord.yearTo;
+    }
+  }
+
   const categorySlug = categoryObj?.slug || dbPart.categoryId;
   const subcategorySlug = subcategoryObj?.slug || dbPart.subcategoryId;
   const partItemSlug = partItemObj?.slug || dbPart.partItemId;
 
-  // Canonical Redirect Logic
-  const canonicalSlug = getProductSlug(dbPart.name, brandName, modelName, dbPart.sku);
+  const canonicalSlug = getProductSlug(dbPart.name, brandObj?.name || dbPart.brandId || "", modelObj?.name || dbPart.modelId || "", dbPart.sku);
   const canonicalSlugId = `${canonicalSlug}-${dbPart.id}`;
-  
-  if (slug_id !== canonicalSlugId) {
-    redirect(`/product/${canonicalSlugId}`);
+
+  // Canonical Redirect Logic (Only if not in dynamic mode)
+  if (!isDynamicNaming) {
+    if (slug_id !== canonicalSlugId) {
+      redirect(`/product/${canonicalSlugId}`);
+    }
   }
 
 
@@ -122,9 +216,45 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
   const bookedByAll = dbPart.reservations?.reduce((acc, r) => acc + r.quantity, 0) || 0;
   const remainingOnShelf = Math.max(0, dbPart.stock - bookedByAll);
 
+  // Re-generate product name if dynamic
+  let finalDisplayName = dbPart.name;
+  if (isDynamicNaming && contextBrand && contextModel) {
+    const primaryBrand = brandObj?.name || "";
+    const primaryModel = modelObj?.name || "";
+    
+    if (primaryBrand && primaryModel) {
+      const primaryFull = `${primaryBrand} ${primaryModel}`;
+      if (finalDisplayName.toLowerCase().includes(primaryFull.toLowerCase())) {
+        const regex = new RegExp(primaryFull.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        finalDisplayName = finalDisplayName.replace(regex, `${contextBrand.name} ${contextModel.name}`);
+      } else if (finalDisplayName.toLowerCase().includes(primaryBrand.toLowerCase())) {
+        const regex = new RegExp(primaryBrand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+        finalDisplayName = finalDisplayName.replace(regex, contextBrand.name);
+      }
+    }
+    
+    // Fallback: Prepend if no swap happened or brands/models missing in original name
+    if (finalDisplayName === dbPart.name && !finalDisplayName.toLowerCase().startsWith(contextBrand.name.toLowerCase())) {
+      finalDisplayName = `${contextBrand.name} ${contextModel.name} ${partItemName || dbPart.name}`;
+    }
+
+    // NEW: Replace the year range if it exists in the name
+    if (displayYearFrom || displayYearTo) {
+      const newYearStr = (displayYearFrom && displayYearTo) 
+        ? `(${displayYearFrom} - ${displayYearTo})` 
+        : displayYearFrom ? `(${displayYearFrom}-től)` : `(${displayYearTo}-ig)`;
+      
+      // Pattern to match common year formats in our names: (2000-2010) or (2000 - 2010)
+      const yearRegex = /\(\d{4}\s*-\s*\d{4}\)|\(\d{4}-től\)|\(\d{4}-ig\)/g;
+      if (yearRegex.test(finalDisplayName)) {
+        finalDisplayName = finalDisplayName.replace(yearRegex, newYearStr);
+      }
+    }
+  }
+
   const product: Product = {
     id: dbPart.id,
-    name: dbPart.name,
+    name: finalDisplayName,
     price: dbPart.priceGross,
     currency: dbPart.currency,
     image: mainImage,
@@ -144,13 +274,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
 
   // Format year string
   let yearString = "";
-  if (dbPart.yearFrom && dbPart.yearTo) {
-    yearString = `${dbPart.yearFrom} - ${dbPart.yearTo}`;
-  } else if (dbPart.yearFrom) {
-    yearString = `${dbPart.yearFrom}-től`;
-  } else if (dbPart.yearTo) {
-    yearString = `${dbPart.yearTo}-ig`;
+  if (displayYearFrom && displayYearTo) {
+    yearString = `${displayYearFrom} - ${displayYearTo}`;
+  } else if (displayYearFrom) {
+    yearString = `${displayYearFrom}-től`;
+  } else if (displayYearTo) {
+    yearString = `${displayYearTo}-ig`;
   }
+
+  // Name for cart/invoice (pure name, no year as per user request)
+  // Strip any year patterns like (2000-2010), (2000-től), (2000-ig)
+  const yearRegex = /\(\d{4}\s*-\s*\d{4}\)|\(\d{4}-től\)|\(\d{4}-ig\)/g;
+  const cartName = finalDisplayName.replace(yearRegex, '').replace(/\s+/g, ' ').trim();
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -396,7 +531,31 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                         key={i} 
                         className={i === 0 ? "font-bold mb-6 text-lg uppercase tracking-tight" : "mb-2 text-foreground"}
                       >
-                        {line.replace(/\\n/g, '\n')}
+                        {isDynamicNaming && i === 0 && contextBrand && contextModel
+                          ? (() => {
+                              const primaryBrand = brandObj?.name || "";
+                              const primaryModel = modelObj?.name || "";
+                              let newHeader = line.replace(/\\n/g, '\n');
+                              
+                              if (primaryBrand && primaryModel) {
+                                  const primaryFull = `${primaryBrand} ${primaryModel}`;
+                                  if (newHeader.toLowerCase().includes(primaryFull.toLowerCase())) {
+                                      const regex = new RegExp(primaryFull.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                                      newHeader = newHeader.replace(regex, `${contextBrand.name} ${contextModel.name}`);
+                                  } else if (newHeader.toLowerCase().includes(primaryBrand.toLowerCase())) {
+                                      const regex = new RegExp(primaryBrand.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+                                      newHeader = newHeader.replace(regex, contextBrand.name);
+                                  }
+                              }
+
+                              // Fallback if no swap happened
+                              if (newHeader === line && !newHeader.toLowerCase().includes(contextBrand.name.toLowerCase())) {
+                                  return `ELADÓ GYÁRI ${normalizedCondition === 'USED' || normalizedCondition === 'HASZNÁLT' ? 'HASZNÁLT' : normalizedCondition === 'NEW' || normalizedCondition === 'ÚJ' ? 'ÚJ' : 'FELÚJÍTOTT'} ${contextBrand.name.toUpperCase()} ${contextModel.name.toUpperCase()} ${partItemName?.toUpperCase() || ''} ${yearString ? `(${yearString})` : ''}`;
+                              }
+
+                              return newHeader.toUpperCase();
+                            })()
+                          : line.replace(/\\n/g, '\n')}
                       </p>
                     ))}
 
@@ -443,29 +602,29 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                 <div className="relative z-10 space-y-6">
                   {/* Price Block */}
                   <div>
-                    {dbPart.originalPrice && dbPart.originalPrice > dbPart.priceGross && (
+                    {(dbPart as any).originalPrice && (dbPart as any).originalPrice > dbPart.priceGross && (
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm text-gray-400 line-through font-medium">
-                          {dbPart.originalPrice.toLocaleString('hu-HU')} Ft
+                          {(dbPart as any).originalPrice.toLocaleString('hu-HU')} Ft
                         </span>
                         <span className="text-[10px] bg-red-600 text-white font-black px-2 py-0.5 rounded-full animate-pulse uppercase tracking-wider">
-                          -{Math.round(((dbPart.originalPrice - dbPart.priceGross) / dbPart.originalPrice) * 100)}% KEDVEZMÉNY
+                          -{Math.round((((dbPart as any).originalPrice - dbPart.priceGross) / (dbPart as any).originalPrice) * 100)}% KEDVEZMÉNY
                         </span>
                       </div>
                     )}
                     <span className="text-xs font-bold text-gray-600 uppercase tracking-widest block mb-1">
-                      {dbPart.originalPrice && dbPart.originalPrice > dbPart.priceGross ? 'Akciós Vételár' : 'Vételár'}
+                      {(dbPart as any).originalPrice && (dbPart as any).originalPrice > dbPart.priceGross ? 'Akciós Vételár' : 'Vételár'}
                     </span>
                     <div className="flex items-baseline gap-2">
                       <span className={clsx(
                         "text-3xl sm:text-5xl font-black tracking-tight",
-                        dbPart.originalPrice && dbPart.originalPrice > dbPart.priceGross ? "text-red-600" : "text-foreground"
+                        (dbPart as any).originalPrice && (dbPart as any).originalPrice > dbPart.priceGross ? "text-red-600" : "text-foreground"
                       )}>
                         {product.price.toLocaleString('hu-HU')}
                       </span>
                       <span className={clsx(
                         "text-lg sm:text-xl font-bold",
-                        dbPart.originalPrice && dbPart.originalPrice > dbPart.priceGross ? "text-red-600/60" : "text-gray-600"
+                        (dbPart as any).originalPrice && (dbPart as any).originalPrice > dbPart.priceGross ? "text-red-600/60" : "text-gray-600"
                       )}>Ft</span>
                     </div>
                   </div>
@@ -501,7 +660,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
                   </div>
 
                   <div className="flex flex-col gap-3">
-                    <AddToCartButton product={product} />
+                    <AddToCartButton product={{ ...product, name: cartName }} />
                     
                     {/* Guarantee Badge moved here */}
                     <div className="mt-2 flex items-center justify-center gap-2 text-sm font-bold text-emerald-600 bg-emerald-500/10 py-3 rounded-xl border border-emerald-500/20">
@@ -527,6 +686,8 @@ export default async function ProductPage({ params }: { params: Promise<{ slug_i
         modelName={modelName}
         brandSlug={brandSlug || ""}
         modelSlug={modelSlug || ""}
+        contextBrandId={v_make}
+        contextModelId={v_model}
       />
 
       {/* New Full-Width Inquiry Section - Refined Compact Version */}
