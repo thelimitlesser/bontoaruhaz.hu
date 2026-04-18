@@ -8,12 +8,12 @@ const supabase = createClient(
 
 async function deleteUser() {
   const email = 'legjobbverziod05@gmail.com'
-  const userId = 'a91b6287-fa19-4605-9058-95a778264b67'
+  const userId = '66a81ac1-b96b-4017-911a-454936433fbc'
   
   console.log(`\n### TÖRLÉS: ${email} (ID: ${userId}) ###`)
 
   try {
-    // Delete from Supabase Auth
+    // 1. Delete from Supabase Auth
     const { error } = await supabase.auth.admin.deleteUser(userId)
     
     if (error) {
@@ -22,14 +22,14 @@ async function deleteUser() {
       console.log("✅ Sikeresen törölve a Supabase Auth-ból.")
     }
 
-    // Double check Prisma just in case
+    // 2. Delete from Prisma Adatbázis
     const { PrismaClient } = require('@prisma/client')
     const prisma = new PrismaClient()
     try {
         await prisma.user.delete({ where: { email } })
         console.log("✅ Sikeresen törölve a Prisma adatbázisból is.")
     } catch (e) {
-        // User likely didn't exist in Prisma, ignoring
+        console.log("ℹ️ A felhasználó már nem volt a Prisma adatbázisban (vagy hiba történt).")
     } finally {
         await prisma.$disconnect()
     }
