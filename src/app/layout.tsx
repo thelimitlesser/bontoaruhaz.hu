@@ -9,6 +9,9 @@ import { Footer } from "@/components/footer";
 import { CartProvider } from "@/context/cart-context";
 import { CartDrawer } from "@/components/cart-drawer";
 import NextTopLoader from 'nextjs-toploader';
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { CookieConsent } from "@/components/cookie-consent";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,6 +27,10 @@ export const metadata: Metadata = {
   metadataBase: new URL("https://bontoaruhaz.hu"),
   title: "BONTÓÁRUHÁZ - Minőségi Bontott Autóalkatrészek Garanciával",
   description: "Magyarország megbízható autóalkatrész piactere. 15 év tapasztalat, 14 napos pénzvisszafizetési garancia és gyors házhozszállítás.",
+  icons: {
+    icon: "/logo_orange.png",
+    apple: "/logo_orange.png",
+  },
   keywords: ["autóalkatrész", "bontott alkatrész", "autóbontó", "alkatrész rendelés", "garanciális alkatrész"],
   openGraph: {
     title: "BONTÓÁRUHÁZ - Megbízható Autóalkatrész Piactér",
@@ -134,6 +141,9 @@ export default function RootLayout({
             <Footer />
           </Suspense>
         </CartProvider>
+        <Analytics />
+        <SpeedInsights />
+        <CookieConsent />
       </body>
     </html>
   );

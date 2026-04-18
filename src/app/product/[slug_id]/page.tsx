@@ -77,7 +77,7 @@ export async function generateMetadata({
     // NEW: If we have context years, try to strip ANY year pattern from the part name clean
     // to avoid double years like "Légzsák (2009-2015) (2010-2017)"
     if (contextYears) {
-      partNameClean = partNameClean.replace(/\(\d{4}\s*-\s*\d{4}\)/g, '').replace(/\(\d{4}-től\)/g, '').replace(/\(\d{4}-ig\)/g, '').trim();
+      partNameClean = partNameClean.replace(/\(\??\d{4}\s*-\s*\??\d{4}\)/g, '').replace(/\(\??\d{4}-től\)/g, '').replace(/\(\??\d{4}-ig\)/g, '').trim();
     }
 
     const title = `Gyári Bontott ${brandName} ${modelName} ${partNameClean} ${contextYears}`.trim() + " - Garanciával | Bontóáruház";
@@ -258,8 +258,8 @@ export default async function ProductPage({
         ? `(${displayYearFrom} - ${displayYearTo})` 
         : displayYearFrom ? `(${displayYearFrom}-)` : `(-${displayYearTo})`;
       
-      // Pattern to match common year formats in our names: (2000-2010) or (2000 - 2010)
-      const yearRegex = /\(\d{4}\s*-\s*\d{4}\)|\(\d{4}-től\)|\(\d{4}-ig\)/g;
+      // Pattern to match common year formats in our names: (2000-2010) or (2000 - 2010), including optional ?
+      const yearRegex = /\(\??\d{4}\s*-\s*\??\d{4}\)|\(\??\d{4}-től\)|\(\??\d{4}-ig\)/g;
       if (yearRegex.test(finalDisplayName)) {
         finalDisplayName = finalDisplayName.replace(yearRegex, newYearStr);
       }
@@ -297,8 +297,8 @@ export default async function ProductPage({
   }
 
   // Name for cart/invoice (pure name, no year as per user request)
-  // Strip any year patterns like (2000-2010), (2000-től), (2000-ig)
-  const yearRegex = /\(\d{4}\s*-\s*\d{4}\)|\(\d{4}-től\)|\(\d{4}-ig\)/g;
+  // Strip any year patterns like (2000-2010), (2000-től), (2000-ig), including optional ?
+  const yearRegex = /\(\??\d{4}\s*-\s*\??\d{4}\)|\(\??\d{4}-től\)|\(\??\d{4}-ig\)/g;
   const cartName = finalDisplayName.replace(yearRegex, '').replace(/\s+/g, ' ').trim();
 
   const breadcrumbJsonLd = {
@@ -563,7 +563,7 @@ export default async function ProductPage({
                               }
 
                               // NEW: Also replace year range in the description header
-                              const yearRegex = /\(\d{4}\s*-\s*\d{4}\)|\(\d{4}-től\)|\(\d{4}-ig\)/g;
+                              const yearRegex = /\(\??\d{4}\s*-\s*\??\d{4}\)|\(\??\d{4}-től\)|\(\??\d{4}-ig\)/g;
                               if (yearRegex.test(newHeader)) {
                                   newHeader = newHeader.replace(yearRegex, yearString ? `(${yearString})` : '');
                               }
