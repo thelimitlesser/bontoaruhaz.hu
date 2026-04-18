@@ -3,27 +3,35 @@ import { createClient } from '@/lib/supabase/server'
 import { ensureUserExists } from '@/app/actions/user'
 
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
-    const code = searchParams.get('code')
-    const next = searchParams.get('next') ?? '/'
+    const requestUrl = new URL(request.url)
+    const code = requestUrl.searchParams.get('code')
+    const next = requestUrl.searchParams.get('next') ?? '/'
+    
+    // Always use the primary production domain for redirects to avoid cookie issues
+    const origin = process.env.NEXT_PUBLIC_SITE_URL || requestUrl.origin
 
     if (code) {
         const supabase = await createClient()
         
         // Exchange the code for a session
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
         
-        if (!error) {
+        if (!exchangeError) {
             // Ensure the user is synced to Prisma/DB
-            await ensureUserExists()
+            try {
+                await ensureUserExists()
+            } catch (syncError) {
+                console.error("User sync error in callback:", syncError)
+                // We still proceed even if sync fails, so the user isn't blocked
+            }
             
-            // Build the redirect URL - ensuring we use the correct origin
-            const redirectUrl = new URL(next, origin)
+            // Build the absolute redirect URL
+            const redirectUrl = new URL(next, origin).toString()
             
             // Return a redirect response
-            // Note: In Next.js 15, the cookies set via cookies() in createClient 
-            // are automatically handled by the framework in the response.
             return NextResponse.redirect(redirectUrl)
+        } else {
+            console.error("Auth exchange error:", exchangeError.message)
         }
     }
 
