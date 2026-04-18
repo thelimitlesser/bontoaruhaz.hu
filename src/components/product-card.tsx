@@ -83,22 +83,26 @@ export function ProductCard({
     
     const yearRange = formatYear();
 
-    const baseUrl = getProductUrl({
-        id: product.id,
-        name: product.name,
-        brandName: isPrisma ? product.brandName : product.brand,
-        modelName: isPrisma ? product.modelName : product.model,
-        sku: product.sku
-    });
+    let productUrl = getProductUrl(
+        {
+            id: product.id,
+            name: product.name,
+            brandName: isPrisma ? product.brandName : product.brand,
+            modelName: isPrisma ? product.modelName : product.model,
+            sku: product.sku
+        },
+        (contextBrandName || contextModelName) ? {
+            brandName: contextBrandName,
+            modelName: contextModelName
+        } : undefined
+    );
 
-    // Append context parameters for dynamic display
-    let productUrl = baseUrl;
+    // Keep query parameters for logic
     if (contextBrandId || contextModelId) {
         const params = new URLSearchParams();
         if (contextBrandId) params.set("v_make", contextBrandId);
         if (contextModelId) params.set("v_model", contextModelId);
-        const separator = productUrl.includes('?') ? '&' : '?';
-        productUrl = `${productUrl}${separator}${params.toString()}`;
+        productUrl = `${productUrl}?${params.toString()}`;
     }
 
     return (

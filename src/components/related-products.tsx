@@ -11,9 +11,19 @@ interface RelatedProductsProps {
     modelName: string;
     brandSlug: string;
     modelSlug: string;
+    contextBrandId?: string | null;
+    contextModelId?: string | null;
 }
 
-export function RelatedProducts({ products, brandName, modelName, brandSlug, modelSlug }: RelatedProductsProps) {
+export function RelatedProducts({ 
+    products, 
+    brandName, 
+    modelName, 
+    brandSlug, 
+    modelSlug,
+    contextBrandId,
+    contextModelId
+}: RelatedProductsProps) {
     if (products.length === 0) return null;
 
     return (
@@ -35,18 +45,34 @@ export function RelatedProducts({ products, brandName, modelName, brandSlug, mod
             </div>
 
             <div className="flex overflow-x-auto pb-8 gap-4 snap-x snap-mandatory sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:gap-6 scrollbar-hide px-4 sm:px-0 -mx-4 sm:mx-0">
-                {products.map((p) => (
-                    <Link
-                        key={p.id}
-                        href={getProductUrl({
+                {products.map((p) => {
+                    let productUrl = getProductUrl(
+                        {
                             id: p.id,
                             name: p.name,
                             brandName: p.brandName,
                             modelName: p.modelName,
                             sku: p.sku
-                        })}
-                        className="group bg-background border border-border rounded-[2rem] overflow-hidden hover:border-[var(--color-primary)] hover:shadow-2xl hover:shadow-[var(--color-primary)]/10 transition-all duration-300 flex flex-col active:scale-[0.98] snap-start min-w-[280px] sm:min-w-0"
-                    >
+                        },
+                        {
+                            brandName: brandName,
+                            modelName: modelName
+                        }
+                    );
+
+                    if (contextBrandId || contextModelId) {
+                        const params = new URLSearchParams();
+                        if (contextBrandId) params.set("v_make", contextBrandId);
+                        if (contextModelId) params.set("v_model", contextModelId);
+                        productUrl = `${productUrl}?${params.toString()}`;
+                    }
+
+                    return (
+                        <Link
+                            key={p.id}
+                            href={productUrl}
+                            className="group bg-background border border-border rounded-[2rem] overflow-hidden hover:border-[var(--color-primary)] hover:shadow-2xl hover:shadow-[var(--color-primary)]/10 transition-all duration-300 flex flex-col active:scale-[0.98] snap-start min-w-[280px] sm:min-w-0"
+                        >
                         {/* Image Container */}
                         <div className="relative aspect-square overflow-hidden bg-muted">
                             <Image
@@ -86,8 +112,9 @@ export function RelatedProducts({ products, brandName, modelName, brandSlug, mod
                                 </div>
                             </div>
                         </div>
-                    </Link>
-                ))}
+                        </Link>
+                    );
+                })}
             </div>
 
             {/* Mobile view 'view all' link */}

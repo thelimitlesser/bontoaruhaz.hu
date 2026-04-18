@@ -9,6 +9,7 @@ import {
     createSubcategory, updateSubcategory, deleteSubcategory,
     createPartItem, updatePartItem, deletePartItem 
 } from "@/app/actions/dictionary";
+import { slugify } from "@/utils/slug";
 
 type DictionaryEditorProps = {
     initialBrands: any[];
@@ -56,20 +57,22 @@ export function DictionaryEditor({
             if (editingItem.id === 'NEW') {
                 // Creation
                 let res;
+                const generatedId = editForm.slug || slugify(editForm.name);
+                
                 if (editingItem.type === 'brand') {
-                    res = await createBrand({ id: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), name: editForm.name, slug: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), logo: '/brands/default.svg' });
+                    res = await createBrand({ id: generatedId, name: editForm.name, slug: generatedId, logo: '/brands/default.svg' });
                     setBrands([...brands, res]);
                 } else if (editingItem.type === 'model') {
-                    res = await createModel({ id: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), brandId: selectedBrandId, name: editForm.name, slug: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), series: editForm.series, years: editForm.years });
+                    res = await createModel({ id: generatedId, brandId: selectedBrandId, name: editForm.name, slug: generatedId, series: editForm.series, years: editForm.years });
                     setModels([...models, res]);
                 } else if (editingItem.type === 'category') {
-                    res = await createCategory({ id: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), name: editForm.name, slug: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-') });
+                    res = await createCategory({ id: generatedId, name: editForm.name, slug: generatedId });
                     setCategories([...categories, res]);
                 } else if (editingItem.type === 'subcategory') {
-                    res = await createSubcategory({ id: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), categoryId: selectedCategoryId, name: editForm.name, slug: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-') });
+                    res = await createSubcategory({ id: generatedId, categoryId: selectedCategoryId, name: editForm.name, slug: generatedId });
                     setSubcategories([...subcategories, res]);
                 } else if (editingItem.type === 'partItem') {
-                    res = await createPartItem({ id: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-'), subcategoryId: selectedSubcategoryId, name: editForm.name, slug: editForm.slug || editForm.name.toLowerCase().replace(/\s+/g, '-') });
+                    res = await createPartItem({ id: generatedId, subcategoryId: selectedSubcategoryId, name: editForm.name, slug: generatedId });
                     setPartItems([...partItems, res]);
                 }
             } else {
@@ -203,7 +206,7 @@ export function DictionaryEditor({
                 </button>
             </div>
 
-            {/* Vehichles Layout */}
+            {/* Vehicles Layout */}
             {activeTab === "vehicles" && (
                 <div className="flex flex-col md:flex-row gap-6 animate-in fade-in slide-in-from-bottom-4">
                     {renderList("Autómárkák", "brand", brands, selectedBrandId, setSelectedBrandId)}

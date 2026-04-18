@@ -32,6 +32,10 @@ export async function getBrands() {
 }
 
 export async function createBrand(data: any) {
+    if (data.id) {
+        const existing = await prisma.vehicleBrand.findUnique({ where: { id: data.id } });
+        if (existing) throw new Error("Ez a márka már létezik!");
+    }
     const brand = await prisma.vehicleBrand.create({ data });
     clearDictionaryCache('brands');
     return brand;
@@ -58,6 +62,10 @@ export async function getModels(brandId?: string) {
 }
 
 export async function createModel(data: any) {
+    if (data.id) {
+        const existing = await prisma.vehicleModel.findUnique({ where: { id: data.id } });
+        if (existing) throw new Error("Ez a modell már létezik!");
+    }
     const model = await prisma.vehicleModel.create({ data });
     clearDictionaryCache('models');
     return model;
@@ -82,6 +90,10 @@ export async function getCategories() {
 }
 
 export async function createCategory(data: any) {
+    if (data.id) {
+        const existing = await prisma.partCategory.findUnique({ where: { id: data.id } });
+        if (existing) throw new Error("Ez a kategória már létezik!");
+    }
     const category = await prisma.partCategory.create({ data });
     clearDictionaryCache('categories');
     return category;
@@ -107,6 +119,10 @@ export async function getSubcategories(categoryId?: string) {
 }
 
 export async function createSubcategory(data: any) {
+    if (data.id) {
+        const existing = await prisma.partSubcategory.findUnique({ where: { id: data.id } });
+        if (existing) throw new Error("Ez az alkategória már létezik!");
+    }
     const sub = await prisma.partSubcategory.create({ data });
     clearDictionaryCache('categories');
     return sub;
@@ -132,6 +148,10 @@ export async function getPartItems(subcategoryId?: string) {
 }
 
 export async function createPartItem(data: any) {
+    if (data.id) {
+        const existing = await prisma.partItem.findUnique({ where: { id: data.id } });
+        if (existing) throw new Error("Ez az alkatrész már létezik!");
+    }
     const item = await prisma.partItem.create({ data });
     clearDictionaryCache('parts');
     return item;

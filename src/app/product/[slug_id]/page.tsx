@@ -40,6 +40,10 @@ export async function generateMetadata({
     const { dbPart } = data;
     let { brandName, modelName } = data;
 
+    // Calculate canonicalSlugId for the canonical tag
+    const canonicalSlug = getProductSlug(dbPart.name, brandName || "", modelName || "", dbPart.sku);
+    const canonicalSlugId = `${canonicalSlug}-${dbPart.id}`;
+
     // Handle Dynamic Compatibility Context for SEO Meta
     let contextYears = "";
     if (v_make || v_model) {
@@ -88,6 +92,9 @@ export async function generateMetadata({
       title,
       description,
       keywords: [`${brandName} ${modelName} alkatrész`, `${dbPart.name} ára`, "bontott autóalkatrész", "gyári alkatrész", "autóbontó online"],
+      alternates: {
+        canonical: `https://bontoaruhaz.hu/product/${canonicalSlugId}`,
+      },
       openGraph: {
         title,
         description,
@@ -134,6 +141,11 @@ export default async function ProductPage({
 
   let brandName = brandObj?.name || dbPart.brandId || "Ismeretlen";
   let modelName = modelObj?.name || dbPart.modelId || "Ismeretlen";
+  
+  // Keep original donor info for the compatibility table
+  const originalBrandName = brandName;
+  const originalModelName = modelName;
+
   const categoryName = categoryObj?.name || dbPart.categoryId || null;
   const subcategoryName = subcategoryObj?.name || dbPart.subcategoryId || null;
   const partItemName = partItemObj?.name || dbPart.partItemId || null;
@@ -184,8 +196,10 @@ export default async function ProductPage({
   const canonicalSlug = getProductSlug(dbPart.name, brandObj?.name || dbPart.brandId || "", modelObj?.name || dbPart.modelId || "", dbPart.sku);
   const canonicalSlugId = `${canonicalSlug}-${dbPart.id}`;
 
-  // Canonical Redirect Logic (Only if not in dynamic mode)
-  if (!isDynamicNaming) {
+  // Canonical Redirect Logic
+  // Only redirect if NOT in dynamic mode (no v_make/v_model)
+  // AND the current slug doesn't match the canonical one
+  if (!v_make && !v_model) {
     if (slug_id !== canonicalSlugId) {
       redirect(`/product/${canonicalSlugId}`);
     }
@@ -242,7 +256,7 @@ export default async function ProductPage({
     if (displayYearFrom || displayYearTo) {
       const newYearStr = (displayYearFrom && displayYearTo) 
         ? `(${displayYearFrom} - ${displayYearTo})` 
-        : displayYearFrom ? `(${displayYearFrom}-től)` : `(${displayYearTo}-ig)`;
+        : displayYearFrom ? `(${displayYearFrom}-)` : `(-${displayYearTo})`;
       
       // Pattern to match common year formats in our names: (2000-2010) or (2000 - 2010)
       const yearRegex = /\(\d{4}\s*-\s*\d{4}\)|\(\d{4}-től\)|\(\d{4}-ig\)/g;
@@ -277,9 +291,9 @@ export default async function ProductPage({
   if (displayYearFrom && displayYearTo) {
     yearString = `${displayYearFrom} - ${displayYearTo}`;
   } else if (displayYearFrom) {
-    yearString = `${displayYearFrom}-től`;
+    yearString = `${displayYearFrom}-`;
   } else if (displayYearTo) {
-    yearString = `${displayYearTo}-ig`;
+    yearString = `-${displayYearTo}`;
   }
 
   // Name for cart/invoice (pure name, no year as per user request)
@@ -548,6 +562,12 @@ export default async function ProductPage({
                                   }
                               }
 
+                              // NEW: Also replace year range in the description header
+                              const yearRegex = /\(\d{4}\s*-\s*\d{4}\)|\(\d{4}-től\)|\(\d{4}-ig\)/g;
+                              if (yearRegex.test(newHeader)) {
+                                  newHeader = newHeader.replace(yearRegex, yearString ? `(${yearString})` : '');
+                              }
+
                               // Fallback if no swap happened
                               if (newHeader === line && !newHeader.toLowerCase().includes(contextBrand.name.toLowerCase())) {
                                   return `ELADÓ GYÁRI ${normalizedCondition === 'USED' || normalizedCondition === 'HASZNÁLT' ? 'HASZNÁLT' : normalizedCondition === 'NEW' || normalizedCondition === 'ÚJ' ? 'ÚJ' : 'FELÚJÍTOTT'} ${contextBrand.name.toUpperCase()} ${contextModel.name.toUpperCase()} ${partItemName?.toUpperCase() || ''} ${yearString ? `(${yearString})` : ''}`;
@@ -578,8 +598,8 @@ export default async function ProductPage({
               <div className="px-6 pb-6 pt-2 md:px-8 md:pb-8 md:pt-4 bg-foreground/[0.01]">
                 <CompatibilityWrapper
                   partId={dbPart.id}
-                  brand={product.brand}
-                  model={product.model}
+                  brand={originalBrandName}
+                  model={originalModelName}
                   yearFrom={dbPart?.yearFrom}
                   yearTo={dbPart?.yearTo}
                   isUniversal={dbPart?.isUniversal}

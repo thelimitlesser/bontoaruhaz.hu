@@ -19,7 +19,17 @@ async function RelatedProductsList({
     contextBrandId, contextModelId 
 }: RelatedProductsWrapperProps) {
     const products = await getRelatedProducts(productId, modelId, brandId, 4, contextBrandId, contextModelId);
-    return <RelatedProducts products={products} brandName={brandName} modelName={modelName} brandSlug={brandSlug} modelSlug={modelSlug} />;
+    return (
+        <RelatedProducts 
+            products={products} 
+            brandName={brandName} 
+            modelName={modelName} 
+            brandSlug={brandSlug} 
+            modelSlug={modelSlug}
+            contextBrandId={contextBrandId}
+            contextModelId={contextModelId}
+        />
+    );
 }
 
 export function RelatedProductsWrapper(props: RelatedProductsWrapperProps) {
