@@ -39,6 +39,18 @@ export default function LoginPage() {
 
                 if (error) throw error;
 
+                // Detect if the user already exists (identities will be empty in Supabase if duplicate)
+                const isExistingUser = data?.user?.identities && data.user.identities.length === 0;
+
+                if (isExistingUser) {
+                    setMessage({
+                        type: 'error',
+                        text: "Ezzel az e-mail címmel már regisztráltak! Kérjük, jelentkezz be, vagy kérj jelszóemlékeztetőt."
+                    });
+                    setLoading(false);
+                    return;
+                }
+
                 // If email confirmation is DISABLED in Supabase, we get a session immediately
                 if (data?.session) {
                     window.location.href = "/";
