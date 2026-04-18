@@ -28,19 +28,21 @@ export async function POST(req: NextRequest) {
 
     // Handle the event
     switch (event.type) {
+        case "checkout.session.completed":
         case "payment_intent.amount_capturable_updated":
         case "payment_intent.succeeded":
-            const paymentIntent = event.data.object as any;
-            console.log(`Payment confirmed for Intent: ${paymentIntent.id}. Status: ${paymentIntent.status}`);
+            const paymentIntent = event.type === 'checkout.session.completed' 
+                ? (event.data.object as any).payment_intent 
+                : (event.data.object as any).id;
+            
+            console.log(`Payment confirmed for Intent: ${paymentIntent}. Event: ${event.type}`);
             
             try {
                 // Finalize the order in our database
-                // (finalizeStripeOrder is idempotent, so it's safe if already called from UI)
-                await finalizeStripeOrder(paymentIntent.id);
-                console.log(`Order finalized for Intent: ${paymentIntent.id}`);
+                await finalizeStripeOrder(paymentIntent);
+                console.log(`Order finalized for Intent: ${paymentIntent}`);
             } catch (error) {
                 console.error(`Error finalizing order from webhook:`, error);
-                // Return 500 so Stripe retries later if it was a transient DB error
                 return NextResponse.json({ error: "Database error" }, { status: 500 });
             }
             break;
