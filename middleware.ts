@@ -47,8 +47,8 @@ export async function middleware(request: NextRequest) {
         }
     }
 
-    // 3. Protect Auth-only routes (Profile, Garage, Checkout)
-    if (url.startsWith('/profile') || url.startsWith('/garage') || url.startsWith('/checkout')) {
+    // 3. Protect Auth-only routes (Profile, Garage)
+    if (url.startsWith('/profile') || url.startsWith('/garage')) {
         const supabase = createServerClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
