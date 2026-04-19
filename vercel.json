@@ -1,9 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/pxp-sync",
-      "schedule": "0 8,16 * * *"
-    }
-  ]
-}
- 
