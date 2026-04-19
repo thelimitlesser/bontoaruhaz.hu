@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic"; // v1.0.1 - force redeploy
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
