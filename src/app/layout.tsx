@@ -24,12 +24,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://bontoaruhaz.hu"),
+  metadataBase: new URL("https://www.bontoaruhaz.hu"),
   title: "BONTÓÁRUHÁZ - Minőségi Bontott Autóalkatrészek Garanciával",
   description: "Magyarország megbízható autóalkatrész piactere. 15 év tapasztalat, 14 napos pénzvisszafizetési garancia és gyors házhozszállítás.",
   icons: {
-    icon: "/logo_orange.png",
-    apple: "/logo_orange.png",
+    icon: "/icon-tight.png",
+    apple: "/icon-tight.png",
   },
   keywords: ["autóalkatrész", "bontott alkatrész", "autóbontó", "alkatrész rendelés", "garanciális alkatrész"],
   openGraph: {
@@ -39,9 +39,10 @@ export const metadata: Metadata = {
     siteName: "BONTÓÁRUHÁZ",
     images: [
       {
-        url: "https://bontoaruhaz.hu/logo_orange.png",
-        width: 800,
-        height: 600,
+        url: "https://www.bontoaruhaz.hu/og-main.png",
+        width: 1200,
+        height: 630,
+        alt: "BONTÓÁRUHÁZ - Minőségi bontott autóalkatrészek",
       },
     ],
     locale: "hu_HU",
@@ -65,8 +66,8 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "Organization",
     "name": "BONTÓÁRUHÁZ",
-    "url": "https://bontoaruhaz.hu",
-    "logo": "https://bontoaruhaz.hu/logo_orange.png",
+    "url": "https://www.bontoaruhaz.hu",
+    "logo": "https://www.bontoaruhaz.hu/og-main.png",
     "contactPoint": {
       "@type": "ContactPoint",
       "telephone": "+36-70-612-1277",
@@ -87,9 +88,9 @@ export default function RootLayout({
     "@context": "https://schema.org",
     "@type": "AutoPartsStore",
     "name": "BONTÓÁRUHÁZ",
-    "image": "https://bontoaruhaz.hu/logo_orange.png",
-    "@id": "https://bontoaruhaz.hu",
-    "url": "https://bontoaruhaz.hu",
+    "image": "https://www.bontoaruhaz.hu/og-main.png",
+    "@id": "https://www.bontoaruhaz.hu",
+    "url": "https://www.bontoaruhaz.hu",
     "telephone": "+36706121277",
     "address": {
       "@type": "PostalAddress",

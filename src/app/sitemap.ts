@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { getProductUrl } from '@/utils/slug'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    const baseUrl = 'https://bontoaruhaz.hu'
+    const baseUrl = 'https://www.bontoaruhaz.hu'
 
     // Static routes
     const staticRoutes = [

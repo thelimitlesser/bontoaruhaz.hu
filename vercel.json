@@ -2,8 +2,8 @@
   "regions": ["fra1"],
   "crons": [
     {
-      "path": "/api/cron/sync-pxp",
-      "schedule": "0 4 * * *"
+      "path": "/api/cron/pxp-sync",
+      "schedule": "0 8,16 * * *"
     },
     {
       "path": "/api/cron/cleanup-orders",

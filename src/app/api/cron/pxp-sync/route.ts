@@ -1,27 +1,39 @@
+import { NextRequest, NextResponse } from "next/server";
 import { bulkSyncPxpStatuses } from "@/app/actions/shipping";
-import { NextResponse } from "next/server";
 
+export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  const cronSecret = process.env.CRON_SECRET;
 
-import { headers } from "next/headers";
+  // Basic security check: ensure the request has the correct Authorization header
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return new NextResponse("Unauthorized", { status: 401 });
+  }
 
-export async function GET(request: Request) {
-    try {
-        // Force dynamic behavior
-        headers();
-        // Optional: Add an API key check here for security
-        // const { searchParams } = new URL(request.url);
-        // if (searchParams.get('key') !== process.env.CRON_SECRET) return...
+  console.log("CRON: Starting Pannon XP status sync...");
 
-        console.log("Cron job: Syncing PXP statuses...");
-        const result = await bulkSyncPxpStatuses();
-        
-        return NextResponse.json({ 
-            success: true, 
-            count: result.count,
-            message: `Sikeresen frissítve: ${result.count} db rendelés.` 
-        });
-    } catch (error: any) {
-        console.error("Cron Sync Error:", error);
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  try {
+    const result = await bulkSyncPxpStatuses();
+    
+    if (result.success) {
+      console.log(`CRON: Successfully synced ${result.count} orders.`);
+      return NextResponse.json({
+        success: true,
+        message: `Szinkronizálás sikeres: ${result.count} rendelés frissítve.`,
+        updatedCount: result.count
+      });
+    } else {
+      console.error("CRON: Sync failed:", result.error);
+      return NextResponse.json({
+        success: false,
+        error: result.error
+      }, { status: 500 });
     }
+  } catch (error: any) {
+    console.error("CRON: Unexpected error during sync:", error);
+    return NextResponse.json({
+      success: false,
+      error: error.message
+    }, { status: 500 });
+  }
 }
