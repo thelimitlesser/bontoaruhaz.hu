@@ -19,6 +19,32 @@ const nextConfig: any = {
       },
     ],
   },
+  async redirects() {
+    return [
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'bontoaruhaz.vercel.app',
+          },
+        ],
+        destination: 'https://www.bontoaruhaz.hu/:path*',
+        permanent: true,
+      },
+      {
+        source: '/:path*',
+        has: [
+          {
+            type: 'host',
+            value: 'bontoaruhaz.hu',
+          },
+        ],
+        destination: 'https://www.bontoaruhaz.hu/:path*',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

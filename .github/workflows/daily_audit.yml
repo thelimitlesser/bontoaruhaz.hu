@@ -28,7 +28,7 @@ jobs:
       run: npx playwright test tests/site_audit.spec.ts
       env:
         # Explicitly hitting the live site instead of a local build
-        PLAYWRIGHT_TEST_BASE_URL: 'https://bontoaruhaz.vercel.app'
+        PLAYWRIGHT_TEST_BASE_URL: 'https://www.bontoaruhaz.hu'
         
     - uses: actions/upload-artifact@v4
       if: always()

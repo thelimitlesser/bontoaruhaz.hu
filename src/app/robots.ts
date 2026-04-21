@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
             allow: '/',
             disallow: ['/admin/', '/api/', '/profile/'],
         },
-        sitemap: 'https://bontoaruhaz.hu/sitemap.xml',
+        sitemap: 'https://www.bontoaruhaz.hu/sitemap.xml',
     }
 }

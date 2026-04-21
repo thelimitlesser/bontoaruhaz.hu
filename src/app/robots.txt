@@ -8,4 +8,4 @@ Disallow: /login
 Disallow: /register
 Disallow: /checkout
 
-Sitemap: https://bontoaruhaz.hu/sitemap.xml
+Sitemap: https://www.bontoaruhaz.hu/sitemap.xml
