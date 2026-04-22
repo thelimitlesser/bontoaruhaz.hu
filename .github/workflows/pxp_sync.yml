@@ -1,0 +1,28 @@
+name: Automated PannonXP Sync
+
+on:
+  schedule:
+    # Runs at 08:00 and 16:00 UTC every day
+    - cron: '0 8,16 * * *'
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger PXP Sync Endpoint
+        run: |
+          echo "Starting PXP Sync..."
+          RESPONSE=$(curl -s -w "\n%{http_code}" -X GET -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" https://www.bontoaruhaz.hu/api/cron/pxp-sync)
+          HTTP_STATUS=$(echo "$RESPONSE" | tail -n1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+          
+          echo "HTTP Status Code: $HTTP_STATUS"
+          echo "Response Body: $BODY"
+          
+          if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "❌ Failed to sync PXP statuses. Expected HTTP 200, got $HTTP_STATUS."
+            exit 1
+          fi
+          
+          echo "✅ PXP Sync completed successfully."
