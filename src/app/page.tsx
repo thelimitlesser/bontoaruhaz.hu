@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 import { ArrowRight, Search } from "lucide-react";
 import { VehicleSelector } from "@/components/vehicle-selector";
 import { HeroBackground } from "@/components/hero-background";

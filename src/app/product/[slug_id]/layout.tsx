@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 import { Metadata } from 'next'
 import { prisma } from '@/lib/prisma'
 import { extractIdFromSlug } from '@/utils/slug'

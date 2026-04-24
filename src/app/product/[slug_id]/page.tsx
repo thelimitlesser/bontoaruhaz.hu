@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 import { getRelatedProducts, getProductPageDataAction, getProductMetadataAction } from "@/app/actions/product";
 import { extractIdFromSlug, getProductSlug, getProductUrl } from "@/utils/slug";
 import { redirect } from "next/navigation";
