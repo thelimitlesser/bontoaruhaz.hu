@@ -7,7 +7,6 @@ import clsx from "clsx";
 import Link from "next/link";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { getDirectMatchAction, getPartSuggestionsAction } from "@/app/actions/product";
-import { getModelsByBrandAction, getActivePartOptionsAction } from "@/app/actions/vehicle";
 
 type SearchTab = "manual" | "code";
 
@@ -99,10 +98,11 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
         const fetchModels = async () => {
             setIsLoadingModels(true);
             try {
-                const models = await getModelsByBrandAction(selectedBrand);
+                const res = await fetch(`/api/vehicles/options?type=models&brandId=${selectedBrand}`);
+                const models = await res.json();
                 if (active) {
                     setAvailableModels(models || []);
-                    if (models) {
+                    if (models && !models.error) {
                         setModelsCache(prev => ({ ...prev, [selectedBrand]: models }));
                     }
                 }
@@ -138,8 +138,13 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
         const fetchParts = async () => {
             setIsLoadingParts(true);
             try {
-                const parts = await getActivePartOptionsAction(selectedBrand, selectedModel);
-                const results = parts || [];
+                let url = '/api/vehicles/options?type=parts';
+                if (selectedBrand) url += `&brandId=${selectedBrand}`;
+                if (selectedModel) url += `&modelId=${selectedModel}`;
+                
+                const res = await fetch(url);
+                const parts = await res.json();
+                const results = parts.error ? [] : parts;
                 setCurrentPartOptions(results);
                 setPartsCache(prev => ({ ...prev, [cacheKey]: results }));
             } catch (error) {
