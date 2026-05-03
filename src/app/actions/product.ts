@@ -562,7 +562,7 @@ export async function getSearchProducts(params: {
         };
         },
         ["product-search", JSON.stringify(params)],
-        { revalidate: 60, tags: ["products"] }
+        { revalidate: 300, tags: ["products"] }
     )(params);
 }
 
