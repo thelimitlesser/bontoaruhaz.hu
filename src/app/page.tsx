@@ -27,7 +27,7 @@ export default async function Home() {
               <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,rgba(0,0,0,0.3)_0%,rgba(0,0,0,0)_60%)] blur-sm -z-10 rounded-full w-[100%] h-[100%] left-0 top-0 pointer-events-none"></div>
 
               <h1 className="text-[clamp(1.25rem,6.5vw,2.5rem)] sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight leading-tight uppercase italic drop-shadow-lg w-full break-words max-w-[100vw]">
-                Minőségi Gyári Bontott<br />
+                Minőségi Gyári Bontott <br />
                 Autóalkatrészek
               </h1>
               <div className="mt-1 sm:mt-2 w-full flex justify-center">

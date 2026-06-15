@@ -46,7 +46,8 @@ export async function createPendingOrder(data: {
             city: customerData.city,
             postalCode: customerData.postalCode,
             phone: customerData.phone,
-            email: customerData.email
+            email: customerData.email,
+            sessionId: sessionId || undefined
         }),
         billingAddress: JSON.stringify({
             name: billingName,
@@ -177,9 +178,19 @@ export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: s
                 });
 
                 // Clear reservation
-                if (sessionId) {
+                let orderSessionId = sessionId;
+                if (!orderSessionId && order.shippingAddress) {
+                    try {
+                        const shipping = JSON.parse(order.shippingAddress);
+                        orderSessionId = shipping.sessionId || undefined;
+                    } catch (e) {
+                        console.error("Error parsing shippingAddress for sessionId:", e);
+                    }
+                }
+
+                if (orderSessionId) {
                     await prisma.reservation.deleteMany({
-                        where: { partId: item.partId, sessionId: sessionId }
+                        where: { partId: item.partId, sessionId: orderSessionId }
                     });
                 }
             }

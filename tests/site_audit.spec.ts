@@ -3,8 +3,8 @@ import { test, expect } from '@playwright/test';
 test.describe('Public Site Quality Audit', () => {
   test('Home Page - Hero and Visual Integrity', async ({ page }) => {
     await page.goto('/');
-    // Check main heading with flexible regex for "bontott"
-    await expect(page.locator('h1')).toHaveText(/Megbízható.*autóalkatrészek/i, { timeout: 15000 });
+    // Check main heading with flexible regex for "Minőségi Gyári Bontott Autóalkatrészek"
+    await expect(page.locator('h1')).toHaveText(/Minőségi\s+Gyári\s+Bontott\s+Autóalkatrészek/i, { timeout: 15000 });
     
     // Check if the logo is visible and loaded (alt text is "Logo")
     const logo = page.locator('img[alt="Logo"]').first();
@@ -49,15 +49,46 @@ test.describe('Public Site Quality Audit', () => {
   });
 
   test('Checkout Flow and Feature Toggles', async ({ page, baseURL }) => {
-    // Navigate straight to a known product category or search
+    // Navigate straight to search
     await page.goto('/search?query=audi');
-    const firstProduct = page.locator('a[href^="/product/"]').first();
-    await firstProduct.waitFor({ state: 'visible' });
-    await firstProduct.click();
     
-    const addToCartBtn = page.getByTestId('add-to-cart-button');
-    await expect(addToCartBtn).toBeVisible({ timeout: 15000 });
-    await addToCartBtn.click();
+    // Wait for the results to load
+    await page.waitForSelector('a[href^="/product/"]', { timeout: 15000 });
+    
+    // Get all product links
+    const productLinks = await page.locator('a[href^="/product/"]').all();
+    
+    let addedToCart = false;
+    
+    for (const link of productLinks) {
+      // Get the product detail URL
+      const href = await link.getAttribute('href');
+      if (!href) continue;
+      
+      // Navigate to the product page
+      await page.goto(href);
+      
+      const addToCartBtn = page.getByTestId('add-to-cart-button');
+      await expect(addToCartBtn).toBeVisible({ timeout: 15000 });
+      
+      // Check if button is disabled (has "disabled" attribute or classes like "cursor-not-allowed")
+      const isDisabledAttr = await addToCartBtn.getAttribute('disabled');
+      const isDisabledClass = await addToCartBtn.evaluate(el => el.classList.contains('cursor-not-allowed') || (el as HTMLButtonElement).disabled);
+      
+      if (isDisabledAttr === null && !isDisabledClass) {
+        // Not reserved/out of stock! We can buy this one.
+        await addToCartBtn.click();
+        addedToCart = true;
+        break;
+      } else {
+        // Go back and try the next one
+        console.log(`Product ${href} is reserved/disabled, trying another one...`);
+        await page.goto('/search?query=audi');
+        await page.waitForSelector('a[href^="/product/"]', { timeout: 15000 });
+      }
+    }
+    
+    expect(addedToCart).toBe(true);
     
     // Go to checkout
     await page.goto('/checkout');
