@@ -49,8 +49,8 @@ test.describe('Public Site Quality Audit', () => {
   });
 
   test('Checkout Flow and Feature Toggles', async ({ page, baseURL }) => {
-    // Navigate straight to search (empty query returns all products)
-    await page.goto('/search?query=');
+    // Navigate straight to search (query=a matches almost all products)
+    await page.goto('/search?query=a');
     
     // Dismiss cookie consent if it appears to prevent element interception
     const cookieBtn = page.locator('button:has-text("Elfogadom")');
