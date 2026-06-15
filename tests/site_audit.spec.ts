@@ -11,7 +11,7 @@ test.describe('Public Site Quality Audit', () => {
     await expect(logo).toBeVisible();
     
     // Check for the brand text
-    await expect(page.locator('text=BONTÓÁRUHÁZ')).toBeVisible();
+    await expect(page.locator('text=BONTÓÁRUHÁZ').first()).toBeVisible();
     
     // Check for the main search widget
     await expect(page.locator('text=Márka / Modell')).toBeVisible();
@@ -55,16 +55,14 @@ test.describe('Public Site Quality Audit', () => {
     // Wait for the results to load
     await page.waitForSelector('a[href^="/product/"]', { timeout: 15000 });
     
-    // Get all product links
-    const productLinks = await page.locator('a[href^="/product/"]').all();
+    // Extract all product hrefs as strings to avoid stale locator errors after navigation
+    const hrefs = await page.locator('a[href^="/product/"]').evaluateAll(
+      elements => elements.map(el => el.getAttribute('href')).filter((href): href is string => !!href)
+    );
     
     let addedToCart = false;
     
-    for (const link of productLinks) {
-      // Get the product detail URL
-      const href = await link.getAttribute('href');
-      if (!href) continue;
-      
+    for (const href of hrefs) {
       // Navigate to the product page
       await page.goto(href);
       
@@ -83,8 +81,6 @@ test.describe('Public Site Quality Audit', () => {
       } else {
         // Go back and try the next one
         console.log(`Product ${href} is reserved/disabled, trying another one...`);
-        await page.goto('/search?query=audi');
-        await page.waitForSelector('a[href^="/product/"]', { timeout: 15000 });
       }
     }
     
