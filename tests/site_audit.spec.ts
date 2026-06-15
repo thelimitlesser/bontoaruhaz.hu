@@ -50,7 +50,7 @@ test.describe('Public Site Quality Audit', () => {
 
   test('Checkout Flow and Feature Toggles', async ({ page, baseURL }) => {
     // Navigate straight to search
-    await page.goto('/search?query=audi');
+    await page.goto('/search?query=opel');
     
     // Wait for the results to load
     await page.waitForSelector('a[href^="/product/"]', { timeout: 15000 });
