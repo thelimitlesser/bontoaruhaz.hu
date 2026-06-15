@@ -76,6 +76,12 @@ test.describe('Public Site Quality Audit', () => {
       if (isDisabledAttr === null && !isDisabledClass) {
         // Not reserved/out of stock! We can buy this one.
         await addToCartBtn.click();
+        
+        // Wait for the cart drawer to slide open and show the checkout button
+        const goToCheckoutBtn = page.locator('text=TOVÁBB A PÉNZTÁRHOZ');
+        await expect(goToCheckoutBtn).toBeVisible({ timeout: 15000 });
+        await goToCheckoutBtn.click();
+        
         addedToCart = true;
         break;
       } else {
@@ -86,8 +92,7 @@ test.describe('Public Site Quality Audit', () => {
     
     expect(addedToCart).toBe(true);
     
-    // Go to checkout
-    await page.goto('/checkout');
+    // Go to checkout (already navigated by click, but we wait for load)
     await expect(page.locator('text=Rendelés összesítése')).toBeVisible({ timeout: 15000 });
     
     // CRITICAL: Check that "Céges számlát kérek" is NOT visible (as requested)
