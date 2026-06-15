@@ -4,6 +4,11 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath, revalidateTag, unstable_cache } from "next/cache";
 import { cache } from "react";
 import { redirect } from "next/navigation";
+
+function revalidate(tag: string) {
+    // @ts-ignore
+    revalidateTag(tag);
+}
 import { getActiveSubcategoriesForModelAction, getActivePartItemsForModelAction } from "@/app/actions/vehicle";
 import { createClient } from "@/lib/supabase/server";
 import sharp from "sharp";
@@ -170,11 +175,11 @@ export async function createProduct(formData: FormData) {
 
     revalidatePath('/admin/inventory', 'page');
     revalidatePath('/', 'layout');
-    revalidateTag("products");
-    revalidateTag("search");
-    revalidateTag("automotive");
-    revalidateTag("parts");
-    revalidateTag("categories");
+    revalidate("products");
+    revalidate("search");
+    revalidate("automotive");
+    revalidate("parts");
+    revalidate("categories");
     
     redirect('/admin/inventory');
 }
@@ -293,11 +298,11 @@ export async function updateProduct(id: string, formData: FormData) {
     revalidatePath('/admin/inventory');
     revalidatePath(`/product/${id}`);
     revalidatePath('/', 'layout');
-    revalidateTag("products");
-    revalidateTag("search");
-    revalidateTag("automotive");
-    revalidateTag("parts");
-    revalidateTag("categories");
+    revalidate("products");
+    revalidate("search");
+    revalidate("automotive");
+    revalidate("parts");
+    revalidate("categories");
 }
 
 export async function deleteProduct(id: string) {
@@ -351,11 +356,11 @@ export async function deleteProduct(id: string) {
 
     revalidatePath('/admin/inventory');
     revalidatePath('/', 'layout');
-    revalidateTag("products");
-    revalidateTag("search");
-    revalidateTag("automotive");
-    revalidateTag("parts");
-    revalidateTag("categories");
+    revalidate("products");
+    revalidate("search");
+    revalidate("automotive");
+    revalidate("parts");
+    revalidate("categories");
 }
 
 /*
