@@ -33,7 +33,7 @@ test.describe('Public Site Quality Audit', () => {
     // Click into a product
     await productCard.click();
     await expect(page.locator('h1')).toBeVisible({ timeout: 15000 });
-    await expect(page.getByTestId('add-to-cart-button')).toBeVisible();
+    await expect(page.getByTestId('add-to-cart-button').first()).toBeVisible();
     
     await page.screenshot({ path: 'tests/screenshots/audit-product.png', fullPage: true });
   });
@@ -78,7 +78,7 @@ test.describe('Public Site Quality Audit', () => {
       // Navigate to the product page
       await page.goto(href);
       
-      const addToCartBtn = page.getByTestId('add-to-cart-button');
+      const addToCartBtn = page.getByTestId('add-to-cart-button').first();
       await expect(addToCartBtn).toBeVisible({ timeout: 15000 });
       
       // Check if button is disabled (has "disabled" attribute or classes like "cursor-not-allowed")
