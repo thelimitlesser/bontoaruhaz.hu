@@ -52,6 +52,18 @@ test.describe('Public Site Quality Audit', () => {
     // Navigate straight to search
     await page.goto('/search?query=opel');
     
+    // Dismiss cookie consent if it appears to prevent element interception
+    const cookieBtn = page.locator('button:has-text("Elfogadom")');
+    try {
+      if (await cookieBtn.isVisible()) {
+        await cookieBtn.click();
+        // Wait for it to disappear
+        await expect(cookieBtn).not.toBeVisible({ timeout: 5000 });
+      }
+    } catch (e) {
+      console.log('No cookie consent banner found or timed out: ', e);
+    }
+    
     // Wait for the results to load
     await page.waitForSelector('a[href^="/product/"]', { timeout: 15000 });
     
