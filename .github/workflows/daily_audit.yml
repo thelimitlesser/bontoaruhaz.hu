@@ -30,7 +30,7 @@ jobs:
         # Explicitly hitting the live site instead of a local build
         PLAYWRIGHT_TEST_BASE_URL: 'https://www.bontoaruhaz.hu'
         
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       if: always()
       with:
         name: playwright-report
