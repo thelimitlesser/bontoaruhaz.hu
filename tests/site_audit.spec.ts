@@ -1,6 +1,13 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Public Site Quality Audit', () => {
+  test.beforeEach(async ({ page }) => {
+    // Prevent cookie consent banner from appearing on any page by pre-setting localStorage
+    await page.addInitScript(() => {
+      window.localStorage.setItem('bontoaruhaz-cookie-consent', 'true');
+    });
+  });
+
   test('Home Page - Hero and Visual Integrity', async ({ page }) => {
     await page.goto('/');
     // Check main heading with flexible regex for "Minőségi Gyári Bontott Autóalkatrészek"
@@ -47,22 +54,10 @@ test.describe('Public Site Quality Audit', () => {
     
     await page.screenshot({ path: 'tests/screenshots/audit-fuzzy.png', fullPage: true });
   });
-
+  
   test('Checkout Flow and Feature Toggles', async ({ page, baseURL }) => {
     // Navigate straight to search (query=a matches almost all products)
     await page.goto('/search?query=a');
-    
-    // Dismiss cookie consent if it appears to prevent element interception
-    const cookieBtn = page.locator('button:has-text("Elfogadom")');
-    try {
-      if (await cookieBtn.isVisible()) {
-        await cookieBtn.click();
-        // Wait for it to disappear
-        await expect(cookieBtn).not.toBeVisible({ timeout: 5000 });
-      }
-    } catch (e) {
-      console.log('No cookie consent banner found or timed out: ', e);
-    }
     
     // Wait for the results to load
     await page.waitForSelector('a[href^="/product/"]', { timeout: 15000 });
