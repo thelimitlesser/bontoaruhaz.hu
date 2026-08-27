@@ -19,6 +19,11 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     const [isLoaded, setIsLoaded] = useState(false);
     const currentIndex = images.indexOf(selectedImage);
 
+    // Reset load state on image change
+    useEffect(() => {
+        setIsLoaded(false);
+    }, [selectedImage]);
+
     // Auto-slide logic
     useEffect(() => {
         if (!isAutoPlaying || images.length <= 1 || isFullscreen) return;
@@ -101,7 +106,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                     key={selectedImage}
                     src={selectedImage}
                     alt={productName}
-                    onLoadingComplete={() => setIsLoaded(true)}
+                    onLoad={() => setIsLoaded(true)}
+                    onError={() => setIsLoaded(true)}
                     fill
                     priority={true}
                     className={clsx(

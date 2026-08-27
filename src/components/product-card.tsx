@@ -142,7 +142,8 @@ export function ProductCard({
                         src={mainImage}
                         alt={product.name}
                         fill
-                        onLoadingComplete={() => setIsLoaded(true)}
+                        onLoad={() => setIsLoaded(true)}
+                        onError={() => setIsLoaded(true)}
                         className={clsx(
                             "object-contain z-10 transition-transform duration-700 ease-out group-hover:scale-105 drop-shadow-xl",
                             isLoaded ? "opacity-100" : "opacity-0"
