@@ -33,15 +33,13 @@ export default function ImpressumPage() {
                             A Szolgáltató adatai
                         </h2>
                         <ul className="list-none space-y-3 p-6 sm:p-8 bg-muted/5 rounded-2xl border border-border m-0">
-                            <li><strong className="text-foreground block mb-1">Cégnév:</strong> [CÉGNÉV] (Kérjük, töltse ki)</li>
-                            <li><strong className="text-foreground block mb-1">Székhely és telephely:</strong> 8111 Seregélyes-Jánosmajor</li>
-                            <li><strong className="text-foreground block mb-1">Adószám:</strong> [ADÓSZÁM]</li>
-                            <li><strong className="text-foreground block mb-1">Cégjegyzékszám:</strong> [CÉGJEGYZÉKSZÁM]</li>
-                            <li><strong className="text-foreground block mb-1">Nyilvántartó bíróság:</strong> [BÍRÓSÁG NEVE]</li>
-                            <li><strong className="text-foreground block mb-1">Kamarai tagság:</strong> [KAMARA NEVE]</li>
+                            <li><strong className="text-foreground block mb-1">Cégnév:</strong> Nardai Mónika E.V.</li>
+                            <li><strong className="text-foreground block mb-1">Székhely:</strong> 2220 Vecsés, Fő út 44.</li>
+                            <li><strong className="text-foreground block mb-1">Telephely:</strong> 8111 Seregélyes-Jánosmajor</li>
+                            <li><strong className="text-foreground block mb-1">Adószám:</strong> 53061937-1-33</li>
+                            <li><strong className="text-foreground block mb-1">Nyilvántartási szám:</strong> 55807986</li>
                             <li><strong className="text-foreground block mb-1">Elektronikus elérhetőség:</strong> info@bontoaruhaz.hu</li>
                             <li><strong className="text-foreground block mb-1">Telefonos elérhetőség:</strong> +36 70 612 1277</li>
-                            <li><strong className="text-foreground block mb-1">Adatvédelmi nyilvántartási szám:</strong> [NAIH SZÁM - ha van / N/A]</li>
                         </ul>
                     </div>
 
