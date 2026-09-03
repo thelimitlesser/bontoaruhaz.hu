@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getProductUrl } from '@/utils/slug';
 
-export const dynamic = 'force-dynamic';
+export const revalidate = 3600; // Cache feed for 1 hour
 
 function escapeXml(unsafe: string): string {
     return unsafe
