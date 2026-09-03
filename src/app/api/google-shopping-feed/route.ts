@@ -31,15 +31,9 @@ export async function GET() {
                 sku: true,
                 images: true,
                 VehicleBrand: { select: { name: true } },
-                VehicleModel: { select: { name: true } },
-                PartCompatibility: {
-                    select: {
-                        VehicleBrand: { select: { name: true } },
-                        VehicleModel: { select: { name: true } }
-                    }
-                }
+                VehicleModel: { select: { name: true } }
             },
-            take: 2000
+            take: 1000
         });
 
         let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
@@ -69,17 +63,7 @@ export async function GET() {
                 }
             }
 
-            // Build full compatibility string
-            const compatibilities = part.PartCompatibility.map(c => {
-                const b = c.VehicleBrand?.name || '';
-                const m = c.VehicleModel?.name || '';
-                return `${b} ${m}`.trim();
-            }).filter(Boolean);
-
             let description = part.description || part.name;
-            if (compatibilities.length > 0) {
-                description += ` | Kompatibilis típusok: ${compatibilities.join(', ')}`;
-            }
             if (part.sku) {
                 description += ` | Cikkszám: ${part.sku}`;
             }
