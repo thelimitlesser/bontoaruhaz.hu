@@ -33,6 +33,9 @@ export const metadata: Metadata = {
     apple: "/icon-tight.png",
   },
   keywords: ["autóalkatrész", "bontott alkatrész", "autóbontó", "alkatrész rendelés", "garanciális alkatrész"],
+  verification: {
+    google: "5PtbXBevQmbrnZ0pjy1zulnTs5tm9NF1zcIBasv9Z2s",
+  },
   openGraph: {
     title: "BONTÓÁRUHÁZ - Megbízható Autóalkatrész Piactér",
     description: "Találd meg a tökéletes alkatrészt másodpercek alatt garanciával.",
