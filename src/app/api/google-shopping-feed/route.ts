@@ -129,8 +129,8 @@ export async function GET() {
                 'Cache-Control': 's-maxage=3600, stale-while-revalidate'
             }
         });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Google Shopping Feed Generation Error:', error);
-        return new NextResponse('Error generating feed', { status: 500 });
+        return new NextResponse(`Error generating feed: ${error?.message || error}`, { status: 500 });
     }
 }
