@@ -33,7 +33,6 @@ export async function GET() {
                 VehicleBrand: { select: { name: true } },
                 VehicleModel: { select: { name: true } },
                 PartCompatibility: {
-                    take: 5,
                     select: {
                         VehicleBrand: { select: { name: true } },
                         VehicleModel: { select: { name: true } }
