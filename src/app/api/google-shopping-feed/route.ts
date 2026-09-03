@@ -29,7 +29,6 @@ export async function GET() {
                 priceNet: true,
                 stock: true,
                 sku: true,
-                imageUrl: true,
                 images: true,
                 VehicleBrand: { select: { name: true } },
                 VehicleModel: { select: { name: true } },
@@ -87,12 +86,12 @@ export async function GET() {
 
             // Image URL
             let imageUrl = '';
-            if (part.images && Array.isArray(part.images) && part.images.length > 0) {
+            if (part.images && typeof part.images === 'string') {
+                const imgList = part.images.split(',').filter(Boolean);
+                if (imgList.length > 0) imageUrl = imgList[0];
+            } else if (part.images && Array.isArray(part.images) && part.images.length > 0) {
                 const img = part.images[0];
                 imageUrl = typeof img === 'string' ? img : (img?.url || '');
-            }
-            if (!imageUrl && part.imageUrl) {
-                imageUrl = part.imageUrl;
             }
             if (imageUrl && !imageUrl.startsWith('http')) {
                 imageUrl = `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
