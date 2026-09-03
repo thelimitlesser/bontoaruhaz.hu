@@ -21,18 +21,26 @@ export async function GET() {
             where: {
                 stock: { gt: 0 }
             },
-            include: {
-                VehicleBrand: true,
-                VehicleModel: true,
-                Category: true,
+            select: {
+                id: true,
+                name: true,
+                description: true,
+                price: true,
+                stock: true,
+                sku: true,
+                imageUrl: true,
+                images: true,
+                VehicleBrand: { select: { name: true } },
+                VehicleModel: { select: { name: true } },
                 PartCompatibility: {
-                    include: {
-                        VehicleBrand: true,
-                        VehicleModel: true
+                    take: 5,
+                    select: {
+                        VehicleBrand: { select: { name: true } },
+                        VehicleModel: { select: { name: true } }
                     }
                 }
             },
-            take: 5000
+            take: 2000
         });
 
         let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
