@@ -25,7 +25,8 @@ export async function GET() {
                 id: true,
                 name: true,
                 description: true,
-                price: true,
+                priceGross: true,
+                priceNet: true,
                 stock: true,
                 sku: true,
                 imageUrl: true,
@@ -97,7 +98,7 @@ export async function GET() {
                 imageUrl = `${baseUrl}${imageUrl.startsWith('/') ? '' : '/'}${imageUrl}`;
             }
 
-            const price = Math.round(Number(part.price));
+            const price = Math.round(Number(part.priceGross || part.priceNet || 0));
 
             xml += `  <item>\n`;
             xml += `    <g:id>${escapeXml(part.id)}</g:id>\n`;
