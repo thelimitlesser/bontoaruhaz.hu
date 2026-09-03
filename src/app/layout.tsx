@@ -146,7 +146,7 @@ export default function RootLayout({
         <Analytics />
         <SpeedInsights />
         <CookieConsent />
-        <GoogleAnalytics gaId="G-LHBX59KFKT" />
+        <GoogleAnalytics gaId="G-9510SV9S0Y" />
       </body>
     </html>
   );
