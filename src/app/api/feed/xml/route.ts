@@ -135,9 +135,8 @@ export async function GET() {
                     specificTermekUrl = `${termekUrl}?v_make=${compItem.brandId}&v_model=${compItem.modelId}`;
                 }
 
-                // A cikkszám a megadott termék cikkszám, a gyártói cikkszám pedig CSAK HA KÜLÖN MEGVAN az oemNumbers
-                const realCikkszam = part.productCode || part.oemNumbers || "";
-                const realGyartoiCikkszam = part.oemNumbers || "";
+                // A cikkszám a megadott Gyári Cikkszám. A gyártói cikkszám üres tag marad.
+                const realCikkszam = part.productCode || "";
 
                 xmlContent += `  <termek>\n`;
                 xmlContent += `    <azonosito>${escapeXml(uniqueId)}</azonosito>\n`;
@@ -149,7 +148,7 @@ export async function GET() {
                 xmlContent += `    <ar>${part.priceGross}</ar>\n`;
                 xmlContent += `    <auto_tipus>${escapeXml(compItem.fullName)}</auto_tipus>\n`;
                 xmlContent += `    <cikkszam>${escapeXml(realCikkszam)}</cikkszam>\n`;
-                xmlContent += `    <gyartoi_cikkszam>${escapeXml(realGyartoiCikkszam)}</gyartoi_cikkszam>\n`;
+                xmlContent += `    <gyartoi_cikkszam></gyartoi_cikkszam>\n`;
                 xmlContent += `    <termek_url>${escapeXml(specificTermekUrl)}</termek_url>\n`;
                 xmlContent += `  </termek>\n`;
             });
