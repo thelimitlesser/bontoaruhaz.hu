@@ -24,7 +24,11 @@ export async function GET() {
                 PartCategory: true,
                 compatibilities: {
                     include: {
-                        VehicleModel: true
+                        VehicleModel: {
+                            include: {
+                                VehicleBrand: true
+                            }
+                        }
                     }
                 }
             },
@@ -53,37 +57,88 @@ export async function GET() {
                 }
             }
 
-            // Build image xml string
             const kepekXml = imageList.map(url => `<kep_url>${escapeXml(url)}</kep_url>`).join("");
-
-            // Auto típus string
-            let autoTipus = "";
-            if (part.VehicleBrand?.name || part.VehicleModel?.name) {
-                autoTipus = `${part.VehicleBrand?.name || ""} ${part.VehicleModel?.name || ""}`.trim();
-            } else if (part.compatibilities.length > 0) {
-                const firstComp = part.compatibilities[0];
-                autoTipus = `${firstComp.VehicleModel?.name || ""}`.trim();
-            }
-
-            // Termék URL
             const termekUrl = `${baseUrl}/product/${part.sku || part.id}`;
-
-            // Állapot (Új / Használt)
             const allapot = part.condition === "NEW" ? "új" : "használt";
 
-            xmlContent += `  <termek>\n`;
-            xmlContent += `    <azonosito>${escapeXml(part.sku || part.id)}</azonosito>\n`;
-            xmlContent += `    <megnevezes>${escapeXml(part.name)}</megnevezes>\n`;
-            xmlContent += `    <leiras>${escapeXml(part.description || part.name)}</leiras>\n`;
-            xmlContent += `    <kategoria>${escapeXml(part.PartCategory?.name || "alkatrész")}</kategoria>\n`;
-            xmlContent += `    <allapot>${escapeXml(allapot)}</allapot>\n`;
-            xmlContent += `    <kepek>${kepekXml}</kepek>\n`;
-            xmlContent += `    <ar>${part.priceGross}</ar>\n`;
-            xmlContent += `    <auto_tipus>${escapeXml(autoTipus)}</auto_tipus>\n`;
-            xmlContent += `    <cikkszam>${escapeXml(part.productCode || part.oemNumbers || "")}</cikkszam>\n`;
-            xmlContent += `    <gyartoi_cikkszam>${escapeXml(part.oemNumbers || "")}</gyartoi_cikkszam>\n`;
-            xmlContent += `    <termek_url>${escapeXml(termekUrl)}</termek_url>\n`;
-            xmlContent += `  </termek>\n`;
+            // 1. Összegyűjtjük az ÖSSZES kompatibilis autótípust és modellt
+            const compList: { brandName: string; modelName: string; fullName: string }[] = [];
+
+            // Elsődleges márka/modell (ha van)
+            if (part.VehicleBrand?.name || part.VehicleModel?.name) {
+                const brand = part.VehicleBrand?.name || "";
+                const model = part.VehicleModel?.name || "";
+                const full = `${brand} ${model}`.trim();
+                if (full) {
+                    compList.push({ brandName: brand, modelName: model, fullName: full });
+                }
+            }
+
+            // További kompatibilis modellek a PartCompatibility táblából
+            for (const c of part.compatibilities) {
+                const brand = c.VehicleModel?.VehicleBrand?.name || "";
+                const model = c.VehicleModel?.name || "";
+                const full = `${brand} ${model}`.trim();
+                if (full && !compList.some(item => item.fullName === full)) {
+                    compList.push({ brandName: brand, modelName: model, fullName: full });
+                }
+            }
+
+            // Ha 0 kompatibilitás volt megadva, default legyen a terméknév vagy általános
+            if (compList.length === 0) {
+                compList.push({ brandName: "Egyetemes", modelName: "Alkatrész", fullName: "Egyetemes alkatrész" });
+            }
+
+            // 2. Felépítjük a strukturált, részletes leírást (Specifikációk + Kompatibilitás)
+            let fullDescription = "";
+
+            if (part.description && part.description.trim()) {
+                fullDescription += `${part.description.trim()}\n\n`;
+            }
+
+            fullDescription += `--- RÉSZLETES ADATOK ---\n`;
+            fullDescription += `Állapot: ${allapot === "új" ? "Új" : "Használt"}\n`;
+            if (part.sku) fullDescription += `Cikkszám / SKUszám: ${part.sku}\n`;
+            if (part.productCode) fullDescription += `Gyári cikkszám: ${part.productCode}\n`;
+            if (part.oemNumbers) fullDescription += `OEM számok: ${part.oemNumbers}\n`;
+            if (part.engineCode) fullDescription += `Motorkód: ${part.engineCode}\n`;
+            if (part.yearFrom || part.yearTo) {
+                fullDescription += `Évjárat: ${part.yearFrom || ""}${part.yearFrom && part.yearTo ? " - " : ""}${part.yearTo || ""}\n`;
+            }
+
+            if (compList.length > 0) {
+                fullDescription += `\n--- KOMPATIBILIS TÍPUSOK ---\n`;
+                compList.forEach(item => {
+                    fullDescription += `- ${item.fullName}\n`;
+                });
+            }
+
+            // 3. GENERÁLÁS: Minden kompatibilis autótípusra KÜLÖN <termek> elemet generálunk
+            // Így a RacingBazár (és más oldalak) külön hirdetésként fogják felvenni az összes kompatibilis autómodellre!
+            compList.forEach((compItem, index) => {
+                // Egyedi azonosító a variációra (pl. SKU-1, SKU-2), hogy ne ütközzenek
+                const uniqueId = compList.length > 1 ? `${part.sku || part.id}-${index + 1}` : (part.sku || part.id);
+                
+                // Cím kiegészítése a konkrét autómodell nevével
+                let displayTitle = part.name;
+                if (!displayTitle.toLowerCase().includes(compItem.fullName.toLowerCase())) {
+                    displayTitle = `${compItem.fullName} ${part.name}`;
+                }
+
+                xmlContent += `  <termek>\n`;
+                xmlContent += `    <azonosito>${escapeXml(uniqueId)}</azonosito>\n`;
+                xmlContent += `    <megnevezes>${escapeXml(displayTitle)}</megnevezes>\n`;
+                xmlContent += `    <leiras>${escapeXml(fullDescription.trim())}</leiras>\n`;
+                xmlContent += `    <kategoria>${escapeXml(part.PartCategory?.name || "alkatrész")}</kategoria>\n`;
+                xmlContent += `    <allapot>${escapeXml(allapot)}</allapot>\n`;
+                xmlContent += `    <kepek>${kepekXml}</kepek>\n`;
+                xmlContent += `    <ar>${part.priceGross}</ar>\n`;
+                xmlContent += `    <auto_tipus>${escapeXml(compItem.fullName)}</auto_tipus>\n`;
+                xmlContent += `    <cikkszam>${escapeXml(part.productCode || part.oemNumbers || "")}</cikkszam>\n`;
+                xmlContent += `    <gyartoi_cikkszam>${escapeXml(part.oemNumbers || "")}</gyartoi_cikkszam>\n`;
+                xmlContent += `    <termek_url>${escapeXml(termekUrl)}</termek_url>\n`;
+                xmlContent += `  </termek>\n`;
+            });
         }
 
         xmlContent += `</termekek>`;
