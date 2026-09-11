@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Trash2, Image as ImageIcon } from "lucide-react";
+import { Plus, Trash2, Pencil, Image as ImageIcon } from "lucide-react";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { YearSelect } from "@/components/ui/year-select";
 import clsx from "clsx";
@@ -159,8 +159,8 @@ export function VehicleCompatibilitySection({
                                     const bName = brands.find(b => b.id === comp.brandId)?.name || comp.brandId;
                                     const mName = models.filter((m: any) => m.brandId === comp.brandId).find((m: any) => m.id === comp.modelId)?.name || comp.modelId;
                                     return (
-                                        <div key={idx} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg shadow-sm">
-                                            <div className="flex items-center gap-2">
+                                        <div key={idx} className="flex items-center justify-between bg-white border border-gray-200 p-3 rounded-lg shadow-sm hover:border-gray-300 transition-colors">
+                                            <div className="flex items-center gap-2 flex-wrap">
                                                 <span className="font-bold text-gray-900">{bName} {mName} {comp.bodyType && <span className="font-normal text-gray-500 italic">({comp.bodyType})</span>}</span>
                                                 {(comp.yearFrom || comp.yearTo) && (
                                                     <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md font-mono">
@@ -168,9 +168,26 @@ export function VehicleCompatibilitySection({
                                                     </span>
                                                 )}
                                             </div>
-                                            <button type="button" onClick={() => handleRemoveComp(idx)} className="text-red-500 hover:bg-red-50 p-2 rounded-md transition-colors">
-                                                <Trash2 className="w-4 h-4" />
-                                            </button>
+                                            <div className="flex items-center gap-1">
+                                                <button 
+                                                    type="button" 
+                                                    onClick={() => {
+                                                        setAddBrand(comp.brandId);
+                                                        setAddModel(comp.modelId);
+                                                        setAddBodyType(comp.bodyType || "");
+                                                        setAddYearFrom(comp.yearFrom || "");
+                                                        setAddYearTo(comp.yearTo || "");
+                                                        handleRemoveComp(idx);
+                                                    }} 
+                                                    title="Szerkesztés"
+                                                    className="text-blue-600 hover:bg-blue-50 p-2 rounded-md transition-colors"
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                </button>
+                                                <button type="button" onClick={() => handleRemoveComp(idx)} title="Törlés" className="text-red-500 hover:bg-red-50 p-2 rounded-md transition-colors">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
+                                            </div>
                                         </div>
                                     );
                                 })}
@@ -180,7 +197,7 @@ export function VehicleCompatibilitySection({
                         <div className="bg-green-50/50 border border-green-100 p-4 rounded-xl space-y-4">
                             <div className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                                 <div className="md:col-span-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Márka</label>
+                                    <label className="text-[10px] font-black text-gray-700 uppercase tracking-widest block mb-1.5 ml-1">Márka</label>
                                     <SearchableSelect
                                         name="addBrandId" options={brandOptions}
                                         value={addBrand}
@@ -188,7 +205,7 @@ export function VehicleCompatibilitySection({
                                         placeholder="Márka..." theme="light" />
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Modell</label>
+                                    <label className="text-[10px] font-black text-gray-700 uppercase tracking-widest block mb-1.5 ml-1">Modell</label>
                                     <SearchableSelect
                                         name="addModelId" options={addModelOptions}
                                         value={addModel}
@@ -197,7 +214,7 @@ export function VehicleCompatibilitySection({
                                         theme="light" />
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Kivitel</label>
+                                    <label className="text-[10px] font-black text-gray-700 uppercase tracking-widest block mb-1.5 ml-1">Kivitel</label>
                                     <SearchableSelect
                                         name="addBodyType" options={bodyTypeOptions}
                                         value={addBodyType}
@@ -205,7 +222,7 @@ export function VehicleCompatibilitySection({
                                         placeholder="Kivitel..." theme="light" />
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Mettől</label>
+                                    <label className="text-[10px] font-black text-gray-700 uppercase tracking-widest block mb-1.5 ml-1">Mettől</label>
                                     <div className="relative" style={{ height: '46px' }}>
                                         <YearSelect 
                                             value={addYearFrom} 
@@ -217,7 +234,7 @@ export function VehicleCompatibilitySection({
                                     </div>
                                 </div>
                                 <div className="md:col-span-2">
-                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-1.5 ml-1">Meddig</label>
+                                    <label className="text-[10px] font-black text-gray-700 uppercase tracking-widest block mb-1.5 ml-1">Meddig</label>
                                     <div className="relative" style={{ height: '46px' }}>
                                         <YearSelect 
                                             value={addYearTo} 

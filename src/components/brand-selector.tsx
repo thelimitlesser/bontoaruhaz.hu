@@ -17,7 +17,7 @@ export function BrandSelector({ brands }: BrandSelectorProps) {
                         <h2 className="text-3xl md:text-4xl font-black text-foreground uppercase tracking-tighter">
                             Válassz <span className="text-transparent bg-clip-text bg-gradient-to-r from-[var(--color-primary)] to-orange-500">Márkát</span>
                         </h2>
-                        <p className="text-muted mt-2 max-w-lg">
+                        <p className="text-sm md:text-base text-gray-700 font-semibold max-w-xl">
                             Találd meg a keresett alkatrészt autómárka alapján. Válassz a listából!
                         </p>
                     </div>

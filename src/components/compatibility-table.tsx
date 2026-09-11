@@ -127,9 +127,9 @@ export function CompatibilityTable({ brand, model, yearFrom, yearTo, isUniversal
                 </div>
             </div>
 
-            <p className="mt-4 text-xs text-center text-muted">
-                <AlertTriangle className="w-3 h-3 inline mr-1 text-orange-500" />
-                A kompatibilitási lista tájékoztató jellegű. Vásárlás előtt mindig ellenőrizd a gyári cikkszámot!
+            <p className="mt-4 text-xs text-center text-gray-700 font-semibold flex items-center justify-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-orange-600 shrink-0" />
+                <span>A kompatibilitási lista tájékoztató jellegű. Vásárlás előtt mindig ellenőrizd a gyári cikkszámot!</span>
             </p>
         </div>
     );

@@ -107,7 +107,7 @@ export function ProductCard({
 
     return (
         <Link href={productUrl} className="block h-full group active:scale-[0.98] transition-transform">
-            <div className="glass-card p-0 pb-4 relative overflow-hidden flex flex-col h-full transition-transform duration-300 group-hover:-translate-y-1 bg-background/40 backdrop-blur-md border border-border hover:border-[var(--color-primary)]/50 hover:shadow-lg hover:shadow-[0_0_20px_rgba(219,81,60,0.1)]">
+            <div className="glass-card p-0 pb-4 relative overflow-hidden flex flex-col h-full transition-transform duration-300 group-hover:-translate-y-1 bg-background/40 backdrop-blur-md border-2 border-gray-300 hover:border-[var(--color-primary)] hover:shadow-lg hover:shadow-[0_0_20px_rgba(219,81,60,0.15)] rounded-3xl">
                 {/* Badge Container */}
                 <div className="absolute top-4 left-4 z-10 flex flex-col gap-2">
                     {product?.isUniversal && (
@@ -118,7 +118,7 @@ export function ProductCard({
                 </div>
 
                 {/* Image Container (4:3 aspect ratio) */}
-                <div className="relative w-full aspect-[4/3] overflow-hidden bg-zinc-100 dark:bg-zinc-900 group border-b border-border/50">
+                <div className="relative w-full aspect-[4/3] overflow-hidden bg-zinc-100 dark:bg-zinc-900 group border-b-2 border-gray-200">
                     {!isLoaded && (
                         <div className="absolute inset-0 bg-muted/20 animate-pulse z-10" />
                     )}
@@ -158,7 +158,7 @@ export function ProductCard({
                 <div className="flex-1 flex flex-col px-5 pt-4 min-w-0">
                     <div className="flex items-center gap-2 mb-2 min-w-0">
                         <Tag className="w-3 h-3 text-[var(--color-primary)] shrink-0" />
-                        <span className="text-xs text-gray-500 font-medium uppercase tracking-wider truncate">
+                        <span className="text-xs text-gray-700 font-bold uppercase tracking-wider truncate">
                             {contextBrandName && contextModelName 
                                 ? `${contextBrandName} ${contextModelName}` 
                                 : isPrisma ? `${product?.brandName || product?.brandId || ''} ${product?.modelName || ''}`.trim() || 'Egyéb' : product?.brand}
@@ -214,17 +214,17 @@ export function ProductCard({
                     
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-2 mb-4 mt-1">
                         {product?.sku && product.sku !== "SKU-HIÁNY" && (
-                            <p className="text-xs text-gray-400 font-mono font-medium">{product.sku.toUpperCase()}</p>
+                            <p className="text-xs text-gray-700 font-mono font-bold">{product.sku.toUpperCase()}</p>
                         )}
                         {yearRange && (
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-[10px] text-blue-600 dark:text-blue-400 font-bold uppercase tracking-wider">
-                                <Calendar className="w-3 h-3" />
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/30 text-[10px] text-blue-700 dark:text-blue-400 font-extrabold uppercase tracking-wider">
+                                <Calendar className="w-3 h-3 stroke-[2.5]" />
                                 <span>{yearRange}</span>
                             </div>
                         )}
                         {product?.isCompatibilityMatch && (
-                            <div className="flex items-center gap-1 text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20 uppercase tracking-widest animate-in fade-in zoom-in duration-300">
-                                <CheckCircle2 className="w-3 h-3" />
+                            <div className="flex items-center gap-1 text-[10px] font-black text-emerald-700 dark:text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/30 uppercase tracking-widest animate-in fade-in zoom-in duration-300">
+                                <CheckCircle2 className="w-3 h-3 stroke-[2.5]" />
                                 <span>Ellenőrzött illeszkedés</span>
                             </div>
                         )}
@@ -234,7 +234,7 @@ export function ProductCard({
                         <div className="flex flex-col">
                             {isPrisma && product?.originalPrice && product.originalPrice > product.priceGross && (
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs text-gray-400 line-through">
+                                    <span className="text-xs text-gray-500 line-through font-medium">
                                         {product.originalPrice.toLocaleString('hu-HU')} {displayCurrency}
                                     </span>
                                     <span className="text-[10px] bg-red-600 text-white font-black px-1.5 py-0.5 rounded-full animate-pulse uppercase tracking-tighter">
@@ -242,9 +242,9 @@ export function ProductCard({
                                     </span>
                                 </div>
                             )}
-                            <span className="text-xs text-gray-500 font-medium">{isPrisma && product?.originalPrice && product.originalPrice > product.priceGross ? 'Akciós ár:' : 'Vételár:'}</span>
+                            <span className="text-xs text-gray-700 font-bold">{isPrisma && product?.originalPrice && product.originalPrice > product.priceGross ? 'Akciós ár:' : 'Vételár:'}</span>
                             <span className={clsx(
-                                "text-xl font-bold transition-colors whitespace-nowrap",
+                                "text-xl font-black transition-colors whitespace-nowrap",
                                 isPrisma && product?.originalPrice && product.originalPrice > product.priceGross 
                                     ? "text-red-600 group-hover:text-red-700" 
                                     : "text-foreground group-hover:text-[var(--color-primary)]"
@@ -254,10 +254,10 @@ export function ProductCard({
                         </div>
 
                         <div 
-                            className="h-10 w-10 rounded-lg bg-foreground/5 hover:bg-[var(--color-primary)] flex items-center justify-center transition-all border border-border hover:border-[var(--color-primary)] shadow-sm hover:shadow-lg hover:text-white text-gray-500"
+                            className="h-10 w-10 rounded-xl bg-gray-100 hover:bg-[var(--color-primary)] flex items-center justify-center transition-all border border-gray-300 hover:border-[var(--color-primary)] shadow-sm hover:shadow-lg hover:text-white text-gray-700"
                             aria-label="Kosárba teszem"
                         >
-                            <ShoppingCart className="w-5 h-5" />
+                            <ShoppingCart className="w-5 h-5 stroke-[2]" />
                         </div>
                     </div>
                 </div>

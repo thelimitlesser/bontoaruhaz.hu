@@ -214,13 +214,13 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
         >
 
             {/* Tab Switcher */}
-            <div className="flex items-center justify-between p-1.5 bg-gray-100/50 rounded-t-[2.5rem] border-b border-gray-100">
+            <div className="flex items-center justify-between p-1.5 bg-gray-200/80 rounded-t-[2.5rem] border-b border-gray-300">
                 <div className="flex w-full p-1 gap-1">
                     <button
                         onClick={() => setActiveTab("manual")}
                         className={clsx(
                             "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0 active:scale-95",
-                            activeTab === "manual" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                            activeTab === "manual" ? "bg-white text-[var(--color-primary)] shadow-md border border-gray-200 font-extrabold" : "text-gray-700 hover:text-gray-950 font-bold"
                         )}
                     >
                         <Car className="w-4 h-4" />
@@ -230,7 +230,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                         onClick={() => setActiveTab("code")}
                         className={clsx(
                             "flex-1 flex items-center justify-center gap-2 py-3 px-4 text-[11px] sm:text-xs font-bold uppercase tracking-widest transition-all duration-300 rounded-[1.75rem] whitespace-nowrap focus:outline-none focus-visible:ring-0 active:scale-95",
-                            activeTab === "code" ? "bg-white text-[var(--color-primary)] shadow-sm" : "text-gray-500 hover:text-gray-700"
+                            activeTab === "code" ? "bg-white text-[var(--color-primary)] shadow-md border border-gray-200 font-extrabold" : "text-gray-700 hover:text-gray-950 font-bold"
                         )}
                     >
                         <Hash className="w-4 h-4" />
@@ -242,7 +242,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
             <div className="p-4 sm:p-10">
                 {activeTab === "manual" && (
                     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                        <div className="flex flex-col md:grid md:grid-cols-[1fr_1fr_1fr_auto] bg-white border-2 border-gray-100 rounded-[2rem] relative transition-all shadow-sm divide-y md:divide-y-0 md:divide-x divide-gray-100">
+                        <div className="flex flex-col md:grid md:grid-cols-[1fr_1fr_1fr_auto] bg-white border-2 border-gray-300 rounded-[2rem] relative transition-all shadow-md divide-y md:divide-y-0 md:divide-x divide-gray-300">
                             <div className="min-h-[64px] flex items-center w-full min-w-0">
                                 <SearchableSelect
                                     theme="light"
@@ -295,7 +295,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                 />
                             </div>
 
-                            <div className="p-2 flex items-center justify-center bg-gray-50/30 md:bg-transparent">
+                            <div className="p-2 flex items-center justify-center bg-gray-50/50 md:bg-transparent">
                                 <button
                                     data-testid="search-button"
                                     onClick={() => handleSearch()}
@@ -304,7 +304,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                         "h-14 md:h-12 w-full md:w-auto md:px-10 rounded-3xl flex items-center justify-center transition-all duration-300 gap-3 font-black text-white shrink-0 focus:outline-none focus-visible:ring-0",
                                         (selectedBrand && selectedModel && selectedPartItem)
                                             ? "bg-[var(--color-primary)] hover:bg-orange-600 shadow-md hover:scale-[1.01] active:scale-95"
-                                            : "bg-gray-200 text-gray-400 cursor-not-allowed",
+                                            : "bg-gray-300 text-gray-600 cursor-not-allowed font-bold",
                                         isPending && "opacity-80 cursor-wait"
                                     )}
                                 >
@@ -313,7 +313,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                 </button>
                             </div>
                         </div>
-                        <p className="text-[10px] text-center text-gray-400 uppercase tracking-widest font-bold">
+                        <p className="text-[11px] text-center text-gray-700 uppercase tracking-widest font-black">
                             Válaszd ki autód adatait a legpontosabb találatokhoz
                         </p>
                     </div>
@@ -323,25 +323,25 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                     <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
                         <div 
                             ref={codeSearchRef}
-                            className="flex flex-col md:grid md:grid-cols-[1fr_auto] bg-white border-2 border-gray-100 rounded-[2rem] relative transition-all shadow-sm divide-y md:divide-y-0 md:divide-x divide-gray-100"
+                            className="flex flex-col md:grid md:grid-cols-[1fr_auto] bg-white border-2 border-gray-300 rounded-[2rem] relative transition-all shadow-md divide-y md:divide-y-0 md:divide-x divide-gray-300"
                         >
                             <div className="min-h-[64px] flex items-center w-full min-w-0 relative">
-                                <div className="absolute left-6 z-10 text-gray-400 peer-focus:text-[var(--color-primary)] transition-colors">
-                                    {isSearchingSuggestions ? <Loader2 className="w-5 h-5 animate-spin" /> : <Hash className="w-5 h-5" />}
+                                <div className="absolute left-6 z-10 text-gray-600 peer-focus:text-[var(--color-primary)] transition-colors">
+                                    {isSearchingSuggestions ? <Loader2 className="w-5 h-5 animate-spin" /> : <Hash className="w-5 h-5 stroke-[2.5]" />}
                                 </div>
                                 <input
                                     type="text"
                                     value={codeQuery}
                                     onChange={(e) => setCodeQuery(e.target.value)}
                                     placeholder="Cikkszám (OEM) vagy hivatkozási szám"
-                                    className="peer w-full h-[64px] bg-transparent border-none pl-14 pr-8 py-4 text-sm sm:text-lg focus:outline-none placeholder:text-gray-300 placeholder:text-xs placeholder:sm:text-lg font-bold"
+                                    className="peer w-full h-[64px] bg-transparent border-none pl-14 pr-8 py-4 text-sm sm:text-lg focus:outline-none placeholder:text-gray-600 placeholder:text-xs placeholder:sm:text-lg font-bold text-gray-900"
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     onFocus={() => codeQuery.length >= 2 && setShowSuggestions(true)}
                                 />
 
                                 {/* Suggestions Dropdown */}
                                 {showSuggestions && (
-                                    <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
+                                    <div className="absolute top-[calc(100%+8px)] left-0 w-full bg-white rounded-3xl shadow-2xl border border-gray-200 overflow-hidden z-[100] animate-in fade-in slide-in-from-top-2 duration-200">
                                         {suggestions.length > 0 ? (
                                             <div className="max-h-[400px] overflow-y-auto py-2">
                                                 {suggestions.map((part) => (
@@ -358,7 +358,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                                             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-2">
                                                                 {part.productCode && (
                                                                     <div className="flex items-center gap-1.5 bg-gray-200 px-2 py-0.5 rounded-md">
-                                                                        <span className="text-[10px] font-black text-gray-600 uppercase tracking-widest">Ref</span>
+                                                                        <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest">Ref</span>
                                                                         <span className="text-xs font-bold text-gray-950">{part.productCode}</span>
                                                                     </div>
                                                                 )}
@@ -373,17 +373,17 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                        <Search className="w-4 h-4 text-gray-300 mt-1 group-hover:text-[var(--color-primary)] transition-colors shrink-0" />
+                                                        <Search className="w-4 h-4 text-gray-400 mt-1 group-hover:text-[var(--color-primary)] transition-colors shrink-0" />
                                                     </Link>
                                                 ))}
                                             </div>
                                         ) : (
                                             <div className="p-8 text-center">
                                                 <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                                                    <Search className="w-5 h-5 text-gray-300" />
+                                                    <Search className="w-5 h-5 text-gray-400" />
                                                 </div>
                                                 <p className="text-sm font-bold text-gray-900">Nincs találat</p>
-                                                <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest mt-1">
+                                                <p className="text-[10px] text-gray-600 uppercase font-black tracking-widest mt-1">
                                                     Ellenőrizd a beírt számot
                                                 </p>
                                             </div>
@@ -392,7 +392,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                 )}
                             </div>
 
-                            <div className="p-2 flex items-center justify-center bg-gray-50/30 md:bg-transparent">
+                            <div className="p-2 flex items-center justify-center bg-gray-50/50 md:bg-transparent">
                                 <button
                                     data-testid="search-button"
                                     onClick={() => handleSearch()}
@@ -401,7 +401,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                         "h-14 md:h-12 w-full md:w-auto md:px-10 rounded-3xl flex items-center justify-center transition-all duration-300 gap-3 font-black text-white shrink-0 focus:outline-none focus-visible:ring-0",
                                         codeQuery.trim()
                                             ? "bg-[var(--color-primary)] hover:bg-orange-600 shadow-md hover:scale-[1.01] active:scale-95"
-                                            : "bg-gray-200 text-gray-400 cursor-not-allowed",
+                                            : "bg-gray-300 text-gray-600 cursor-not-allowed font-bold",
                                         isPending && "opacity-80 cursor-wait"
                                     )}
                                 >
@@ -410,7 +410,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                 </button>
                             </div>
                         </div>
-                        <p className="text-[10px] text-center text-gray-400 uppercase tracking-widest font-bold">
+                        <p className="text-[11px] text-center text-gray-700 uppercase tracking-widest font-black">
                             Keress gyári cikkszám (OEM) vagy saját hivatkozási számunk alapján
                         </p>
                     </div>

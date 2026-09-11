@@ -24,17 +24,17 @@
 }
 
 :root {
-  /* LIGHT MODE (Bright, Premium, Clean) */
+  /* LIGHT MODE (Bright, Premium, Clean, High Contrast) */
   --background: #ffffff;
   --foreground: #0f172a;
   --primary: #f97316;
   --secondary: #3d3e89;
-  --muted: #94a3b8;
-  --muted-foreground: #64748b;
+  --muted: #475569;
+  --muted-foreground: #334155;
   --accent: #f97316;
   --card: #f8fafc;
-  --border: rgba(0, 0, 0, 0.08);
-  --input: rgba(0, 0, 0, 0.05);
+  --border: rgba(0, 0, 0, 0.18);
+  --input: rgba(0, 0, 0, 0.12);
   --card-hover: rgba(249, 115, 22, 0.05);
 }
 

@@ -75,23 +75,23 @@ export default async function ModelCategoryPage({ params }: { params: Promise<{ 
             <main className="pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
 
                 {/* Navigation / Breadcrumb */}
-                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-400 mb-4 font-medium uppercase tracking-wide">
-                    <Link href="/" className="hover:text-black transition-colors">KEZDŐLAP</Link>
-                    <span>/</span>
-                    <Link href={`/brand/${brand.slug}`} className="hover:text-black transition-colors flex items-center gap-1.5 line-clamp-1">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-6 font-bold uppercase tracking-wide">
+                    <Link href="/" className="hover:text-black transition-colors shrink-0">KEZDŐLAP</Link>
+                    <span className="shrink-0 text-gray-400">/</span>
+                    <Link href={`/brand/${brand.slug}`} className="hover:text-black transition-colors font-bold text-gray-600 shrink-0">
                         {brand.name}
                     </Link>
-                    <span>/</span>
-                    <span className="text-[var(--color-primary)] font-bold">{model.name}</span>
+                    <span className="shrink-0 text-gray-400">/</span>
+                    <span className="text-[var(--color-primary)] font-extrabold shrink-0">{model.name}</span>
                 </div>
 
                 <div className="mb-12">
-                    <h1 className="text-3xl md:text-5xl font-black text-[#1a1a1a] uppercase tracking-tighter mb-4 italic leading-none">
+                    <h1 className="text-3xl md:text-5xl font-black text-gray-900 uppercase tracking-tighter mb-4 italic leading-none">
                         <span className="text-[var(--color-primary)]">{brand.name} {model.name}</span>
                         <br />
                         ALKATRÉSZEK
                     </h1>
-                    <p className="text-gray-500 text-lg font-medium max-w-2xl">
+                    <p className="text-gray-700 text-lg font-semibold max-w-2xl">
                         Válaszd ki az alkatrész kategóriát a kereséshez.
                     </p>
                 </div>

@@ -196,23 +196,23 @@ export function CategoryProductsContent({
         <div className="pt-32 pb-20 px-4 md:px-8 max-w-[1400px] mx-auto w-full min-w-0">
 
             {/* Breadcrumb */}
-            <nav className="flex items-center gap-1 text-xs sm:text-sm text-gray-600 mb-6 font-medium tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide w-full min-w-0">
-                <Link href="/" className="hover:text-[var(--color-primary)] transition-colors shrink-0 py-1 rounded-lg">Autó kereső</Link>
+            <nav className="flex items-center gap-2 text-sm text-gray-600 mb-6 font-bold uppercase tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide w-full min-w-0">
+                <Link href="/" className="hover:text-black transition-colors shrink-0">KEZDŐLAP</Link>
                 <span className="shrink-0 text-gray-400">/</span>
-                <Link href={`/brand/${brand.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg">{brand.name}</Link>
+                <Link href={`/brand/${brand.slug}`} className="hover:text-black transition-colors uppercase shrink-0 font-bold text-gray-600">{brand.name}</Link>
                 <span className="shrink-0 text-gray-400">/</span>
-                <Link href={`/brand/${brand.slug}/${model.slug}`} className="hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg">{model.name}</Link>
+                <Link href={`/brand/${brand.slug}/${model.slug}`} className="hover:text-black transition-colors uppercase shrink-0 font-bold text-gray-600">{model.name}</Link>
                 <span className="shrink-0 text-gray-400">/</span>
                 
                 {/* Always link to the base category */}
-                <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}`} className={`hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg ${!subcatSlug ? 'text-gray-900 font-bold' : ''}`}>
+                <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}`} className={`hover:text-black transition-colors uppercase shrink-0 ${!subcatSlug ? 'text-[var(--color-primary)] font-extrabold' : 'font-bold text-gray-600'}`}>
                     {category.name}
                 </Link>
 
                 {currentSubcategory && (
                     <>
                         <span className="shrink-0 text-gray-400">/</span>
-                        <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}/${currentSubcategory.slug}`} className={`hover:text-[var(--color-primary)] transition-colors uppercase shrink-0 py-1 rounded-lg ${!partItemSlug ? 'text-gray-900 font-bold' : ''}`}>
+                        <Link href={`/brand/${brand.slug}/${model.slug}/${category.slug}/${currentSubcategory.slug}`} className={`hover:text-black transition-colors uppercase shrink-0 ${!partItemSlug ? 'text-[var(--color-primary)] font-extrabold' : 'font-bold text-gray-600'}`}>
                             {currentSubcategory.name}
                         </Link>
                     </>
@@ -221,7 +221,7 @@ export function CategoryProductsContent({
                 {currentPartItem && (
                     <>
                         <span className="shrink-0 text-gray-400">/</span>
-                        <span className="text-gray-900 font-bold uppercase shrink-0 py-1">{currentPartItem.name}</span>
+                        <span className="text-[var(--color-primary)] font-extrabold uppercase shrink-0">{currentPartItem.name}</span>
                     </>
                 )}
             </nav>

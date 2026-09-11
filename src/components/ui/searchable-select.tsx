@@ -143,18 +143,18 @@ export function SearchableSelect({
                     )}
                 >
                     <div className={clsx("flex items-center gap-2 min-w-0 px-2", variant === "minimal" ? "justify-center w-full" : "")}>
-                        <span className={clsx("truncate font-medium transition-colors",
+                        <span className={clsx("truncate font-bold transition-colors",
                             variant === "minimal" && "text-center flex-1",
                             !selectedOption
-                                ? (theme === "dark" ? "text-muted" : "text-gray-400")
-                                : "text-[var(--color-primary)]"
+                                ? (theme === "dark" ? "text-muted" : "text-gray-700")
+                                : "text-[var(--color-primary)] font-extrabold"
                         )}>
                             {selectedOption ? selectedOption.label : placeholder}
                         </span>
                         {!selectedOption || isOpen ? (
-                            <ChevronDown className={clsx("w-3.5 h-3.5 shrink-0 transition-transform",
+                            <ChevronDown className={clsx("w-3.5 h-3.5 shrink-0 transition-transform stroke-[2.5]",
                                 isOpen && "rotate-180",
-                                selectedOption ? "text-[var(--color-primary)]/70" : (theme === "dark" ? "text-muted" : "text-gray-400")
+                                selectedOption ? "text-[var(--color-primary)]" : (theme === "dark" ? "text-muted" : "text-gray-700")
                             )} />
                         ) : (
                             <div className="w-3.5 h-3.5" /> // Spacer for X

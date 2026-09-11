@@ -65,7 +65,7 @@ export function DescriptionSection({
                     {/* Editable Header Component */}
                     <div className="p-4 border-b flex flex-col gap-2 bg-gray-50/50 border-gray-100">
                         <div className="flex items-center justify-between">
-                            <label htmlFor="descriptionHeader" className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                            <label htmlFor="descriptionHeader" className="text-[10px] font-black uppercase tracking-widest text-gray-700">
                                 Leírás Fejléce (Automatikusan generált, de szerkeszthető)
                             </label>
                             {generatedHeader && (

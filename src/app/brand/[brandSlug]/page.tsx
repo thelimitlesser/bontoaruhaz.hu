@@ -114,20 +114,15 @@ function renderBrandPage(brand: any, models: any[]) {
             />
             <Navbar />
 
-            <main className="pt-32 pb-20 px-4 md:px-6 max-w-[1500px] mx-auto">
-                <div className="flex items-center gap-2 text-sm text-gray-400 mb-6 font-medium uppercase tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+            <main className="pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600 mb-4 font-bold uppercase tracking-wide">
                     <Link href="/" className="hover:text-black transition-colors shrink-0">KEZDŐLAP</Link>
-                    <span className="shrink-0">/</span>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                        {brand.logo && (
-                            <Image src={brand.logo} alt={brand.name} width={16} height={16} className="object-contain opacity-50 grayscale" />
-                        )}
-                        <span className="text-[var(--color-primary)] font-bold">{brand.name}</span>
-                    </div>
+                    <span className="shrink-0 text-gray-400">/</span>
+                    <span className="text-[var(--color-primary)] font-extrabold shrink-0">{brand.name}</span>
                 </div>
 
-                <div className="mb-6 focus-within:outline-none flex items-center gap-4">
-                    <h1 className="text-2xl sm:text-4xl font-black text-gray-700 uppercase tracking-tighter leading-none">
+                <div className="mb-6">
+                    <h1 className="text-2xl sm:text-4xl font-black text-gray-900 uppercase tracking-tighter leading-none">
                         {brand.name} MODELLVÁLASZTÉK
                     </h1>
                 </div>

@@ -386,7 +386,7 @@ export default async function ProductPage({
   };
 
   return (
-    <div className="min-h-screen pb-24 px-4 md:px-8 relative bg-background overflow-x-hidden w-full max-w-[100vw] flex flex-col" style={{ paddingTop: '100px' }}>
+    <div className="min-h-screen pb-24 px-4 md:px-8 relative bg-background w-full flex flex-col" style={{ paddingTop: '100px' }}>
       <main className="flex-1 min-h-[800px]">
       <script
         type="application/ld+json"
@@ -396,51 +396,56 @@ export default async function ProductPage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <div className="max-w-7xl mx-auto space-y-6 w-full overflow-x-hidden">
+      <div className="max-w-7xl mx-auto space-y-6 w-full">
 
         {/* Breadcrumb Navigation */}
-        <nav className="flex items-center text-sm font-medium text-gray-600 overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
-          <Link href="/" className="hover:text-[var(--color-primary)] transition-colors inline-flex items-center gap-2 shrink-0 py-1 -ml-1 rounded-lg">
-            <ArrowLeft className="w-5 h-5" /> <span className="text-base sm:text-sm">Vissza</span>
+        <nav className="flex items-center gap-2 text-sm font-bold text-gray-600 uppercase tracking-wide overflow-x-auto whitespace-nowrap pb-2 scrollbar-hide">
+          <Link href="/" className="hover:text-black transition-colors shrink-0">
+            KEZDŐLAP
           </Link>
-          <span className="mx-3 border-r h-4 border-gray-300 shrink-0"></span>
-          {brandSlug ? (
-            <Link href={`/brand/${brandSlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
-              {product.brand}
-            </Link>
-          ) : (
-            <span className="shrink-0">{product.brand}</span>
-          )}
-          {modelSlug && (
+          <span className="shrink-0 text-gray-400">/</span>
+          
+          {brandSlug && (
             <>
-              <span className="mx-2 text-gray-300 shrink-0">/</span>
-              <Link href={`/brand/${brandSlug}/${modelSlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
-                {product.model}
+              <Link href={`/brand/${brandSlug}`} className="hover:text-black transition-colors shrink-0">
+                {product.brand}
               </Link>
+              <span className="shrink-0 text-gray-400">/</span>
             </>
           )}
+
+          {modelSlug && (
+            <>
+              <Link href={`/brand/${brandSlug}/${modelSlug}`} className="hover:text-black transition-colors shrink-0">
+                {product.model}
+              </Link>
+              <span className="shrink-0 text-gray-400">/</span>
+            </>
+          )}
+
           {categorySlug && categoryName && (
             <>
-              <span className="mx-2 text-gray-300 shrink-0">/</span>
-              <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
+              <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}`} className={`hover:text-black transition-colors shrink-0 ${!subcategorySlug ? 'text-[var(--color-primary)] font-extrabold' : ''}`}>
                 {categoryName}
               </Link>
             </>
           )}
+
           {subcategorySlug && subcategoryName && (
             <>
-              <span className="mx-2 text-gray-300 shrink-0">/</span>
-              <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}/${subcategorySlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
+              <span className="shrink-0 text-gray-400">/</span>
+              <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}/${subcategorySlug}`} className={`hover:text-black transition-colors shrink-0 ${!partItemSlug ? 'text-[var(--color-primary)] font-extrabold' : ''}`}>
                 {subcategoryName}
               </Link>
             </>
           )}
+
           {partItemSlug && partItemName && (
             <>
-              <span className="mx-2 text-gray-300 shrink-0">/</span>
-              <Link href={`/brand/${brandSlug}/${modelSlug}/${categorySlug}/${subcategorySlug}/${partItemSlug}`} className="hover:text-[var(--color-primary)] transition-colors shrink-0">
+              <span className="shrink-0 text-gray-400">/</span>
+              <span className="text-[var(--color-primary)] font-extrabold shrink-0">
                 {partItemName}
-              </Link>
+              </span>
             </>
           )}
         </nav>
@@ -611,8 +616,7 @@ export default async function ProductPage({
 
 
           {/* RIGHT (STICKY BUY BOX - 35%) */}
-          <div className="w-full lg:w-[40%] xl:w-[35%] relative">
-            <div className="sticky top-32 space-y-6">
+          <div className="w-full lg:w-[40%] xl:w-[35%] sticky top-28 self-start z-20 space-y-6">
 
               {/* Main Buy Box */}
               <div className="bg-background border-2 border-border rounded-3xl p-6 md:p-8 shadow-2xl relative overflow-hidden group">
@@ -689,8 +693,6 @@ export default async function ProductPage({
                   </div>
                 </div>
               </div>
-            </div>
-
 
           </div>
         </div>
