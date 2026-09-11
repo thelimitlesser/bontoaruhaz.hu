@@ -98,9 +98,9 @@ export async function GET() {
 
             fullDescription += `--- RÉSZLETES ADATOK ---\n`;
             fullDescription += `Állapot: ${allapot === "új" ? "Új" : "Használt"}\n`;
-            if (part.sku) fullDescription += `Cikkszám / SKUszám: ${part.sku}\n`;
-            if (part.productCode) fullDescription += `Gyári cikkszám: ${part.productCode}\n`;
-            if (part.oemNumbers) fullDescription += `OEM számok: ${part.oemNumbers}\n`;
+            if (part.sku) fullDescription += `Hivatkozási szám: ${part.sku}\n`;
+            if (part.productCode && part.productCode !== part.sku) fullDescription += `Gyári cikkszám: ${part.productCode}\n`;
+            if (part.oemNumbers && part.oemNumbers !== part.productCode) fullDescription += `OEM számok: ${part.oemNumbers}\n`;
             if (part.engineCode) fullDescription += `Motorkód: ${part.engineCode}\n`;
             if (part.yearFrom || part.yearTo) {
                 fullDescription += `Évjárat: ${part.yearFrom || ""}${part.yearFrom && part.yearTo ? " - " : ""}${part.yearTo || ""}\n`;
