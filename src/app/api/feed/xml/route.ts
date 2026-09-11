@@ -131,6 +131,10 @@ export async function GET() {
                     specificTermekUrl = `${termekUrl}?v_make=${compItem.brandId}&v_model=${compItem.modelId}`;
                 }
 
+                // A valódi gyári cikkszám és gyártói cikkszám kinyerése
+                const realCikkszam = part.productCode || part.oemNumbers || part.sku || "";
+                const realGyartoiCikkszam = part.oemNumbers || part.productCode || part.sku || "";
+
                 xmlContent += `  <termek>\n`;
                 xmlContent += `    <azonosito>${escapeXml(uniqueId)}</azonosito>\n`;
                 xmlContent += `    <megnevezes>${escapeXml(displayTitle)}</megnevezes>\n`;
@@ -140,8 +144,8 @@ export async function GET() {
                 xmlContent += `    <kepek>${kepekXml}</kepek>\n`;
                 xmlContent += `    <ar>${part.priceGross}</ar>\n`;
                 xmlContent += `    <auto_tipus>${escapeXml(compItem.fullName)}</auto_tipus>\n`;
-                xmlContent += `    <cikkszam>${escapeXml(mainCikkszam)}</cikkszam>\n`;
-                xmlContent += `    <gyartoi_cikkszam>${escapeXml(mainCikkszam)}</gyartoi_cikkszam>\n`;
+                xmlContent += `    <cikkszam>${escapeXml(realCikkszam)}</cikkszam>\n`;
+                xmlContent += `    <gyartoi_cikkszam>${escapeXml(realGyartoiCikkszam)}</gyartoi_cikkszam>\n`;
                 xmlContent += `    <termek_url>${escapeXml(specificTermekUrl)}</termek_url>\n`;
                 xmlContent += `  </termek>\n`;
             });
