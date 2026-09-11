@@ -58,7 +58,9 @@ export async function GET() {
             }
 
             const kepekXml = imageList.map(url => `<kep_url>${escapeXml(url)}</kep_url>`).join("");
-            const termekUrl = `${baseUrl}/product/${part.sku || part.id}`;
+            // Alapvető termék URL (lehetőleg SKU-val)
+            const productRef = part.sku || part.id;
+            const termekUrl = `${baseUrl}/product/${productRef}`;
             const allapot = part.condition === "NEW" ? "új" : "használt";
 
             // 1. Összegyűjtjük az ÖSSZES kompatibilis autótípust és modellt
@@ -104,6 +106,8 @@ export async function GET() {
             // 2. Felépítjük a tiszta leírást (csak amit a leírás mezőbe kell írni)
             let fullDescription = "";
 
+            const refId = part.sku ? part.sku : part.id;
+
             if (part.description && part.description.trim()) {
                 fullDescription += `${part.description.trim()}\n\n`;
             }
@@ -112,13 +116,13 @@ export async function GET() {
                 fullDescription += `Motorkód: ${part.engineCode}\n`;
             }
 
-            fullDescription += `Érdeklődéskor hivatkozzon erre: ${part.sku || part.id}\n`;
+            fullDescription += `Érdeklődéskor hivatkozzon erre: ${refId}\n`;
             fullDescription += `Bármire van szüksége hívjon bizalommal!\n`;
             fullDescription += `Szállítási idő: 1-3 munkanap.`;
 
             // 3. GENERÁLÁS: Minden kompatibilis autótípusra KÜLÖN <termek> elemet generálunk
             compList.forEach((compItem, index) => {
-                const uniqueId = compList.length > 1 ? `${part.sku || part.id}-${index + 1}` : (part.sku || part.id);
+                const uniqueId = compList.length > 1 ? `${refId}-${index + 1}` : refId;
                 
                 let displayTitle = part.name;
                 if (!displayTitle.toLowerCase().includes(compItem.fullName.toLowerCase())) {
