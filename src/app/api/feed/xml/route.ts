@@ -116,6 +116,7 @@ export async function GET() {
                 fullDescription += `Motorkód: ${part.engineCode}\n`;
             }
 
+            fullDescription += `Az alkatrész szakszerűen kiszerelve és tárolva. Beépítési garanciával!\n`;
             fullDescription += `Érdeklődéskor hivatkozzon erre: ${refId}\n`;
             fullDescription += `Bármire van szüksége hívjon bizalommal!\n`;
             fullDescription += `Szállítási idő: 1-3 munkanap.`;

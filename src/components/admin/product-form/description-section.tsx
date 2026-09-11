@@ -105,8 +105,8 @@ export function DescriptionSection({
 
                     {/* Auto Footer Component */}
                     <div className="bg-gray-50 text-gray-500 px-4 py-3 border-t border-gray-100 text-sm whitespace-pre-wrap">
-                        A hivatkozási számra hivatkozzon, hogyha bármi kérdése van a termékkel kapcsolatban!{"\n"}
-                        Hivatkozási szám: <span className="font-bold text-gray-700">({autoRef || "..."})</span>
+                        Az alkatrész szakszerűen kiszerelve és tárolva. Beépítési garanciával!{"\n"}
+                        Érdeklődéskor hivatkozzon erre a hivatkozási számra: <span className="font-bold text-gray-700">({autoRef || "..."})</span>
                     </div>
                 </div>
                 
