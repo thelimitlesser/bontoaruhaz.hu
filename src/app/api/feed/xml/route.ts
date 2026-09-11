@@ -62,7 +62,7 @@ export async function GET() {
             const allapot = part.condition === "NEW" ? "új" : "használt";
 
             // 1. Összegyűjtjük az ÖSSZES kompatibilis autótípust és modellt
-            const compList: { brandName: string; modelName: string; fullName: string }[] = [];
+            const compList: { brandName: string; modelName: string; fullName: string; brandId?: string; modelId?: string }[] = [];
 
             // Elsődleges márka/modell (ha van)
             if (part.VehicleBrand?.name || part.VehicleModel?.name) {
@@ -70,7 +70,13 @@ export async function GET() {
                 const model = part.VehicleModel?.name || "";
                 const full = `${brand} ${model}`.trim();
                 if (full) {
-                    compList.push({ brandName: brand, modelName: model, fullName: full });
+                    compList.push({ 
+                        brandName: brand, 
+                        modelName: model, 
+                        fullName: full,
+                        brandId: part.brandId || undefined,
+                        modelId: part.modelId || undefined
+                    });
                 }
             }
 
@@ -80,7 +86,13 @@ export async function GET() {
                 const model = c.VehicleModel?.name || "";
                 const full = `${brand} ${model}`.trim();
                 if (full && !compList.some(item => item.fullName === full)) {
-                    compList.push({ brandName: brand, modelName: model, fullName: full });
+                    compList.push({ 
+                        brandName: brand, 
+                        modelName: model, 
+                        fullName: full,
+                        brandId: c.brandId || undefined,
+                        modelId: c.modelId || undefined
+                    });
                 }
             }
 
@@ -129,6 +141,12 @@ export async function GET() {
                     displayTitle = `${compItem.fullName} ${part.name}`;
                 }
 
+                // Generáljuk a pontos URL-t a márka és modell paraméterekkel, ha rendelkezésre állnak
+                let specificTermekUrl = termekUrl;
+                if (compItem.brandId && compItem.modelId) {
+                    specificTermekUrl = `${termekUrl}?v_make=${compItem.brandId}&v_model=${compItem.modelId}`;
+                }
+
                 xmlContent += `  <termek>\n`;
                 xmlContent += `    <azonosito>${escapeXml(uniqueId)}</azonosito>\n`;
                 xmlContent += `    <megnevezes>${escapeXml(displayTitle)}</megnevezes>\n`;
@@ -140,7 +158,7 @@ export async function GET() {
                 xmlContent += `    <auto_tipus>${escapeXml(compItem.fullName)}</auto_tipus>\n`;
                 xmlContent += `    <cikkszam>${escapeXml(mainCikkszam)}</cikkszam>\n`;
                 xmlContent += `    <gyartoi_cikkszam>${escapeXml(mainCikkszam)}</gyartoi_cikkszam>\n`;
-                xmlContent += `    <termek_url>${escapeXml(termekUrl)}</termek_url>\n`;
+                xmlContent += `    <termek_url>${escapeXml(specificTermekUrl)}</termek_url>\n`;
                 xmlContent += `  </termek>\n`;
             });
         }
