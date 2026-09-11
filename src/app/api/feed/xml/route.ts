@@ -135,9 +135,9 @@ export async function GET() {
                     specificTermekUrl = `${termekUrl}?v_make=${compItem.brandId}&v_model=${compItem.modelId}`;
                 }
 
-                // Kizárólag a valódi gyári cikkszámot tesszük ide. Ha nincs, üres marad!
+                // A cikkszám a megadott termék cikkszám, a gyártói cikkszám pedig CSAK HA KÜLÖN MEGVAN az oemNumbers
                 const realCikkszam = part.productCode || part.oemNumbers || "";
-                const realGyartoiCikkszam = part.oemNumbers || part.productCode || "";
+                const realGyartoiCikkszam = part.oemNumbers || "";
 
                 xmlContent += `  <termek>\n`;
                 xmlContent += `    <azonosito>${escapeXml(uniqueId)}</azonosito>\n`;
