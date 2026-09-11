@@ -34,7 +34,7 @@ export function BasicInfoSection({
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* SKU */}
                 <div className="space-y-2 relative">
-                    <label className="text-sm font-medium text-gray-700">Cikkszám (Gyári szám)</label>
+                    <label className="text-sm font-medium text-gray-700">Cikkszám</label>
                     <div className="relative">
                         <input 
                             name="sku" type="text" value={sku} 

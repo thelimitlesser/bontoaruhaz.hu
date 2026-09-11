@@ -333,7 +333,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                     type="text"
                                     value={codeQuery}
                                     onChange={(e) => setCodeQuery(e.target.value)}
-                                    placeholder="Cikkszám (OEM) vagy hivatkozási szám"
+                                    placeholder="Cikkszám vagy hivatkozási szám"
                                     className="peer w-full h-[64px] bg-transparent border-none pl-14 pr-8 py-4 text-sm sm:text-lg focus:outline-none placeholder:text-gray-600 placeholder:text-xs placeholder:sm:text-lg font-bold text-gray-900"
                                     onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                                     onFocus={() => codeQuery.length >= 2 && setShowSuggestions(true)}
@@ -364,7 +364,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                                                                 )}
                                                                 {part.sku && (
                                                                     <div className="flex items-center gap-1.5">
-                                                                        <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest">OEM</span>
+                                                                        <span className="text-[10px] font-black text-gray-700 uppercase tracking-widest">Cikkszám</span>
                                                                         <span className="text-xs font-bold text-gray-900">{part.sku}</span>
                                                                     </div>
                                                                 )}
@@ -411,7 +411,7 @@ export function VehicleSelector({ initialBrands, initialModelsMap, initialPartOp
                             </div>
                         </div>
                         <p className="text-[11px] text-center text-gray-700 uppercase tracking-widest font-black">
-                            Keress gyári cikkszám (OEM) vagy saját hivatkozási számunk alapján
+                            Keress cikkszám vagy saját hivatkozási számunk alapján
                         </p>
                     </div>
                 )}
