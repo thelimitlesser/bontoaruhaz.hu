@@ -101,36 +101,20 @@ export async function GET() {
                 compList.push({ brandName: "Egyetemes", modelName: "Alkatrész", fullName: "Egyetemes alkatrész" });
             }
 
-            // 2. Felépítjük a leírást pontosan a termékoldal mintájára
+            // 2. Felépítjük a tiszta leírást (csak amit a leírás mezőbe kell írni)
             let fullDescription = "";
 
             if (part.description && part.description.trim()) {
                 fullDescription += `${part.description.trim()}\n\n`;
             }
 
-            fullDescription += `A hivatkozási számra hivatkozzon, ha bármi kérdése van a termékkel kapcsolatban!\nHivatkozási szám: (${part.sku || part.id})\n\n`;
-
-            fullDescription += `--- RÉSZLETES ADATOK ---\n`;
-            fullDescription += `Állapot: ${allapot === "új" ? "Új" : "Használt"}\n`;
-            if (part.sku) fullDescription += `Hivatkozási szám: ${part.sku}\n`;
-            
-            // Ha van cikkszám (productCode vagy oemNumbers)
-            const mainCikkszam = part.productCode || part.oemNumbers || "";
-            if (mainCikkszam) {
-                fullDescription += `Gyári cikkszám: ${mainCikkszam}\n`;
+            if (part.engineCode) {
+                fullDescription += `Motorkód: ${part.engineCode}\n`;
             }
 
-            if (part.engineCode) fullDescription += `Motorkód: ${part.engineCode}\n`;
-            if (part.yearFrom || part.yearTo) {
-                fullDescription += `Évjárat: ${part.yearFrom || ""}${part.yearFrom && part.yearTo ? " - " : ""}${part.yearTo || ""}\n`;
-            }
-
-            if (compList.length > 0) {
-                fullDescription += `\n--- KOMPATIBILIS TÍPUSOK ---\n`;
-                compList.forEach(item => {
-                    fullDescription += `- ${item.fullName}\n`;
-                });
-            }
+            fullDescription += `Érdeklődéskor hivatkozzon erre: ${part.sku || part.id}\n`;
+            fullDescription += `Bármire van szüksége hívjon bizalommal!\n`;
+            fullDescription += `Szállítási idő: 1-3 munkanap.`;
 
             // 3. GENERÁLÁS: Minden kompatibilis autótípusra KÜLÖN <termek> elemet generálunk
             compList.forEach((compItem, index) => {
