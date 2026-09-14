@@ -5,11 +5,14 @@ import { createServerClient } from '@supabase/ssr'
 export async function middleware(request: NextRequest) {
     const url = request.nextUrl.pathname;
     
-    // 1. Refresh session
-    let response = await updateSession(request)
+    // Check if the route is an auth-protected route
+    const isAdminRoute = url.startsWith('/admin') || url.startsWith('/api/admin');
+    const isProtectedUserRoute = url.startsWith('/profile') || url.startsWith('/garage');
 
-    // 2. Protect Admin Routes
-    if (url.startsWith('/admin') || url.startsWith('/api/admin')) {
+    // Only run Supabase session check for protected routes to save CPU
+    if (isAdminRoute || isProtectedUserRoute) {
+        let response = NextResponse.next({ request: { headers: request.headers } });
+
         const supabase = createServerClient(
             process.env.NEXT_PUBLIC_SUPABASE_URL!,
             process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -23,57 +26,48 @@ export async function middleware(request: NextRequest) {
                     },
                 },
             }
-        )
+        );
 
-        const { data: { user } } = await supabase.auth.getUser()
+        const { data: { user } } = await supabase.auth.getUser();
 
-        // If not logged in, go to login
-        if (!user) {
-            const loginUrl = new URL('/login', request.url)
-            return NextResponse.redirect(loginUrl)
-        }
-
-        // Combine environment variable with hardcoded list for robustness
-        const envAdminEmails = process.env.ADMIN_EMAILS ? 
-            process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : [];
-        
-        const fallbackAdminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
-        
-        const adminEmails = Array.from(new Set([...envAdminEmails, ...fallbackAdminEmails]));
-
-        if (!adminEmails.includes(user.email?.toLowerCase() || '')) {
-            console.warn(`Middleware: Unauthorized admin access attempt by ${user.email}`);
-            return NextResponse.redirect(new URL('/', request.url))
-        }
-    }
-
-    // 3. Protect Auth-only routes (Profile, Garage)
-    if (url.startsWith('/profile') || url.startsWith('/garage')) {
-        const supabase = createServerClient(
-            process.env.NEXT_PUBLIC_SUPABASE_URL!,
-            process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-            {
-                cookies: {
-                    getAll() { return request.cookies.getAll() },
-                    setAll(cookiesToSet) {
-                        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-                        response = NextResponse.next({ request: { headers: request.headers } })
-                        cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
-                    },
-                },
+        // 1. Protect Admin Routes
+        if (isAdminRoute) {
+            if (!user) {
+                return NextResponse.redirect(new URL('/login', request.url));
             }
-        )
-        const { data: { user } } = await supabase.auth.getUser()
-        if (!user) {
-            return NextResponse.redirect(new URL('/login', request.url))
+
+            const envAdminEmails = process.env.ADMIN_EMAILS ? 
+                process.env.ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase()) : [];
+            
+            const fallbackAdminEmails = ['petierdelyi2005@gmail.com', 'admin@bontoaruhaz.hu', 'erdelyi.peter@antigravity.ai', 'jtomi.auto@gmail.com'];
+            
+            const adminEmails = Array.from(new Set([...envAdminEmails, ...fallbackAdminEmails]));
+
+            if (!adminEmails.includes(user.email?.toLowerCase() || '')) {
+                console.warn(`Middleware: Unauthorized admin access attempt by ${user.email}`);
+                return NextResponse.redirect(new URL('/', request.url));
+            }
         }
+
+        // 2. Protect User Auth Routes
+        if (isProtectedUserRoute) {
+            if (!user) {
+                return NextResponse.redirect(new URL('/login', request.url));
+            }
+        }
+
+        return response;
     }
     
-    return response
+    // For all public routes (homepage, products, feeds), return immediately without touching Supabase session
+    return NextResponse.next();
 }
 
 export const config = {
     matcher: [
-        '/((?!_next/static|_next/image|favicon.ico|monitoring|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+        '/admin/:path*',
+        '/api/admin/:path*',
+        '/profile/:path*',
+        '/garage/:path*',
     ],
 }
