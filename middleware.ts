@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
     
     // Check if the route is an auth-protected route
     const isAdminRoute = url.startsWith('/admin') || url.startsWith('/api/admin');
-    const isProtectedUserRoute = url.startsWith('/profile') || url.startsWith('/garage');
+    const isProtectedUserRoute = url.startsWith('/profile');
 
     // Only run Supabase session check for protected routes to save CPU
     if (isAdminRoute || isProtectedUserRoute) {
@@ -68,6 +68,5 @@ export const config = {
         '/admin/:path*',
         '/api/admin/:path*',
         '/profile/:path*',
-        '/garage/:path*',
     ],
 }
