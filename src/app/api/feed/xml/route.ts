@@ -151,6 +151,7 @@ export async function GET() {
                 xmlContent += `    <cikkszam>${escapeXml(realCikkszam)}</cikkszam>\n`;
                 xmlContent += `    <gyartoi_cikkszam></gyartoi_cikkszam>\n`;
                 xmlContent += `    <termek_url>${escapeXml(specificTermekUrl)}</termek_url>\n`;
+                xmlContent += `    <url>${escapeXml(specificTermekUrl)}</url>\n`;
                 xmlContent += `  </termek>\n`;
             });
         }
