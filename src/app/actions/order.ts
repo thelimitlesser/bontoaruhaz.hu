@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { stripe } from "@/lib/stripe";
-import { sendOrderReceivedEmail, sendOrderConfirmedEmail, sendOrderReadyForPickupEmail, sendOrderManualInvoiceEmail } from "@/lib/resend";
+import { sendOrderReceivedEmail, sendOrderConfirmedEmail, sendOrderReadyForPickupEmail, sendOrderManualInvoiceEmail, sendAdminNewOrderNotification } from "@/lib/resend";
 import { createBillingoInvoice } from "@/lib/billingo";
 import { createPxpShipment } from "@/lib/shipping/pannon-xp";
 
@@ -212,6 +212,7 @@ export async function finalizeStripeOrder(paymentIntentId: string, sessionId?: s
             if (freshOrder) {
                 console.log(`[FINALIZE] Sending "Order Received" email for ${billingData.email} with fresh order data.`);
                 await sendOrderReceivedEmail(freshOrder as any, billingData.email);
+                await sendAdminNewOrderNotification(freshOrder as any);
             }
         } catch (err) {
             console.error("[FINALIZE] Email sending error:", err);
@@ -339,6 +340,7 @@ export async function createOrder(data: {
         
         if (freshOrder) {
             await sendOrderReceivedEmail(freshOrder, customerData.email);
+            await sendAdminNewOrderNotification(freshOrder);
         }
     } catch (err) {
         console.error("CRITICAL: sendOrderReceivedEmail ERROR:", err);

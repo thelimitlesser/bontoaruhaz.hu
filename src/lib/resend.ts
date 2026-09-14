@@ -4,7 +4,8 @@ const resendSecret = process.env.RESEND_API_KEY;
 export const resend = resendSecret ? new Resend(resendSecret) : null;
 
 const COMPANY_PHONE = "+36 70 612 1277";
-const COMPANY_EMAIL = "info@bontoaruhaz.hu";
+const COMPANY_EMAIL = "bontoaruhaz@gmail.com";
+const ADMIN_NOTIFICATION_EMAIL = "bontoaruhaz@gmail.com";
 const OWNER_NAME = "Jerzsele Tamás";
 const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || "https://bontoaruhaz.hu";
 
@@ -335,5 +336,63 @@ export async function sendOrderManualInvoiceEmail(order: any, customerEmail: str
         });
     } catch (error) {
         console.error('Error sending ManualInvoice email:', error);
+    }
+}
+
+/**
+ * ADMIN EMAIL: Immediate Order Alert for Owner
+ */
+export async function sendAdminNewOrderNotification(order: any) {
+    if (!resend) return;
+
+    try {
+        const billingData = typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : (order.billingAddress || {});
+        const shippingData = typeof order.shippingAddress === 'string' ? JSON.parse(order.shippingAddress) : (order.shippingAddress || {});
+        
+        const shortId = order.id.split('-')[0].toUpperCase();
+        const totalFormatted = order.totalAmount.toLocaleString('hu-HU');
+        const subject = `🚨 ÚJ RENDELÉS ÉRKEZETT: #${shortId} (${totalFormatted} Ft)`;
+        
+        const customerName = billingData.name || shippingData.name || "Ismeretlen vevő";
+        const customerPhone = shippingData.phone || billingData.phone || "Nincs megadva";
+        const customerEmail = billingData.email || shippingData.email || "Nincs megadva";
+        const isPickup = order.shippingMethod === 'PICKUP';
+        const isCard = order.paymentMethod === 'CARD';
+
+        const html = `
+            ${getEmailHeader(subject, COLORS.primary)}
+            <div style="background-color: #fff7ed; padding: 15px 20px; border-radius: 8px; border: 1px solid #ffedd5; margin-bottom: 20px;">
+                <h2 style="margin: 0 0 5px 0; color: ${COLORS.primary}; font-size: 18px;">Új megrendelés érkezett a webáruházból!</h2>
+                <p style="margin: 0; font-size: 14px; color: ${COLORS.text};"><strong>Rendelés azonosító:</strong> #${shortId}</p>
+            </div>
+
+            <div style="background-color: #f8fafc; padding: 15px 20px; border-radius: 8px; border: 1px solid ${COLORS.border}; margin-bottom: 20px; font-size: 14px; line-height: 1.6;">
+                <p style="margin: 0 0 5px 0;"><strong>👤 Vevő neve:</strong> ${customerName}</p>
+                <p style="margin: 0 0 5px 0;"><strong>📞 Telefonszám:</strong> <a href="tel:${customerPhone}" style="color: ${COLORS.primary}; font-weight: bold; text-decoration: none;">${customerPhone}</a></p>
+                <p style="margin: 0 0 5px 0;"><strong>✉️ E-mail cím:</strong> ${customerEmail}</p>
+                <p style="margin: 0 0 5px 0;"><strong>🚚 Átvétel módja:</strong> ${isPickup ? 'Személyes átvétel' : 'Futárszolgálat (PannonXP)'}</p>
+                <p style="margin: 0;"><strong>💳 Fizetés módja:</strong> ${isCard ? 'Bankkártyás fizetés (Stripe)' : 'Utánvét / Helyszíni fizetés'}</p>
+            </div>
+
+            <h3 style="font-size: 14px; color: ${COLORS.textLight}; text-transform: uppercase; margin-bottom: 10px;">Megrendelt alkatrészek:</h3>
+            ${getItemsTableHtml(order.items, order.totalAmount, order.shippingCost)}
+
+            <div style="margin-top: 25px; text-align: center;">
+                <a href="${BASE_URL}/admin/orders/${order.id}" style="display: inline-block; background-color: ${COLORS.primary}; color: white; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 14px;">
+                    Megnyitás az Admin felületen →
+                </a>
+            </div>
+            ${getEmailFooter()}
+        `;
+
+        await resend.emails.send({
+            from: 'Bontóáruház Rendelések <info@bontoaruhaz.hu>',
+            to: ADMIN_NOTIFICATION_EMAIL,
+            subject,
+            html
+        });
+        console.log(`[ADMIN EMAIL] Sent new order notification for ${order.id} to ${ADMIN_NOTIFICATION_EMAIL}`);
+    } catch (error) {
+        console.error('Error sending AdminNewOrderNotification email:', error);
     }
 }

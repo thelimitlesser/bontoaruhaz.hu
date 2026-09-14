@@ -91,7 +91,7 @@ export default function ContactPage() {
                         </div>
                         <div>
                             <p className="text-gray-600 font-semibold text-sm">Írj nekünk</p>
-                            <p className="text-gray-900 font-black text-lg">info@bontoaruhaz.hu</p>
+                            <p className="text-gray-900 font-black text-lg">bontoaruhaz@gmail.com</p>
                         </div>
                     </div>
 

@@ -61,7 +61,7 @@ export function Footer() {
                         </div>
                         <div className="flex items-center gap-3 text-sm">
                             <Mail className="w-4 h-4 text-[var(--color-primary)]" />
-                            <span>info@bontoaruhaz.hu</span>
+                            <span>bontoaruhaz@gmail.com</span>
                         </div>
                         <div className="flex items-start gap-3 text-sm">
                             <MapPin className="w-5 h-5 text-[var(--color-primary)] shrink-0" />
