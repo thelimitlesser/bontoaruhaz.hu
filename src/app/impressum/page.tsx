@@ -1,4 +1,4 @@
-export const dynamic = "force-dynamic";
+export const revalidate = 86400;
 import { Building2, Info, Server } from"lucide-react";
 
 export default function ImpressumPage() {
