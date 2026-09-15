@@ -418,7 +418,7 @@ export async function approveOrder(orderId: string) {
             invoiceResult = await createBillingoInvoice(order, { ...billingData, email: customerEmail });
             console.log("Billingo Invoice Result:", invoiceResult);
             if (!invoiceResult) {
-                console.warn("Invoice generation failed but process continues...");
+                throw new Error("A Billingo számla kiállítása sikertelen volt! Kérjük ellenőrizd a számlázási adatokat.");
             }
         } else {
             console.log("Skipping Billingo invoice for non-card PICKUP order (will invoice on payment)");
