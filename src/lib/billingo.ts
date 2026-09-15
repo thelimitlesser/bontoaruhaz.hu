@@ -32,21 +32,55 @@ async function upsertPartner(customerData: any) {
     if (!apiKey) throw new Error("BILLINGO_API_KEY hiányzik");
 
     const email = customerData.email;
+    const taxNumber = customerData.taxNumber;
+    
+    console.log("Upserting Partner for email:", email);
+
+    // 1. Search for existing partner by email
+    const searchRes = await fetch(`${BILLINGO_BASE_URL}/partners?emails=${encodeURIComponent(email)}`, {
+        method: 'GET',
+        headers: {
+            'X-API-KEY': apiKey
+        }
+    });
+
+    let existingPartnerId: number | null = null;
+    if (searchRes.ok) {
+        const searchData = await searchRes.json();
+        if (searchData.data && searchData.data.length > 0) {
+            existingPartnerId = searchData.data[0].id;
+            console.log("Found existing partner:", existingPartnerId);
+        }
+    }
 
     const partnerData: any = {
-        name: customerData.name || `${customerData.lastName || ''} ${customerData.firstName || ''}`.trim() || customerData.companyName || 'Névtelen Vevő',
+        name: customerData.companyName || customerData.name || `${customerData.lastName || ''} ${customerData.firstName || ''}`.trim() || 'Névtelen Vevő',
         address: {
             country_code: 'HU',
-            post_code: String(customerData.billingPostalCode || customerData.postalCode || customerData.zip || '1000'),
-            city: String(customerData.billingCity || customerData.city || 'Budapest'),
-            address: String(customerData.billingAddress || customerData.address || customerData.street || '')
+            post_code: customerData.billingPostalCode || customerData.postalCode,
+            city: customerData.billingCity || customerData.city,
+            address: customerData.billingAddress || customerData.address
         },
         emails: [email],
-        phone: customerData.phone || customerData.phoneNumber || undefined,
-        taxcode: undefined
+        phone: customerData.phone,
+        taxcode: taxNumber || undefined
     };
 
-    // Directly create partner (Billingo v3 API handles duplicates or creates unique document partners)
+    if (existingPartnerId) {
+        console.log("Updating existing partner...");
+        await fetch(`${BILLINGO_BASE_URL}/partners/${existingPartnerId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-API-KEY': apiKey
+            },
+            body: JSON.stringify(partnerData)
+        });
+        return existingPartnerId;
+    }
+
+    // 2. Create new partner if not found
+    console.log("Creating new Billingo partner...");
     const res = await fetch(`${BILLINGO_BASE_URL}/partners`, {
         method: 'POST',
         headers: {
@@ -58,14 +92,11 @@ async function upsertPartner(customerData: any) {
 
     const data = await res.json();
     if (!res.ok) {
-        console.error("Billingo Partner Creation Error Details:", JSON.stringify(data));
-        // If partner endpoint is restricted, throw clean error
-        if (data.error?.message?.includes("subscription") || data.message?.includes("subscription")) {
-            throw new Error(`Billingo API hiba (Partner létrehozás): Kérjük ellenőrizd az API kulcs jogosultságait a Billingo fiókodban.`);
-        }
-        throw new Error(`Billingo partner hiba: ${data.error?.message || data.message || JSON.stringify(data)}`);
+        console.error("Billingo Partner Creation Error:", data);
+        throw new Error(`Billingo partner hiba: ${data.error?.message || res.statusText}`);
     }
 
+    console.log("Created new partner with ID:", data.id);
     return data.id;
 }
 
@@ -77,7 +108,7 @@ export async function createBillingoInvoice(order: any, customerData: any) {
     }
 
     try {
-        // 1. Ensure partner ID exists
+        // 1. Ensure partner exists
         const partnerId = await upsertPartner(customerData);
 
         // 2. Prepare items
@@ -116,6 +147,7 @@ export async function createBillingoInvoice(order: any, customerData: any) {
 
         const documentData = {
             partner_id: partnerId,
+            block_id: 0,
             type: 'invoice',
             fulfillment_date: new Date().toISOString().split('T')[0],
             due_date: new Date().toISOString().split('T')[0],
@@ -144,8 +176,7 @@ export async function createBillingoInvoice(order: any, customerData: any) {
 
         const result = await res.json();
         if (!res.ok) {
-            console.error("Billingo Document Creation Error Details:", JSON.stringify(result));
-            throw new Error(`Billingo számla hiba: ${result.error?.message || result.message || JSON.stringify(result)}`);
+            throw new Error(`Billingo számla hiba: ${result.error?.message || res.statusText}`);
         }
 
         // 3. Get public URL (Billingo v3 creates document first, then you can get its public link)
@@ -171,8 +202,7 @@ export async function createBillingoInvoice(order: any, customerData: any) {
         };
 
     } catch (error: any) {
-        const errorMsg = error.message || String(error);
-        console.error('CRITICAL ERROR issuing Billingo invoice:', errorMsg);
-        return { error: errorMsg };
+        console.error('CRITICAL ERROR issuing Billingo invoice:', error.message || error);
+        return null;
     }
 }
