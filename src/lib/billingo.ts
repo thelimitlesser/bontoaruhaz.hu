@@ -107,7 +107,8 @@ async function upsertPartner(customerData: any) {
     const data = await res.json();
     if (!res.ok) {
         console.error("Billingo Partner Creation Error:", data);
-        throw new Error(`Billingo partner hiba: ${data.error?.message || data.message || res.statusText}`);
+        const keyFingerprint = `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}`;
+        throw new Error(`Billingo partner hiba (${keyFingerprint}): ${data.error?.message || data.message || res.statusText}`);
     }
 
     console.log("Created new partner with ID:", data.id);
