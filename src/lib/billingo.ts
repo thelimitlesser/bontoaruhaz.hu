@@ -107,8 +107,7 @@ async function upsertPartner(customerData: any) {
     const data = await res.json();
     if (!res.ok) {
         console.error("Billingo Partner Creation Error:", data);
-        const keyFingerprint = `${apiKey.slice(0, 6)}...${apiKey.slice(-4)}`;
-        throw new Error(`Billingo partner hiba (${keyFingerprint}): ${data.error?.message || data.message || res.statusText}`);
+        throw new Error(`Billingo partner hiba: ${data.error?.message || data.message || res.statusText}`);
     }
 
     console.log("Created new partner with ID:", data.id);
@@ -154,6 +153,22 @@ export async function createBillingoInvoice(order: any, customerData: any) {
             });
         }
 
+        // Determine active document block ID dynamically
+        let activeBlockId = 0;
+        try {
+            const blocksRes = await fetch(`${BILLINGO_BASE_URL}/document-blocks`, {
+                headers: { 'X-API-KEY': apiKey }
+            });
+            if (blocksRes.ok) {
+                const blocksData = await blocksRes.json();
+                if (blocksData.data && blocksData.data.length > 0) {
+                    activeBlockId = blocksData.data[0].id;
+                }
+            }
+        } catch (bErr) {
+            console.warn("Could not fetch document blocks, fallback to 0:", bErr);
+        }
+
         // Determine payment method and rounding
         let billingoPaymentMethod = 'cash_on_delivery';
         let shouldRound = true;
@@ -168,7 +183,7 @@ export async function createBillingoInvoice(order: any, customerData: any) {
 
         const documentData = {
             partner_id: partnerId,
-            block_id: 0,
+            block_id: activeBlockId || 0,
             type: 'invoice',
             fulfillment_date: new Date().toISOString().split('T')[0],
             due_date: new Date().toISOString().split('T')[0],
