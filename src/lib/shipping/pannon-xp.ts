@@ -109,14 +109,13 @@ export async function createPxpShipment(order: any) {
             refText = (`#${shortOrderId}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
         }
 
-        // Auto-fix known Hungarian outer city/district zipcodes where city name differs in PXP database
+        // Auto-fix known Hungarian outer city/district zipcodes for PXP API
         let finalCity = cleanPxpText(shippingAddr.city).slice(0, 40);
-        const finalZip = shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4);
+        let finalZip = shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4);
 
-        if (finalZip === '4481' && finalCity.toLowerCase().includes('nyíregyháza')) {
-            finalCity = 'Sóstóhegy';
-        } else if (finalZip === '4482' && finalCity.toLowerCase().includes('nyíregyháza')) {
-            finalCity = 'Kistokaj';
+        if (finalZip === '4481') {
+            // PXP expects either Nyíregyháza-Sóstóhegy or Nyíregyháza depending on database exact match
+            finalCity = 'Nyíregyháza-Sóstóhegy';
         }
 
         // Prepare the shipment data
