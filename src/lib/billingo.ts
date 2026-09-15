@@ -58,8 +58,12 @@ async function upsertPartner(customerData: any) {
 
     const data = await res.json();
     if (!res.ok) {
-        console.error("Billingo Partner Creation Error:", data);
-        throw new Error(`Billingo partner hiba: ${data.error?.message || data.message || res.statusText}`);
+        console.error("Billingo Partner Creation Error Details:", JSON.stringify(data));
+        // If partner endpoint is restricted, throw clean error
+        if (data.error?.message?.includes("subscription") || data.message?.includes("subscription")) {
+            throw new Error(`Billingo API hiba (Partner létrehozás): Kérjük ellenőrizd az API kulcs jogosultságait a Billingo fiókodban.`);
+        }
+        throw new Error(`Billingo partner hiba: ${data.error?.message || data.message || JSON.stringify(data)}`);
     }
 
     return data.id;
@@ -141,7 +145,8 @@ export async function createBillingoInvoice(order: any, customerData: any) {
 
         const result = await res.json();
         if (!res.ok) {
-            throw new Error(`Billingo számla hiba: ${result.error?.message || res.statusText}`);
+            console.error("Billingo Document Creation Error Details:", JSON.stringify(result));
+            throw new Error(`Billingo számla hiba: ${result.error?.message || result.message || JSON.stringify(result)}`);
         }
 
         // 3. Get public URL (Billingo v3 creates document first, then you can get its public link)
