@@ -46,11 +46,11 @@ export async function createPxpShipment(order: any) {
     const cserekulcs = (process.env.PXP_CSEREKULCS || PXP_CONFIG.cserekulcs).trim();
 
     try {
-        const shippingAddr = JSON.parse(order.shippingAddress);
+        const shippingAddr = typeof order.shippingAddress === 'string' ? JSON.parse(order.shippingAddress) : (order.shippingAddress || {});
         
         // Helper to format phone number: must start with +36 and contain only numbers and spaces
         const formatPxpPhone = (phone: string) => {
-            const digits = phone.replace(/\D/g, '');
+            const digits = (phone || '').replace(/\D/g, '');
             if (digits.startsWith('36')) return `+${digits.slice(0, 2)} ${digits.slice(2)}`;
             if (digits.startsWith('06')) return `+36 ${digits.slice(2)}`;
             return `+36 ${digits}`; // Fallback
@@ -62,7 +62,7 @@ export async function createPxpShipment(order: any) {
             return text.replace(/['"\\<>?$;]/g, "").trim();
         };
 
-        const cleanName = cleanPxpText(shippingAddr.name);
+        const cleanName = cleanPxpText(shippingAddr.name || `${shippingAddr.firstName || ''} ${shippingAddr.lastName || ''}`.trim() || 'Vevő');
         // PXP requires ceg_nev for individuals too, and it must be min 4 chars
         const rawCompany = cleanPxpText(shippingAddr.companyName);
         const finalCompanyName = (rawCompany.length >= 4 ? rawCompany : cleanName).slice(0, 50);
@@ -70,9 +70,21 @@ export async function createPxpShipment(order: any) {
         const isCOD = order.paymentMethod === 'COD';
         const utanvetAmount = isCOD ? Number(Math.round(order.totalAmount)) : 0;
         
+        // Normalize Zip and City for PXP API lookup table
+        let rawZip = (shippingAddr.postalCode || shippingAddr.zip || '').toString().replace(/\D/g, '').slice(0, 4);
+        let finalZip = rawZip ? rawZip.padStart(4, '0') : '4400';
+        let rawCity = cleanPxpText(shippingAddr.city || '');
+
+        let finalCity = rawCity;
+        if (finalZip === '4481' || rawCity.toLowerCase().includes('sóstóhegy') || (finalZip === '4400' && rawCity.toLowerCase().includes('nyíregyháza'))) {
+            finalCity = 'Nyíregyháza';
+            finalZip = '4481';
+        }
+
         // Address validation
-        const hasHouseNumber = /\d/.test(shippingAddr.address);
-        const isValidPostalCode = /^\d{4}$/.test(shippingAddr.postalCode.toString().replace(/\D/g, ''));
+        const streetAddr = cleanPxpText(shippingAddr.address || shippingAddr.street || '');
+        const hasHouseNumber = /\d/.test(streetAddr);
+        const isValidPostalCode = /^\d{4}$/.test(finalZip);
         
         if (!hasHouseNumber || !isValidPostalCode) {
             return {
