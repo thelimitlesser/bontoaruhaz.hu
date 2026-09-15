@@ -111,11 +111,17 @@ export async function createPxpShipment(order: any) {
 
         // Auto-fix known Hungarian outer city/district zipcodes for PXP API
         let finalCity = cleanPxpText(shippingAddr.city).slice(0, 40);
-        let finalZip = shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4);
+        let finalZip = shippingAddr.postalCode ? shippingAddr.postalCode.toString().replace(/\D/g, '').padStart(4, '0').slice(0, 4) : '4400';
 
-        if (finalZip === '4481') {
-            // PXP expects either Nyíregyháza-Sóstóhegy or Nyíregyháza depending on database exact match
-            finalCity = 'Nyíregyháza-Sóstóhegy';
+        // PXP official ZIP mapping table for Nyíregyháza districts
+        if (finalZip === '4481' || finalZip === '4400') {
+            finalCity = 'Nyíregyháza';
+        }
+
+        // If the city was saved as Sóstóhegy, normalize to Nyíregyháza for PXP lookup
+        if (finalCity.toLowerCase().includes('sóstóhegy')) {
+            finalCity = 'Nyíregyháza';
+            finalZip = '4481';
         }
 
         // Prepare the shipment data
