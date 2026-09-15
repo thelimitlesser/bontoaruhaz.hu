@@ -599,6 +599,27 @@ export async function issueManualInvoice(orderId: string) {
     }
 }
 
+export async function deleteOrder(orderId: string) {
+    console.log("DELETING ORDER PERMANENTLY:", orderId);
+    
+    try {
+        await prisma.orderItem.deleteMany({
+            where: { orderId }
+        });
+
+        await prisma.order.delete({
+            where: { id: orderId }
+        });
+
+        revalidatePath('/admin/orders');
+        revalidatePath(`/admin/orders/${orderId}`);
+        return { success: true };
+    } catch (err: any) {
+        console.error("Error deleting order:", err);
+        return { success: false, error: err.message || "Hiba történt a rendelés törlése során." };
+    }
+}
+
 export async function cleanupOldOrders() {
     console.log("RUNNING ORDER CLEANUP...");
     const thirtyDaysAgo = new Date();

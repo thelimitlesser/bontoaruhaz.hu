@@ -10,6 +10,7 @@ import { ShipmentTracker } from "./ShipmentTracker";
 import { OrderTimeline } from "./OrderTimeline";
 import { FileText, ClipboardCheck, ExternalLink, Check } from "lucide-react";
 import { CancelOrderButton } from "./cancel-button";
+import { DeleteOrderButton } from "../delete-button";
 import { MarkAsPickedUpButton } from "./picked-up-button";
 import { IssueInvoiceButton } from "./issue-invoice-button";
 import { EditOrderAddressModal } from "./edit-address-modal";
@@ -63,6 +64,9 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     </div>
                 </div>
                 <div className="md:ml-auto flex flex-col md:flex-row items-end md:items-center gap-3">
+                    {order.status === 'CANCELLED' && (
+                        <DeleteOrderButton orderId={order.id} orderNumber={order.id} redirectAfterDelete={true} />
+                    )}
                     <CancelOrderButton orderId={order.id} status={order.status} />
                     <OrderStatusUpdater orderId={order.id} currentStatus={order.status} />
                 </div>

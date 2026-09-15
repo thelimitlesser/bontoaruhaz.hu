@@ -5,6 +5,7 @@ import { Eye, Package, AlertCircle, Clock, RefreshCw } from"lucide-react";
 import { BulkSyncButton } from "./bulk-sync-button";
 import { SyncTrigger } from "./sync-trigger";
 import { OrderSearch } from "./order-search";
+import { DeleteOrderButton } from "./delete-button";
 import { getLastPxpSync } from "@/app/actions/shipping";
 
 export default async function OrdersPage({ searchParams }: { searchParams: Promise<{ status?: string, payment?: string, shipping?: string, todo?: string, page?: string, q?: string }> }) {
@@ -227,14 +228,19 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
                                                     )}
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-5 text-right">
-                                                <Link 
-                                                    href={`/admin/orders/${order.id}`} 
-                                                    className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-white/10 hover:bg-[var(--color-primary)] dark:hover:bg-[var(--color-primary)] hover:text-white rounded-xl transition-all duration-300 text-xs font-bold ring-1 ring-gray-200 dark:ring-white/10 hover:ring-transparent shadow-sm"
-                                                >
-                                                    <Eye className="w-3.5 h-3.5" />
-                                                    Részletek
-                                                </Link>
+                                            <td className="px-6 py-5 text-right whitespace-nowrap">
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <Link 
+                                                        href={`/admin/orders/${order.id}`} 
+                                                        className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-white/10 hover:bg-[var(--color-primary)] dark:hover:bg-[var(--color-primary)] hover:text-white rounded-xl transition-all duration-300 text-xs font-bold ring-1 ring-gray-200 dark:ring-white/10 hover:ring-transparent shadow-sm"
+                                                    >
+                                                        <Eye className="w-3.5 h-3.5" />
+                                                        Részletek
+                                                    </Link>
+                                                    {order.status === 'CANCELLED' && (
+                                                        <DeleteOrderButton orderId={order.id} orderNumber={order.id} compact={true} />
+                                                    )}
+                                                </div>
                                             </td>
                                         </tr>
                                     );
