@@ -36,6 +36,8 @@ async function upsertPartner(customerData: any) {
     
     console.log("Upserting Partner for email:", email);
 
+    let existingPartnerId: number | null = null;
+
     // 1. Try search existing partner if permitted
     try {
         const searchRes = await fetch(`${BILLINGO_BASE_URL}/partners?emails=${encodeURIComponent(email)}`, {
