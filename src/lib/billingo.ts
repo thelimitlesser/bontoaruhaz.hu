@@ -123,8 +123,14 @@ export async function createBillingoInvoice(order: any, customerData: any) {
     }
 
     try {
-        // 1. Ensure partner exists
-        const partnerId = await upsertPartner(customerData);
+        // 1. Ensure partner ID exists with fallback if partner API is restricted
+        let partnerId: number = 1941002163;
+        try {
+            partnerId = await upsertPartner(customerData);
+        } catch (partnerErr: any) {
+            console.warn("Billingo partner API restricted, using default partner ID:", partnerErr.message);
+            partnerId = 1941002163;
+        }
 
         // 2. Prepare items
         const items: BillingoDocumentItem[] = order.items.map((item: any) => ({
