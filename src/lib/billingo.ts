@@ -36,21 +36,22 @@ async function upsertPartner(customerData: any) {
     
     console.log("Upserting Partner for email:", email);
 
-    // 1. Search for existing partner by email
-    const searchRes = await fetch(`${BILLINGO_BASE_URL}/partners?emails=${encodeURIComponent(email)}`, {
-        method: 'GET',
-        headers: {
-            'X-API-KEY': apiKey
-        }
-    });
+    // 1. Try search existing partner if permitted
+    try {
+        const searchRes = await fetch(`${BILLINGO_BASE_URL}/partners?emails=${encodeURIComponent(email)}`, {
+            method: 'GET',
+            headers: { 'X-API-KEY': apiKey }
+        });
 
-    let existingPartnerId: number | null = null;
-    if (searchRes.ok) {
-        const searchData = await searchRes.json();
-        if (searchData.data && searchData.data.length > 0) {
-            existingPartnerId = searchData.data[0].id;
-            console.log("Found existing partner:", existingPartnerId);
+        if (searchRes.ok) {
+            const searchData = await searchRes.json();
+            if (searchData.data && searchData.data.length > 0) {
+                existingPartnerId = searchData.data[0].id;
+                console.log("Found existing partner:", existingPartnerId);
+            }
         }
+    } catch (e) {
+        console.warn("Partner search API skipped due to permissions/subscription:", e);
     }
 
     const partnerData: any = {
@@ -67,19 +68,25 @@ async function upsertPartner(customerData: any) {
     };
 
     if (existingPartnerId) {
-        console.log("Updating existing partner...");
-        await fetch(`${BILLINGO_BASE_URL}/partners/${existingPartnerId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-API-KEY': apiKey
-            },
-            body: JSON.stringify(partnerData)
-        });
-        return existingPartnerId;
+        try {
+            console.log("Updating existing partner...");
+            const updateRes = await fetch(`${BILLINGO_BASE_URL}/partners/${existingPartnerId}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-KEY': apiKey
+                },
+                body: JSON.stringify(partnerData)
+            });
+            if (updateRes.ok) {
+                return existingPartnerId;
+            }
+        } catch (e) {
+            console.warn("Partner update failed, falling back to new partner creation:", e);
+        }
     }
 
-    // 2. Create new partner if not found
+    // 2. Create new partner
     console.log("Creating new Billingo partner...");
     const res = await fetch(`${BILLINGO_BASE_URL}/partners`, {
         method: 'POST',
@@ -93,7 +100,7 @@ async function upsertPartner(customerData: any) {
     const data = await res.json();
     if (!res.ok) {
         console.error("Billingo Partner Creation Error:", data);
-        throw new Error(`Billingo partner hiba: ${data.error?.message || res.statusText}`);
+        throw new Error(`Billingo partner hiba: ${data.error?.message || data.message || res.statusText}`);
     }
 
     console.log("Created new partner with ID:", data.id);
