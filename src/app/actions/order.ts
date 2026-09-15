@@ -646,3 +646,23 @@ export async function cleanupOldOrders() {
         return { success: false, error: "Hiba történt a törlés során." };
     }
 }
+
+export async function updateOrderAddressesAction(orderId: string, shippingAddressObj: any, billingAddressObj: any) {
+    try {
+        await prisma.order.update({
+            where: { id: orderId },
+            data: {
+                shippingAddress: JSON.stringify(shippingAddressObj),
+                billingAddress: JSON.stringify(billingAddressObj)
+            }
+        });
+
+        revalidatePath(`/admin/orders/${orderId}`);
+        revalidatePath('/admin/orders');
+        return { success: true };
+    } catch (error: any) {
+        console.error("Error updating order addresses:", error);
+        return { success: false, error: error.message || "Sikertelen adatmódosítás" };
+    }
+}
+

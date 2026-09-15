@@ -12,6 +12,7 @@ import { FileText, ClipboardCheck, ExternalLink, Check } from "lucide-react";
 import { CancelOrderButton } from "./cancel-button";
 import { MarkAsPickedUpButton } from "./picked-up-button";
 import { IssueInvoiceButton } from "./issue-invoice-button";
+import { EditOrderAddressModal } from "./edit-address-modal";
 
 export default async function OrderDetailPage({ params }: { params: { id: string } }) {
     const { id } = await params;
@@ -188,10 +189,19 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                 {/* Right Column: Customer Info & Shipping (Reduced height items) */}
                 <div className="space-y-6">
                     <div className="bg-white dark:bg-zinc-900 border border-gray-200 dark:border-white/10 rounded-xl p-6 shadow-sm space-y-4">
-                        <h2 className="font-bold border-b border-gray-200 dark:border-white/10 pb-2 flex items-center gap-2 text-gray-900 dark:text-white">
-                            <User className="w-4 h-4 text-[var(--color-primary)]" />
-                            Vásárló Adatai
-                        </h2>
+                        <div className="flex items-center justify-between border-b border-gray-200 dark:border-white/10 pb-2">
+                            <h2 className="font-bold flex items-center gap-2 text-gray-900 dark:text-white">
+                                <User className="w-4 h-4 text-[var(--color-primary)]" />
+                                Vásárló Adatai
+                            </h2>
+                            <EditOrderAddressModal
+                                orderId={order.id}
+                                initialShipping={shipping}
+                                initialBilling={typeof order.billingAddress === 'string' ? JSON.parse(order.billingAddress) : order.billingAddress}
+                                userEmail={order.user?.email || shipping?.email}
+                                userPhone={order.user?.phoneNumber || shipping?.phone}
+                            />
+                        </div>
                         <div className="space-y-1">
                             <p className="text-gray-900 dark:text-white font-bold">
                                 {order.user?.fullName || (shipping ? (shipping.name || `${shipping.firstName || ''} ${shipping.lastName || ''}`.trim()) : 'Vendég')}
