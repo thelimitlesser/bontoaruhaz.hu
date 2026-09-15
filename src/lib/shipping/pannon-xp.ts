@@ -138,7 +138,7 @@ export async function createPxpShipment(order: any) {
                     ceg_nev: finalCompanyName,
                     cim_telepules: finalCity,
                     cim_iranyito: finalZip,
-                    cim_kozterulet: cleanPxpText(shippingAddr.address).slice(0, 60),
+                    cim_kozterulet: cleanPxpText(shippingAddr.address || shippingAddr.street || '').replace(/\./g, '').slice(0, 60),
                     cim_megjegyzes: megjegyzesText
                 },
                 szolgaltatas: "24H",

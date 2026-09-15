@@ -398,6 +398,7 @@ export async function approveOrder(orderId: string) {
             console.log("PXP Result:", pxpResult);
             
             if (!pxpResult.success) {
+                console.error("PXP REJECTION:", pxpResult);
                 throw new Error(`Szállítási címke generálása sikertelen (PannonXP): ${pxpResult.error}`);
             }
             trackingNumber = pxpResult.trackingNumber;
