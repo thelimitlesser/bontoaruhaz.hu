@@ -21,11 +21,8 @@ export function IssueInvoiceButton({ orderId, invoiceId, shippingMethod, payment
 
     // Only show for PICKUP orders that don't have an invoice yet
     // Or generally any order that is PAID but has no invoice (for flexibility)
+    // Show for any order that doesn't have an invoice yet
     if (invoiceId) return null;
-    
-    // User specifically wants this for Personal Pickup
-    // But we can show it for any COD order that was marked as PAID but not invoiced
-    if (shippingMethod !== 'PICKUP' && paymentStatus !== 'PAID') return null;
 
     const handleConfirm = () => {
         setError(null);
