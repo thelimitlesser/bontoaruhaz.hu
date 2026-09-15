@@ -513,9 +513,11 @@ export async function updateOrderPaymentStatus(orderId: string, newPaymentStatus
                 
                 const customerEmail = billingData.email || 'vevo@email.com';
                 const invoiceResult = await createBillingoInvoice(order, { ...billingoData, email: customerEmail });
-                if (invoiceResult) {
+                if (invoiceResult && invoiceResult.pdfUrl) {
                     invoiceId = invoiceResult.invoiceId;
                     invoiceUrl = invoiceResult.pdfUrl;
+                    console.log("Sending invoice email for approved order to:", customerEmail);
+                    await sendOrderManualInvoiceEmail(order, customerEmail, invoiceResult.pdfUrl);
                 }
             }
         } catch (e) {
