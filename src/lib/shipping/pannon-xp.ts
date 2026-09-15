@@ -70,15 +70,13 @@ export async function createPxpShipment(order: any) {
         const isCOD = order.paymentMethod === 'COD';
         const utanvetAmount = isCOD ? Number(Math.round(order.totalAmount)) : 0;
         
-        // Normalize Zip and City for PXP API lookup table
-        let rawZip = (shippingAddr.postalCode || shippingAddr.zip || '').toString().replace(/\D/g, '').slice(0, 4);
-        let finalZip = rawZip ? rawZip.padStart(4, '0') : '4400';
-        let rawCity = cleanPxpText(shippingAddr.city || '');
+        // Clean Zip and City from shipping address
+        let finalZip = (shippingAddr.postalCode || shippingAddr.zip || '').toString().replace(/\D/g, '').slice(0, 4);
+        let finalCity = cleanPxpText(shippingAddr.city || '');
 
-        let finalCity = rawCity;
-        if (finalZip === '4481' || rawCity.toLowerCase().includes('sóstóhegy') || (finalZip === '4400' && rawCity.toLowerCase().includes('nyíregyháza'))) {
+        // If zip is 4400 or 4481, default city to Nyíregyháza
+        if (finalZip === '4481' && !finalCity) {
             finalCity = 'Nyíregyháza';
-            finalZip = '4481';
         }
 
         // Address validation
@@ -119,12 +117,6 @@ export async function createPxpShipment(order: any) {
             tartalomText = summary.slice(0, 39);
             megjegyzesText = (`#${shortOrderId} | ${summary}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 99);
             refText = (`#${shortOrderId}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
-        }
-
-        // Auto-fix known Hungarian outer city/district zipcodes for PXP API
-        if (finalZip === '4481' || finalZip === '4400' || rawCity.toLowerCase().includes('sóstóhegy')) {
-            finalCity = 'Nyíregyháza';
-            finalZip = '4481';
         }
 
         // Prepare the shipment data
