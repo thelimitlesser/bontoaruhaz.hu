@@ -202,7 +202,8 @@ export async function createBillingoInvoice(order: any, customerData: any) {
         };
 
     } catch (error: any) {
-        console.error('CRITICAL ERROR issuing Billingo invoice:', error.message || error);
-        return null;
+        const errorMsg = error.message || String(error);
+        console.error('CRITICAL ERROR issuing Billingo invoice:', errorMsg);
+        return { error: errorMsg };
     }
 }

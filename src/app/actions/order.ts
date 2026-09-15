@@ -569,7 +569,9 @@ export async function issueManualInvoice(orderId: string) {
         console.log("ISSUE_MANUAL_INVOICE: Calling Billingo...");
         const invoiceResult = await createBillingoInvoice(order, { ...billingoData, email: customerEmail });
         
-        if (!invoiceResult) throw new Error("A Billingo számla kiállítása sikertelen volt.");
+        if (!invoiceResult || invoiceResult.error) {
+            throw new Error(invoiceResult?.error || "A Billingo számla kiállítása sikertelen volt.");
+        }
 
         // Update order with invoice data
         const updatedOrder = await prisma.order.update({
