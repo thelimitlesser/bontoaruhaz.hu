@@ -77,10 +77,7 @@ export async function createBillingoInvoice(order: any, customerData: any) {
     }
 
     try {
-        // 1. Ensure partner exists
-        const partnerId = await upsertPartner(customerData);
-
-        // 2. Prepare items
+        // 1. Prepare inline partner and items (no separate partner lookup required)
         const items: BillingoDocumentItem[] = order.items.map((item: any) => ({
             name: item.productName || item.part.name,
             unit_price: item.priceAtTime,
@@ -114,8 +111,21 @@ export async function createBillingoInvoice(order: any, customerData: any) {
             shouldRound = true;
         }
 
+        const partnerData: any = {
+            name: customerData.name || `${customerData.lastName || ''} ${customerData.firstName || ''}`.trim() || customerData.companyName || 'Névtelen Vevő',
+            address: {
+                country_code: 'HU',
+                post_code: String(customerData.billingPostalCode || customerData.postalCode || customerData.zip || '1000'),
+                city: String(customerData.billingCity || customerData.city || 'Budapest'),
+                address: String(customerData.billingAddress || customerData.address || customerData.street || '')
+            },
+            emails: [customerData.email],
+            phone: customerData.phone || customerData.phoneNumber || undefined,
+            type: 'person'
+        };
+
         const documentData = {
-            partner_id: partnerId,
+            partner: partnerData,
             block_id: 0,
             type: 'invoice',
             fulfillment_date: new Date().toISOString().split('T')[0],
