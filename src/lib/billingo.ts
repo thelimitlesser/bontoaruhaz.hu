@@ -54,7 +54,7 @@ async function upsertPartner(customerData: any) {
     }
 
     const partnerData: any = {
-        name: customerData.companyName || customerData.name || `${customerData.lastName || ''} ${customerData.firstName || ''}`.trim() || 'Névtelen Vevő',
+        name: customerData.name || `${customerData.lastName || ''} ${customerData.firstName || ''}`.trim() || customerData.companyName || 'Névtelen Vevő',
         address: {
             country_code: 'HU',
             post_code: String(customerData.billingPostalCode || customerData.postalCode || customerData.zip || '1000'),
@@ -63,7 +63,7 @@ async function upsertPartner(customerData: any) {
         },
         emails: [email],
         phone: customerData.phone || customerData.phoneNumber || undefined,
-        taxcode: customerData.taxNumber || customerData.taxCode || customerData.tax_number || undefined
+        taxcode: undefined
     };
 
     if (existingPartnerId) {
