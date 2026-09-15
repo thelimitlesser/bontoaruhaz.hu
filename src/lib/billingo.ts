@@ -32,29 +32,6 @@ async function upsertPartner(customerData: any) {
     if (!apiKey) throw new Error("BILLINGO_API_KEY hiányzik");
 
     const email = customerData.email;
-    const taxNumber = customerData.taxNumber;
-    
-    console.log("Upserting Partner for email:", email);
-
-    let existingPartnerId: number | null = null;
-
-    // 1. Try search existing partner if permitted
-    try {
-        const searchRes = await fetch(`${BILLINGO_BASE_URL}/partners?emails=${encodeURIComponent(email)}`, {
-            method: 'GET',
-            headers: { 'X-API-KEY': apiKey }
-        });
-
-        if (searchRes.ok) {
-            const searchData = await searchRes.json();
-            if (searchData.data && searchData.data.length > 0) {
-                existingPartnerId = searchData.data[0].id;
-                console.log("Found existing partner:", existingPartnerId);
-            }
-        }
-    } catch (e) {
-        console.warn("Partner search API skipped due to permissions/subscription:", e);
-    }
 
     const partnerData: any = {
         name: customerData.name || `${customerData.lastName || ''} ${customerData.firstName || ''}`.trim() || customerData.companyName || 'Névtelen Vevő',
@@ -69,27 +46,7 @@ async function upsertPartner(customerData: any) {
         taxcode: undefined
     };
 
-    if (existingPartnerId) {
-        try {
-            console.log("Updating existing partner...");
-            const updateRes = await fetch(`${BILLINGO_BASE_URL}/partners/${existingPartnerId}`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-KEY': apiKey
-                },
-                body: JSON.stringify(partnerData)
-            });
-            if (updateRes.ok) {
-                return existingPartnerId;
-            }
-        } catch (e) {
-            console.warn("Partner update failed, falling back to new partner creation:", e);
-        }
-    }
-
-    // 2. Create new partner
-    console.log("Creating new Billingo partner...");
+    // Directly create partner (Billingo v3 API handles duplicates or creates unique document partners)
     const res = await fetch(`${BILLINGO_BASE_URL}/partners`, {
         method: 'POST',
         headers: {
@@ -105,7 +62,6 @@ async function upsertPartner(customerData: any) {
         throw new Error(`Billingo partner hiba: ${data.error?.message || data.message || res.statusText}`);
     }
 
-    console.log("Created new partner with ID:", data.id);
     return data.id;
 }
 
