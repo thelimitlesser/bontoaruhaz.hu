@@ -57,13 +57,13 @@ async function upsertPartner(customerData: any) {
         name: customerData.companyName || customerData.name || `${customerData.lastName || ''} ${customerData.firstName || ''}`.trim() || 'Névtelen Vevő',
         address: {
             country_code: 'HU',
-            post_code: customerData.billingPostalCode || customerData.postalCode,
-            city: customerData.billingCity || customerData.city,
-            address: customerData.billingAddress || customerData.address
+            post_code: String(customerData.billingPostalCode || customerData.postalCode || customerData.zip || '1000'),
+            city: String(customerData.billingCity || customerData.city || 'Budapest'),
+            address: String(customerData.billingAddress || customerData.address || customerData.street || '')
         },
         emails: [email],
-        phone: customerData.phone,
-        taxcode: taxNumber || undefined
+        phone: customerData.phone || customerData.phoneNumber || undefined,
+        taxcode: customerData.taxNumber || customerData.taxCode || customerData.tax_number || undefined
     };
 
     if (existingPartnerId) {
