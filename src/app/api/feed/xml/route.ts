@@ -111,22 +111,28 @@ export async function GET() {
             }
 
             // 2. Felépítjük a tiszta leírást (csak amit a leírás mezőbe kell írni)
-            let fullDescription = "";
+            let fullDescription = part.description ? part.description.trim() : `Eladó gyári ${allapot} ${part.name}.`;
+
+            if (part.engineCode && !fullDescription.toLowerCase().includes(part.engineCode.toLowerCase())) {
+                fullDescription += `\nMotorkód: ${part.engineCode}`;
+            }
+
+            const refCode = part.productCode || part.sku || part.id;
+            if (refCode && !fullDescription.includes(refCode)) {
+                fullDescription += `\nHivatkozási szám: (${refCode})`;
+            }
+
+            if (!fullDescription.includes("Szállítási idő")) {
+                fullDescription += `\nSzállítási idő: 1-3 munkanap.`;
+            }
+
+            // Újsorok átalakítása <br /> tagekké a Racing Bazár HTML megjelenítéséhez
+            const formattedDescription = fullDescription
+                .replace(/\r\n/g, "\n")
+                .replace(/\n\n+/g, "<br /><br />")
+                .replace(/\n/g, "<br />");
 
             const refId = part.sku ? part.sku : part.id;
-
-            if (part.description && part.description.trim()) {
-                fullDescription += `${part.description.trim()}\n\n`;
-            }
-
-            if (part.engineCode) {
-                fullDescription += `Motorkód: ${part.engineCode}\n`;
-            }
-
-            fullDescription += `Az alkatrész szakszerűen kiszerelve és tárolva. Beépítési garanciával!\n`;
-            fullDescription += `Érdeklődéskor hivatkozzon erre: ${refId}\n`;
-            fullDescription += `Bármire van szüksége hívjon bizalommal!\n`;
-            fullDescription += `Szállítási idő: 1-3 munkanap.`;
 
             // 3. GENERÁLÁS: Minden kompatibilis autótípusra KÜLÖN <termek> elemet generálunk
             compList.forEach((compItem, index) => {
@@ -149,7 +155,7 @@ export async function GET() {
                 xmlContent += `  <termek>\n`;
                 xmlContent += `    <azonosito>${escapeXml(uniqueId)}</azonosito>\n`;
                 xmlContent += `    <megnevezes>${escapeXml(displayTitle)}</megnevezes>\n`;
-                xmlContent += `    <leiras>${escapeXml(fullDescription.trim())}</leiras>\n`;
+                xmlContent += `    <leiras>${escapeXml(formattedDescription.trim())}</leiras>\n`;
                 xmlContent += `    <kategoria>${escapeXml(part.PartCategory?.name || "alkatrész")}</kategoria>\n`;
                 xmlContent += `    <allapot>${escapeXml(allapot)}</allapot>\n`;
                 xmlContent += `    <kepek>${kepekXml}</kepek>\n`;
