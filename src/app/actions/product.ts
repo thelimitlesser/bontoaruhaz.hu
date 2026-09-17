@@ -997,7 +997,9 @@ export const getProductMetadataAction = cache(async (idOrSku: string) => {
                     where: {
                         OR: [
                             { sku: { equals: idOrSku, mode: 'insensitive' } },
-                            { productCode: { equals: idOrSku, mode: 'insensitive' } }
+                            { sku: { contains: idOrSku, mode: 'insensitive' } },
+                            { productCode: { equals: idOrSku, mode: 'insensitive' } },
+                            { productCode: { contains: idOrSku, mode: 'insensitive' } }
                         ]
                     },
                     select: {
@@ -1055,7 +1057,9 @@ export const getProductPageDataAction = cache(async (idOrSku: string) => {
                     where: {
                         OR: [
                             { sku: { equals: idOrSku, mode: 'insensitive' } },
-                            { productCode: { equals: idOrSku, mode: 'insensitive' } }
+                            { sku: { contains: idOrSku, mode: 'insensitive' } },
+                            { productCode: { equals: idOrSku, mode: 'insensitive' } },
+                            { productCode: { contains: idOrSku, mode: 'insensitive' } }
                         ]
                     },
                     include: {
