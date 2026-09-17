@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getProductUrl } from "@/utils/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -58,9 +59,15 @@ export async function GET() {
             }
 
             const kepekXml = imageList.map(url => `<kep_url>${escapeXml(url)}</kep_url>`).join("");
-            // Alapvető termék URL (lehetőleg SKU-val)
-            const productRef = part.sku || part.id;
-            const termekUrl = `${baseUrl}/product/${productRef}`;
+            // Alapvető kánonikus termék URL
+            const productPath = getProductUrl({
+                id: part.id,
+                name: part.name,
+                brandName: part.VehicleBrand?.name,
+                modelName: part.VehicleModel?.name,
+                sku: part.sku
+            });
+            const termekUrl = `${baseUrl}${productPath}`;
             const allapot = part.condition === "NEW" ? "új" : "használt";
 
             // 1. Összegyűjtjük az ÖSSZES kompatibilis autótípust és modellt

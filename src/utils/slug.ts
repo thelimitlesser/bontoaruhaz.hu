@@ -110,14 +110,15 @@ export function getProductUrl(
  * Assumes the UUID is the last 36 characters.
  */
 export function extractIdFromSlug(slugId: string): string {
+  const decoded = decodeURIComponent(slugId || "");
   // UUIDs are exactly 36 characters long
-  if (slugId.length >= 36) {
-    const potentialId = slugId.slice(-36);
+  if (decoded.length >= 36) {
+    const potentialId = decoded.slice(-36);
     // Basic UUID validation
     const uuidRegex = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
     if (uuidRegex.test(potentialId)) {
       return potentialId;
     }
   }
-  return slugId; // Return as-is if no UUID pattern found at end
+  return decoded; // Return as-is if no UUID pattern found at end
 }
