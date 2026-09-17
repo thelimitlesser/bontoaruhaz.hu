@@ -15,26 +15,13 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
     const [selectedImage, setSelectedImage] = useState(images[0]);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [isZoomed, setIsZoomed] = useState(false);
-    const [isAutoPlaying, setIsAutoPlaying] = useState(true);
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [isLoaded, setIsLoaded] = useState(true);
     const currentIndex = images.indexOf(selectedImage);
 
     // Reset load state on image change
     useEffect(() => {
-        setIsLoaded(false);
+        setIsLoaded(true);
     }, [selectedImage]);
-
-    // Auto-slide logic
-    useEffect(() => {
-        if (!isAutoPlaying || images.length <= 1 || isFullscreen) return;
-
-        const interval = setInterval(() => {
-            const nextIndex = (currentIndex + 1) % images.length;
-            setSelectedImage(images[nextIndex]);
-        }, 4000);
-
-        return () => clearInterval(interval);
-    }, [isAutoPlaying, currentIndex, images.length, isFullscreen]);
 
     // Handle ESC key and scroll lock
     useEffect(() => {
@@ -54,14 +41,12 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
 
     const handleNext = (e: React.MouseEvent) => {
         e.stopPropagation();
-        setIsAutoPlaying(false); // Stop auto-play on manual interaction
         const nextIndex = (currentIndex + 1) % images.length;
         setSelectedImage(images[nextIndex]);
     };
 
     const handlePrev = (e: React.MouseEvent) => {
         e.stopPropagation();
-        setIsAutoPlaying(false); // Stop auto-play on manual interaction
         const prevIndex = (currentIndex - 1 + images.length) % images.length;
         setSelectedImage(images[prevIndex]);
     };
@@ -80,12 +65,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 }}
                 onClick={() => setIsFullscreen(true)}
             >
-
-                {/* Skeleton Loader */}
-                {!isLoaded && (
-                    <div className="absolute inset-0 bg-muted animate-pulse z-20" style={{ borderRadius: '46px' }} />
-                )}
-
                 {/* Blurred Background Layer */}
                 <div className="absolute inset-0 overflow-hidden">
                     <Image
@@ -93,10 +72,8 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                         src={selectedImage}
                         alt=""
                         fill
-                        className={clsx(
-                            "object-cover blur-2xl scale-110 opacity-60 transition-opacity duration-500",
-                            isLoaded ? "opacity-60" : "opacity-0"
-                        )}
+                        sizes="(max-width: 768px) 100vw, 50vw"
+                        className="object-cover blur-2xl scale-110 opacity-40 transition-opacity duration-300"
                     />
                     <div className="absolute inset-0 bg-white/30 dark:bg-black/30 backdrop-blur-sm" />
                 </div>
@@ -106,14 +83,10 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                     key={selectedImage}
                     src={selectedImage}
                     alt={productName}
-                    onLoad={() => setIsLoaded(true)}
-                    onError={() => setIsLoaded(true)}
                     fill
                     priority={true}
-                    className={clsx(
-                        "object-contain z-10 transition-transform duration-500 hover:scale-105 drop-shadow-2xl",
-                        isLoaded ? "opacity-100" : "opacity-0"
-                    )}
+                    sizes="(max-width: 768px) 100vw, 50vw"
+                    className="object-contain z-10 transition-all duration-300 hover:scale-105 drop-shadow-2xl opacity-100"
                 />
 
                 {/* Glass reflection effect */}
@@ -149,7 +122,6 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                             key={idx}
                             onClick={() => {
                                 setSelectedImage(images[idx]);
-                                setIsAutoPlaying(false);
                             }}
                             className="relative w-2.5 h-2.5 rounded-full transition-all duration-300"
                             aria-label={`${idx + 1}. kép kiválasztása`}
