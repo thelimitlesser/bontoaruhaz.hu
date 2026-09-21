@@ -13,6 +13,61 @@ function escapeXml(unsafe: string): string {
         .replace(/'/g, "&apos;");
 }
 
+function cleanDisplayTitle(
+    partName: string,
+    targetComp: { fullName: string; brandName: string; modelName: string },
+    allComps: { fullName: string; brandName: string; modelName: string }[]
+): string {
+    let cleaned = partName.trim();
+
+    const stringsToRemove = new Set<string>();
+    for (const comp of allComps) {
+        if (comp.fullName) stringsToRemove.add(comp.fullName);
+        if (comp.modelName) stringsToRemove.add(comp.modelName);
+        if (comp.brandName && comp.modelName) stringsToRemove.add(`${comp.brandName} ${comp.modelName}`);
+
+        if (comp.modelName) {
+            const baseModel = comp.modelName.replace(/\s*\([^)]*\)/g, "").trim();
+            if (baseModel) {
+                stringsToRemove.add(baseModel);
+                if (comp.brandName) stringsToRemove.add(`${comp.brandName} ${baseModel}`);
+            }
+        }
+    }
+
+    const sortedStrings = Array.from(stringsToRemove)
+        .filter(s => s && s.length >= 3)
+        .sort((a, b) => b.length - a.length);
+
+    for (const str of sortedStrings) {
+        const esc = str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const startRegex = new RegExp("^" + esc + "(\\s*[-:,/]?\\s*)", "gi");
+        cleaned = cleaned.replace(startRegex, "");
+    }
+
+    for (const str of sortedStrings) {
+        if (targetComp.fullName.toLowerCase().includes(str.toLowerCase())) continue;
+        const esc = str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        const innerRegex = new RegExp("\\b" + esc + "\\b", "gi");
+        cleaned = cleaned.replace(innerRegex, "");
+    }
+
+    cleaned = cleaned
+        .replace(/\s+/g, " ")
+        .replace(/^[-:/\\,\s]+/, "")
+        .replace(/[-:/\\,\s]+$/, "")
+        .trim();
+
+    if (!cleaned) {
+        cleaned = partName;
+    }
+
+    if (!cleaned.toLowerCase().includes(targetComp.fullName.toLowerCase())) {
+        return `${targetComp.fullName} ${cleaned}`.trim();
+    }
+    return cleaned;
+}
+
 export async function GET() {
     try {
         const parts = await prisma.part.findMany({
@@ -133,15 +188,13 @@ export async function GET() {
                 .replace(/\n/g, "<br />");
 
             const refId = part.sku ? part.sku : part.id;
+            const finalPrice = Math.round(Number(part.priceGross || part.priceNet || 0));
+            const netPrice = Math.round(Number(part.priceNet || 0));
 
             // 3. GENERÁLÁS: Minden kompatibilis autótípusra KÜLÖN <termek> elemet generálunk
             compList.forEach((compItem, index) => {
                 const uniqueId = compList.length > 1 ? `${refId}-${index + 1}` : refId;
-                
-                let displayTitle = part.name;
-                if (!displayTitle.toLowerCase().includes(compItem.fullName.toLowerCase())) {
-                    displayTitle = `${compItem.fullName} ${part.name}`;
-                }
+                const displayTitle = cleanDisplayTitle(part.name, compItem, compList);
 
                 // Generáljuk a pontos URL-t a márka és modell paraméterekkel, ha rendelkezésre állnak
                 let specificTermekUrl = termekUrl;
@@ -159,8 +212,15 @@ export async function GET() {
                 xmlContent += `    <kategoria>${escapeXml(part.PartCategory?.name || "alkatrész")}</kategoria>\n`;
                 xmlContent += `    <allapot>${escapeXml(allapot)}</allapot>\n`;
                 xmlContent += `    <kepek>${kepekXml}</kepek>\n`;
-                xmlContent += `    <ar>${part.priceGross}</ar>\n`;
+                xmlContent += `    <ar>${finalPrice}</ar>\n`;
+                xmlContent += `    <ar_brutto>${finalPrice}</ar_brutto>\n`;
+                xmlContent += `    <ar_netto>${netPrice}</ar_netto>\n`;
+                xmlContent += `    <price>${finalPrice}</price>\n`;
+                xmlContent += `    <valuta>HUF</valuta>\n`;
+                xmlContent += `    <penznem>HUF</penznem>\n`;
                 xmlContent += `    <auto_tipus>${escapeXml(compItem.fullName)}</auto_tipus>\n`;
+                xmlContent += `    <marka>${escapeXml(compItem.brandName)}</marka>\n`;
+                xmlContent += `    <modell>${escapeXml(compItem.modelName)}</modell>\n`;
                 xmlContent += `    <cikkszam>${escapeXml(realCikkszam)}</cikkszam>\n`;
                 xmlContent += `    <gyartoi_cikkszam></gyartoi_cikkszam>\n`;
                 xmlContent += `    <termek_url>${escapeXml(specificTermekUrl)}</termek_url>\n`;
@@ -183,3 +243,4 @@ export async function GET() {
         return new NextResponse("Error generating XML feed", { status: 500 });
     }
 }
+
