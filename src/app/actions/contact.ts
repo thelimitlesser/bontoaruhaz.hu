@@ -18,6 +18,7 @@ export async function sendContactEmail(formData: FormData) {
         const { data, error } = await resend.emails.send({
             from: "Bontóáruház Kapcsolat <info@bontoaruhaz.hu>",
             to: ["bontoaruhaz@gmail.com"],
+            reply_to: email,
             subject: `Új üzenet a BONTÓÁRUHÁZ kapcsolat oldaláról: ${subject}`,
             html:` <h2>Új üzenet érkezett!</h2>
         <p><strong>Név:</strong> ${name}</p>
