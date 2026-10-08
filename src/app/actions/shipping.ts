@@ -178,13 +178,12 @@ export async function trackAndSyncShipment(orderId: string, trackingNumber: stri
         if (result.success) {
             let newStatus: any = undefined;
             const statusId = Number((result as any).statusId);
+            const isDelivered = (result as any).isDelivered;
             
             // Map PXP numeric status codes to our internal OrderStatus
-            // 5 = Kézbesítve (Delivered)
-            // 8 = Törölve/Visszáru (Cancelled/Returned)
-            if (statusId === 5) {
+            if (isDelivered) {
                 newStatus = 'DELIVERED';
-            } else if (statusId === 8) {
+            } else if (statusId === 8 || (result as any).statusText?.includes('Visszáru')) {
                 newStatus = 'CANCELLED';
             } else if (statusId >= 1) {
                 newStatus = 'SHIPPED';

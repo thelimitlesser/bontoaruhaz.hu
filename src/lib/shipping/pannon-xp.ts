@@ -239,8 +239,10 @@ export async function trackShipment(trackingNumber: string) {
 
     try {
         const queryRequest: any = {
-            "0": {
-                kuldemenyszam: trackingNumber
+            kuldemenystatusz: {
+                "0": {
+                    kuldemenystatusz: trackingNumber
+                }
             }
         };
 
@@ -252,7 +254,7 @@ export async function trackShipment(trackingNumber: string) {
         body.append('jelszo', hashPassword(password));
         body.append('keres', encryptedRequest);
 
-        const response = await fetch(`${baseUrl}/lekerdezes/`, { 
+        const response = await fetch(`${baseUrl}/kuldemenystatusz/`, { 
             method: 'POST',
             body: body.toString(),
             headers: { 
@@ -268,21 +270,16 @@ export async function trackShipment(trackingNumber: string) {
             console.log("PXP STATUS RESPONSE for", trackingNumber, ":", JSON.stringify(result, null, 2));
         }
 
-        if (result.kapcsolat?.statusz === 'OK' && result.lekerdezes?.["0"]) {
-            const data = result.lekerdezes["0"];
-            // PXP Status codes (typical): 
-            // - 1: Felvéve
-            // - 4: Kiszállítás alatt
-            // - 5: Kézbesítve
-            // - 6: Sikertelen kézbesítés
-            const statusIdNum = Number(data.statusz);
+        if (result.kapcsolat?.statusz === 'OK' && result.kuldemenystatusz && result.kuldemenystatusz.length > 0) {
+            const data = result.kuldemenystatusz[0];
+            const statusIdNum = Number(data.statusz_kod);
             return {
                 success: true,
                 statusId: statusIdNum,
-                statusText: data.statusz_szöveges,
-                isDelivered: statusIdNum === 5,
-                isPaid: (statusIdNum === 5 && Number(data.utanvet_beszedve) === 1) || statusIdNum === 5, // Custom logic: if delivered, usually paid soon
-                deliveredAt: data.kezbesites_idopontja,
+                statusText: data.statusz,
+                isDelivered: statusIdNum === 90 || data.statusz === 'Kiszállítva',
+                isPaid: statusIdNum === 90 || data.statusz === 'Kiszállítva',
+                deliveredAt: data.adatok?.kiszallitva_datum_ido,
                 raw: data
             };
         }
