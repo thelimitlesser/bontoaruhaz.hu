@@ -239,10 +239,8 @@ export async function trackShipment(trackingNumber: string) {
 
     try {
         const queryRequest: any = {
-            kuldemenystatusz: {
-                "0": {
-                    kuldemenystatusz: trackingNumber
-                }
+            "0": {
+                kuldemenystatusz: trackingNumber
             }
         };
 
@@ -270,8 +268,12 @@ export async function trackShipment(trackingNumber: string) {
             console.log("PXP STATUS RESPONSE for", trackingNumber, ":", JSON.stringify(result, null, 2));
         }
 
-        if (result.kapcsolat?.statusz === 'OK' && result.kuldemenystatusz && result.kuldemenystatusz.length > 0) {
-            const data = result.kuldemenystatusz[0];
+        const statusArray: any[] = result.kuldemenystatusz 
+            ? (Array.isArray(result.kuldemenystatusz) ? result.kuldemenystatusz : Object.values(result.kuldemenystatusz)) 
+            : [];
+
+        if (result.kapcsolat?.statusz === 'OK' && statusArray.length > 0) {
+            const data = statusArray[0];
             const statusIdNum = Number(data.statusz_kod);
             return {
                 success: true,
