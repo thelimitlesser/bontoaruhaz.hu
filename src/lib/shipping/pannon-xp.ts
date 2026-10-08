@@ -275,12 +275,13 @@ export async function trackShipment(trackingNumber: string) {
             // - 4: Kiszállítás alatt
             // - 5: Kézbesítve
             // - 6: Sikertelen kézbesítés
+            const statusIdNum = Number(data.statusz);
             return {
                 success: true,
-                statusId: data.statusz,
+                statusId: statusIdNum,
                 statusText: data.statusz_szöveges,
-                isDelivered: data.statusz === 5,
-                isPaid: (data.statusz === 5 && data.utanvet_beszedve === 1) || data.statusz === 5, // Custom logic: if delivered, usually paid soon
+                isDelivered: statusIdNum === 5,
+                isPaid: (statusIdNum === 5 && Number(data.utanvet_beszedve) === 1) || statusIdNum === 5, // Custom logic: if delivered, usually paid soon
                 deliveredAt: data.kezbesites_idopontja,
                 raw: data
             };

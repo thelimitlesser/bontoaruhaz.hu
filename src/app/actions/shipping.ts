@@ -177,7 +177,7 @@ export async function trackAndSyncShipment(orderId: string, trackingNumber: stri
 
         if (result.success) {
             let newStatus: any = undefined;
-            const statusId = (result as any).statusId;
+            const statusId = Number((result as any).statusId);
             
             // Map PXP numeric status codes to our internal OrderStatus
             // 5 = Kézbesítve (Delivered)
