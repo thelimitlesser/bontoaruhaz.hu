@@ -1,13 +1,3 @@
 {
-  "regions": ["fra1"],
-  "crons": [
-    {
-      "path": "/api/cron/pxp-sync",
-      "schedule": "0 * * * *"
-    },
-    {
-      "path": "/api/cron/sync-pxp",
-      "schedule": "0 22 * * *"
-    }
-  ]
+  "regions": ["fra1"]
 }
