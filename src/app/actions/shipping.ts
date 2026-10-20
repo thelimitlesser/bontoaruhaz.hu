@@ -179,22 +179,25 @@ export async function trackAndSyncShipment(orderId: string, trackingNumber: stri
             let newStatus: any = undefined;
             const statusId = Number((result as any).statusId);
             const isDelivered = (result as any).isDelivered;
-            
+
+            const order = await prisma.order.findUnique({
+                where: { id: orderId },
+                select: { paymentMethod: true, paymentStatus: true, status: true }
+            });
+
             // Map PXP numeric status codes to our internal OrderStatus
             if (isDelivered) {
                 newStatus = 'DELIVERED';
-            } else if (statusId === 8 || (result as any).statusText?.includes('Visszáru')) {
+            } else if (statusId === 8 || (result as any).statusText?.includes('Visszáru') || (result as any).statusText?.includes('Törölve')) {
                 newStatus = 'CANCELLED';
-            } else if (statusId >= 1) {
+            } else if (order?.status === 'SHIPPED') {
+                newStatus = 'SHIPPED';
+            } else if (statusId >= 40 || (result as any).statusText?.includes('Kiszállítás alatt')) {
+                // Futár fizikailag felvette és szállítás alatt van
                 newStatus = 'SHIPPED';
             }
 
             if (newStatus) {
-                const order = await prisma.order.findUnique({
-                    where: { id: orderId },
-                    select: { paymentMethod: true, paymentStatus: true, status: true }
-                });
-
                 const dataToUpdate: any = {};
                 
                 // Only update status if it's different and meaningful
@@ -228,10 +231,10 @@ export async function trackAndSyncShipment(orderId: string, trackingNumber: stri
 
 export async function bulkSyncPxpStatuses() {
     try {
-        // Find all orders that are SHIPPED (or PROCESSING with a tracking number)
+        // Find all orders that are SHIPPED (only packages that have been manifested and handed to courier)
         const ordersToSync = await prisma.order.findMany({
             where: {
-                status: { in: ['SHIPPED', 'PROCESSING'] },
+                status: 'SHIPPED',
                 trackingNumber: { not: null }
             },
             select: { id: true, trackingNumber: true }

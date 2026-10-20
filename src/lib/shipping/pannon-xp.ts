@@ -420,16 +420,17 @@ export async function performPxpManifest(trackingNumbers?: string[]) {
         }
 
         let manifestRequest: any = {
-            ugyfelkod: ugyfelkod,
-            napizaras: {}
+            napizaras: true
         };
 
-        trackingNumbers.forEach((tn, index) => {
-            manifestRequest.napizaras[index.toString()] = {
-                kuldemenyszam: tn,
-                ugyfelkod: ugyfelkod
-            };
-        });
+        if (trackingNumbers && trackingNumbers.length > 0) {
+            manifestRequest.napizarasok = {};
+            trackingNumbers.forEach((tn, index) => {
+                manifestRequest.napizarasok[index.toString()] = {
+                    napizarasnyomtatas: tn
+                };
+            });
+        }
 
         console.log(`Sending PXP Manifest Request for ${trackingNumbers.length} items...`);
 
@@ -461,9 +462,16 @@ export async function performPxpManifest(trackingNumbers?: string[]) {
             };
         }
 
+        const errMessage = 
+            result.ervenytelen_adat?.napizaras?.uzenet ||
+            result.ervenytelen_adat?.uzenet ||
+            (Array.isArray(result.ervenytelen_adat) ? result.ervenytelen_adat[0]?.uzenet : undefined) ||
+            result.kapcsolat?.uzenet || 
+            "Sikertelen napi zárás";
+
         return { 
             success: false, 
-            error: result.kapcsolat?.uzenet || result.ervenytelen_adat?.uzenet || "Sikertelen napi zárás" 
+            error: errMessage
         };
     } catch (error: any) {
         console.error("PXP Manifest Error:", error);

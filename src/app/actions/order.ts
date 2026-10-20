@@ -587,7 +587,7 @@ export async function issueManualInvoice(orderId: string) {
 
         // Send custom "Invoice Prepared" email
         console.log("Sending manual invoice email to:", customerEmail);
-        await sendOrderManualInvoiceEmail(updatedOrder, customerEmail, invoiceResult.pdfUrl);
+        await sendOrderManualInvoiceEmail(updatedOrder, customerEmail, invoiceResult.pdfUrl || '');
 
         revalidatePath(`/admin/orders/${orderId}`);
         revalidatePath('/admin/orders');
