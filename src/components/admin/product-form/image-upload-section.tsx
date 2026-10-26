@@ -34,8 +34,8 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
             const rawFiles = Array.from(e.target.files);
             const totalImages = images.length + rawFiles.length;
 
-            if (totalImages > 5) {
-                alert("Maximum 5 képet tölthet fel!");
+            if (totalImages > 7) {
+                alert("Maximum 7 képet tölthet fel!");
                 e.target.value = '';
                 return;
             }
@@ -351,7 +351,7 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                 axis="x" 
                 values={images} 
                 onReorder={setImages}
-                className="grid grid-cols-2 md:grid-cols-5 gap-4 mt-6"
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 mt-6"
             >
                 {images.map((img, index) => (
                     <Reorder.Item 
@@ -470,7 +470,7 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                     </Reorder.Item>
                 ))}
                 
-                {images.length < 5 && (
+                {images.length < 7 && (
                     <label className={clsx(
                         "relative aspect-square rounded-xl border-2 border-dashed transition-colors cursor-pointer flex flex-col items-center justify-center group overflow-hidden",
                         errors.includes("images") 
@@ -500,7 +500,7 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                                 </div>
                                 <span className="text-sm font-medium">Új kép</span>
                                 <span className={clsx("text-xs mt-1", errors.includes("images") ? "text-red-400" : "text-gray-400")}>
-                                    {5 - images.length} hely maradt
+                                    {7 - images.length} hely maradt
                                 </span>
                             </>
                         )}
