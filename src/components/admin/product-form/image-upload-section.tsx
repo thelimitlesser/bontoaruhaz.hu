@@ -4,7 +4,7 @@ import { Upload, X as CloseIcon, Loader2, GripVertical, ArrowLeft, ArrowRight, Z
 import { compressImage, adjustImageWarmth, adjustUrlWarmth, DEFAULT_WARMTH } from "@/utils/image-utils";
 import clsx from "clsx";
 import { Reorder, AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export interface ImageItem {
     file?: File;
@@ -28,6 +28,25 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
     const [zoomImage, setZoomImage] = useState<string | null>(null);
     const [isWarmthCorrectionActive, setIsWarmthCorrectionActive] = useState<boolean>(false);
     const [isAdjustingWarmth, setIsAdjustingWarmth] = useState<boolean>(false);
+
+    // Synchronize switch state on mount and when images are loaded
+    useEffect(() => {
+        // 1. If images are already marked as cooled, switch should stay ON!
+        if (images.length > 0 && images.every(img => img.isCooled)) {
+            setIsWarmthCorrectionActive(true);
+            return;
+        }
+
+        // 2. Otherwise restore user's saved preference
+        try {
+            const savedPref = localStorage.getItem('admin_warmth_correction');
+            if (savedPref === 'true') {
+                setIsWarmthCorrectionActive(true);
+            } else if (savedPref === 'false') {
+                setIsWarmthCorrectionActive(false);
+            }
+        } catch (e) {}
+    }, [images]);
     
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -91,6 +110,10 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
     const handleToggleWarmthCorrection = async () => {
         const nextState = !isWarmthCorrectionActive;
         setIsWarmthCorrectionActive(nextState);
+
+        try {
+            localStorage.setItem('admin_warmth_correction', nextState ? 'true' : 'false');
+        } catch (e) {}
 
         if (images.length === 0) return;
 

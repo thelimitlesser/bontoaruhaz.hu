@@ -11,7 +11,7 @@ import { LoadingOverlay } from "@/components/ui/loading-overlay";
 import { BasicInfoSection } from "./product-form/basic-info-section";
 import { PartNameSearchSection } from "./product-form/part-name-search-section";
 import { VehicleCompatibilitySection } from "./product-form/vehicle-compatibility-section";
-import { ImageUploadSection } from "./product-form/image-upload-section";
+import { ImageUploadSection, ImageItem } from "./product-form/image-upload-section";
 import { DescriptionSection } from "./product-form/description-section";
 import { PricingSection } from "./product-form/pricing-section";
 import { DuplicateWarningModal } from "./product-form/duplicate-warning-modal";
@@ -43,8 +43,13 @@ export function ProductForm({
     const [isUniversal, setIsUniversal] = useState(initialData?.isUniversal || false);
     const [compatibilities, setCompatibilities] = useState<any[]>(initialData?.compatibilities || []);
     const [selectedPartItem, setSelectedPartItem] = useState(initialData?.partItemId || "");
-    const [images, setImages] = useState<{ file?: File; preview: string; isExisting?: boolean }[]>(
-        initialData?.images ? initialData.images.split(',').filter(Boolean).map((url: string) => ({ preview: url, isExisting: true })) : []
+    const [images, setImages] = useState<ImageItem[]>(
+        initialData?.images ? initialData.images.split(',').filter(Boolean).map((url: string) => ({ 
+            preview: url, 
+            isExisting: true,
+            originalUrl: url,
+            isCooled: url.includes('_cooled') || url.includes('-cooled'),
+        })) : []
     );
     const [isCompressing, setIsCompressing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);

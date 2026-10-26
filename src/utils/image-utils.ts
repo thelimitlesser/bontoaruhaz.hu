@@ -148,7 +148,7 @@ export const adjustImageWarmth = async (
                 }
                 canvas.toBlob((blob) => {
                     if (blob) {
-                        const newName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                        const newName = file.name.replace(/\.[^/.]+$/, "").replace(/_cooled$/, "") + "_cooled.webp";
                         const adjustedFile = new File([blob], newName, {
                             type: 'image/webp',
                             lastModified: Date.now(),
@@ -191,7 +191,7 @@ export const adjustUrlWarmth = async (
             }
             canvas.toBlob((blob) => {
                 if (blob) {
-                    const adjustedFile = new File([blob], `adjusted-${Date.now()}.webp`, {
+                    const adjustedFile = new File([blob], `adjusted-${Date.now()}_cooled.webp`, {
                         type: 'image/webp',
                         lastModified: Date.now(),
                     });

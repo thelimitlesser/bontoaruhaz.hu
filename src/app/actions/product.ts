@@ -88,7 +88,8 @@ export async function createProduct(formData: FormData) {
             if (!file.name || file.size === 0) return null;
 
             const buffer = Buffer.from(await file.arrayBuffer());
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+            const isCooled = file.name.includes('_cooled');
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${isCooled ? '_cooled' : ''}.webp`;
             const filePath = `${folderName}/${fileName}`;
 
             // Process with sharp (optimized quality/effort for best results)
@@ -214,7 +215,8 @@ export async function updateProduct(id: string, formData: FormData) {
         const uploadPromises = imagesFiles.map(async (file) => {
             if (!file.name || file.size === 0) return null;
             const buffer = Buffer.from(await file.arrayBuffer());
-            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+            const isCooled = file.name.includes('_cooled');
+            const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${isCooled ? '_cooled' : ''}.webp`;
             const filePath = `${folderName}/${fileName}`;
 
             const processedBuffer = await sharp(buffer)
