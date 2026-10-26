@@ -402,6 +402,21 @@ export function ProductForm({
             if (originalPrice) formData.set('originalPrice', originalPrice);
             if (stock) formData.set('stock', stock);
 
+            // Calculate total payload size to verify safety against Vercel limits
+            let totalPayloadBytes = 0;
+            images.forEach(img => {
+                if (!img.isExisting && img.file) {
+                    totalPayloadBytes += img.file.size;
+                }
+            });
+            console.log(`[Product Submit] Total file payload size: ${(totalPayloadBytes / 1024).toFixed(1)} KB for ${formData.getAll('imageFiles').length} file(s)`);
+
+            if (totalPayloadBytes > 4.2 * 1024 * 1024) {
+                alert("A feltöltendő képek mérete túllépi a 4 MB-os határt. Kérjük próbálja meg kevesebb vagy kisebb képpel!");
+                setIsSubmitting(false);
+                return;
+            }
+
             // Use XMLHttpRequest for actual upload progress tracking
             const xhr = new XMLHttpRequest();
             

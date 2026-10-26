@@ -32,12 +32,18 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
     // Synchronize switch state on mount and when images are loaded
     useEffect(() => {
         // 1. If images are already marked as cooled, switch should stay ON!
-        if (images.length > 0 && images.every(img => img.isCooled)) {
+        if (images.length > 0 && images.some(img => img.isCooled)) {
             setIsWarmthCorrectionActive(true);
             return;
         }
 
-        // 2. Otherwise restore user's saved preference
+        // 2. If editing an existing product whose images are NOT cooled, keep it OFF
+        if (images.length > 0 && images.some(img => img.isExisting)) {
+            setIsWarmthCorrectionActive(false);
+            return;
+        }
+
+        // 3. For new product creation, restore user's saved preference
         try {
             const savedPref = localStorage.getItem('admin_warmth_correction');
             if (savedPref === 'true') {
