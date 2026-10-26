@@ -288,63 +288,43 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                     <h2 className="text-xl font-bold text-gray-900">Termék Fotók</h2>
                     <p className="text-[10px] text-gray-500 font-medium">Húzd a képeket, vagy használd a nyilakat a sorrend módosításához.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 uppercase tracking-tighter">
-                        Első kép = Fő kép
-                    </span>
-                </div>
-            </div>
-
-            {/* Warmth / Color Temperature Switch */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-blue-50/60 via-sky-50/30 to-gray-50 border border-blue-100/80 rounded-xl p-3.5 shadow-xs">
-                <div className="flex items-start sm:items-center gap-3">
-                    <div className={clsx(
-                        "w-9 h-9 rounded-lg flex items-center justify-center transition-colors shadow-xs shrink-0 mt-0.5 sm:mt-0",
-                        isWarmthCorrectionActive ? "bg-blue-600 text-white" : "bg-white text-gray-400 border border-gray-200"
-                    )}>
-                        <Snowflake className="w-5 h-5" />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-sm font-bold text-gray-900">Meleg fény korrekció (Hidegítés)</span>
-                            <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
-                                -20 melegség
-                            </span>
-                            {isAdjustingWarmth && (
-                                <span className="text-[11px] text-blue-600 flex items-center gap-1 font-semibold animate-pulse">
-                                    <Loader2 className="w-3 h-3 animate-spin" /> Módosítás...
-                                </span>
-                            )}
-                        </div>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                            Kifehéríti a hátteret és megszünteti a lámpák sárgás fényét. Feltöltés előtt vagy utána is bármikor átkattinthatod!
-                        </p>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-2.5 self-end sm:self-auto shrink-0">
+                <div className="flex items-center gap-3">
+                    {/* Minimalist Sliding Snowflake Button */}
                     <button
                         type="button"
                         role="switch"
                         aria-checked={isWarmthCorrectionActive}
                         onClick={handleToggleWarmthCorrection}
                         disabled={isAdjustingWarmth || isCompressing}
+                        title={isWarmthCorrectionActive ? "Hidegítés bekapcsolva (-20 melegség)" : "Hidegítés / Sárgátlanítás (-20 melegség)"}
                         className={clsx(
-                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
-                            isWarmthCorrectionActive ? "bg-blue-600" : "bg-gray-300"
+                            "relative inline-flex h-7 w-[52px] shrink-0 items-center rounded-full p-0.5 transition-colors duration-300 ease-in-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 select-none shadow-inner",
+                            isWarmthCorrectionActive 
+                                ? "bg-blue-500 border border-blue-600" 
+                                : "bg-gray-200 border border-gray-300 hover:bg-gray-300"
                         )}
-                        title="Hidegítés ki/be kapcsolása"
                     >
                         <span
-                            aria-hidden="true"
                             className={clsx(
-                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
-                                isWarmthCorrectionActive ? "translate-x-5" : "translate-x-0"
+                                "flex h-6 w-6 transform items-center justify-center rounded-full bg-white shadow-md transition-transform duration-300 ease-in-out",
+                                isWarmthCorrectionActive ? "translate-x-6" : "translate-x-0"
                             )}
-                        />
+                        >
+                            {isAdjustingWarmth ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin text-blue-600" />
+                            ) : (
+                                <Snowflake 
+                                    className={clsx(
+                                        "w-3.5 h-3.5 transition-colors duration-300",
+                                        isWarmthCorrectionActive ? "text-blue-600" : "text-gray-400"
+                                    )} 
+                                />
+                            )}
+                        </span>
                     </button>
-                    <span className={clsx("text-xs font-bold select-none min-w-[90px]", isWarmthCorrectionActive ? "text-blue-700" : "text-gray-500")}>
-                        {isWarmthCorrectionActive ? "BEKAPCSOLVA" : "KIKAPCSOLVA"}
+
+                    <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 uppercase tracking-tighter">
+                        Első kép = Fő kép
                     </span>
                 </div>
             </div>
