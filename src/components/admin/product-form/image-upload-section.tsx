@@ -1,14 +1,23 @@
 "use client";
 
-import { Upload, X as CloseIcon, Loader2, GripVertical, ArrowLeft, ArrowRight, ZoomIn, X, RotateCw } from "lucide-react";
-import { compressImage } from "@/utils/image-utils";
+import { Upload, X as CloseIcon, Loader2, GripVertical, ArrowLeft, ArrowRight, ZoomIn, X, RotateCw, Sparkles, Snowflake } from "lucide-react";
+import { compressImage, adjustImageWarmth, adjustUrlWarmth } from "@/utils/image-utils";
 import clsx from "clsx";
 import { Reorder, AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
 
+export interface ImageItem {
+    file?: File;
+    preview: string;
+    isExisting?: boolean;
+    rawFile?: File;
+    rawPreview?: string;
+    isCooled?: boolean;
+}
+
 interface ImageUploadSectionProps {
-    images: { file?: File; preview: string; isExisting?: boolean }[];
-    setImages: React.Dispatch<React.SetStateAction<{ file?: File; preview: string; isExisting?: boolean }[]>>;
+    images: ImageItem[];
+    setImages: React.Dispatch<React.SetStateAction<ImageItem[]>>;
     isCompressing: boolean;
     setIsCompressing: React.Dispatch<React.SetStateAction<boolean>>;
     errors?: string[];
@@ -16,6 +25,8 @@ interface ImageUploadSectionProps {
 
 export function ImageUploadSection({ images, setImages, isCompressing, setIsCompressing, errors = [] }: ImageUploadSectionProps) {
     const [zoomImage, setZoomImage] = useState<string | null>(null);
+    const [isWarmthCorrectionActive, setIsWarmthCorrectionActive] = useState<boolean>(false);
+    const [isAdjustingWarmth, setIsAdjustingWarmth] = useState<boolean>(false);
     
     const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
@@ -30,13 +41,36 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
 
             setIsCompressing(true);
             try {
+                // Compress raw files to WebP (preserving original untouched WebP file)
                 const compressedFiles = await Promise.all(rawFiles.map(file => compressImage(file)));
 
-                const newImageData = compressedFiles.map(file => ({
-                    file,
-                    preview: URL.createObjectURL(file),
-                    isExisting: false
-                }));
+                const newImageData = await Promise.all(
+                    compressedFiles.map(async (rawFile) => {
+                        const rawPreview = URL.createObjectURL(rawFile);
+                        if (isWarmthCorrectionActive) {
+                            // Apply -20 warmth cooling immediately if toggle is ON
+                            const cooledFile = await adjustImageWarmth(rawFile, -20);
+                            const cooledPreview = URL.createObjectURL(cooledFile);
+                            return {
+                                file: cooledFile,
+                                preview: cooledPreview,
+                                isExisting: false,
+                                rawFile,
+                                rawPreview,
+                                isCooled: true,
+                            };
+                        } else {
+                            return {
+                                file: rawFile,
+                                preview: rawPreview,
+                                isExisting: false,
+                                rawFile,
+                                rawPreview,
+                                isCooled: false,
+                            };
+                        }
+                    })
+                );
 
                 setImages(prev => [...prev, ...newImageData]);
             } catch (err) {
@@ -49,10 +83,146 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
         }
     };
 
+    /**
+     * Toggles warmth correction for ALL images currently in the list.
+     * Can be turned ON or OFF before OR after images have already been uploaded!
+     */
+    const handleToggleWarmthCorrection = async () => {
+        const nextState = !isWarmthCorrectionActive;
+        setIsWarmthCorrectionActive(nextState);
+
+        if (images.length === 0) return;
+
+        setIsAdjustingWarmth(true);
+        try {
+            const updatedImages = await Promise.all(
+                images.map(async (img) => {
+                    if (nextState) {
+                        // Turn ON cooling: apply -20 warmth
+                        if (img.isCooled) return img;
+
+                        const sourceFile = img.rawFile || img.file;
+                        if (sourceFile) {
+                            const cooled = await adjustImageWarmth(sourceFile, -20);
+                            const cooledPreview = URL.createObjectURL(cooled);
+                            return {
+                                ...img,
+                                file: cooled,
+                                preview: cooledPreview,
+                                rawFile: img.rawFile || img.file,
+                                rawPreview: img.rawPreview || img.preview,
+                                isCooled: true,
+                            };
+                        } else if (img.isExisting && img.preview) {
+                            const cooled = await adjustUrlWarmth(img.preview, -20);
+                            if (cooled) {
+                                return {
+                                    ...img,
+                                    file: cooled,
+                                    preview: URL.createObjectURL(cooled),
+                                    rawPreview: img.preview,
+                                    isExisting: false,
+                                    isCooled: true,
+                                };
+                            }
+                        }
+                        return img;
+                    } else {
+                        // Turn OFF cooling: restore original unadjusted version
+                        if (!img.isCooled) return img;
+
+                        if (img.rawFile && img.rawPreview) {
+                            if (img.preview !== img.rawPreview && !img.isExisting) {
+                                URL.revokeObjectURL(img.preview);
+                            }
+                            return {
+                                ...img,
+                                file: img.rawFile,
+                                preview: img.rawPreview,
+                                isCooled: false,
+                            };
+                        } else if (img.rawPreview) {
+                            return {
+                                ...img,
+                                preview: img.rawPreview,
+                                isCooled: false,
+                            };
+                        }
+                        return img;
+                    }
+                })
+            );
+            setImages(updatedImages);
+        } catch (err) {
+            console.error("Hiba a színhőmérséklet módosításakor:", err);
+        } finally {
+            setIsAdjustingWarmth(false);
+        }
+    };
+
+    /**
+     * Toggles warmth correction for a single specific image
+     */
+    const toggleSingleImageWarmth = async (index: number) => {
+        const img = images[index];
+        if (!img) return;
+
+        try {
+            const newImages = [...images];
+            if (img.isCooled) {
+                // Revert to original
+                if (img.rawFile && img.rawPreview) {
+                    if (img.preview !== img.rawPreview && !img.isExisting) {
+                        URL.revokeObjectURL(img.preview);
+                    }
+                    newImages[index] = {
+                        ...img,
+                        file: img.rawFile,
+                        preview: img.rawPreview,
+                        isCooled: false,
+                    };
+                }
+            } else {
+                // Cool down this specific image
+                const sourceFile = img.rawFile || img.file;
+                if (sourceFile) {
+                    const cooled = await adjustImageWarmth(sourceFile, -20);
+                    const cooledPreview = URL.createObjectURL(cooled);
+                    newImages[index] = {
+                        ...img,
+                        file: cooled,
+                        preview: cooledPreview,
+                        rawFile: img.rawFile || img.file,
+                        rawPreview: img.rawPreview || img.preview,
+                        isCooled: true,
+                    };
+                } else if (img.isExisting && img.preview) {
+                    const cooled = await adjustUrlWarmth(img.preview, -20);
+                    if (cooled) {
+                        newImages[index] = {
+                            ...img,
+                            file: cooled,
+                            preview: URL.createObjectURL(cooled),
+                            rawPreview: img.preview,
+                            isExisting: false,
+                            isCooled: true,
+                        };
+                    }
+                }
+            }
+            setImages(newImages);
+        } catch (err) {
+            console.error("Hiba az egyéni kép hidegítésekor:", err);
+        }
+    };
+
     const removeImage = (index: number) => {
         const newImages = [...images];
         if (!newImages[index].isExisting) {
             URL.revokeObjectURL(newImages[index].preview);
+            if (newImages[index].rawPreview && newImages[index].rawPreview !== newImages[index].preview) {
+                URL.revokeObjectURL(newImages[index].rawPreview!);
+            }
         }
         newImages.splice(index, 1);
         setImages(newImages);
@@ -65,7 +235,7 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
         if (!ctx) return;
 
         const image = new Image();
-        image.crossOrigin = "anonymous"; // Handle Supabase CORS if enabled
+        image.crossOrigin = "anonymous";
         image.onload = () => {
             // Rotate 90 deg clockwise
             canvas.width = image.height;
@@ -77,23 +247,26 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
             
             canvas.toBlob((blob) => {
                 if (blob) {
-                    const rotatedFile = new File([blob], img.file?.name || `rotated-${Date.now()}.jpg`, { type: 'image/jpeg' });
+                    const rotatedName = img.file?.name?.replace(/\.[^/.]+$/, "") + ".webp" || `rotated-${Date.now()}.webp`;
+                    const rotatedFile = new File([blob], rotatedName, { type: 'image/webp' });
                     const newPreview = URL.createObjectURL(rotatedFile);
                     
-                    // Revoke old object URL if it was a blob URL
                     if (!img.isExisting) {
                         URL.revokeObjectURL(img.preview);
                     }
                     
                     const newImages = [...images];
                     newImages[index] = {
+                        ...img,
                         file: rotatedFile,
                         preview: newPreview,
-                        isExisting: false // Now treated as a new upload
+                        rawFile: rotatedFile,
+                        rawPreview: newPreview,
+                        isExisting: false,
                     };
                     setImages(newImages);
                 }
-            }, 'image/jpeg', 0.9);
+            }, 'image/webp', 0.85);
         };
         image.src = img.preview;
     };
@@ -110,14 +283,68 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
 
     return (
         <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-200 pb-4 gap-2">
                 <div className="space-y-1">
                     <h2 className="text-xl font-bold text-gray-900">Termék Fotók</h2>
                     <p className="text-[10px] text-gray-500 font-medium">Húzd a képeket, vagy használd a nyilakat a sorrend módosításához.</p>
                 </div>
-                <div className="flex flex-col items-end gap-1">
+                <div className="flex items-center gap-2">
                     <span className="text-[10px] font-black text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 uppercase tracking-tighter">
                         Első kép = Fő kép
+                    </span>
+                </div>
+            </div>
+
+            {/* Warmth / Color Temperature Switch */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-blue-50/60 via-sky-50/30 to-gray-50 border border-blue-100/80 rounded-xl p-3.5 shadow-xs">
+                <div className="flex items-start sm:items-center gap-3">
+                    <div className={clsx(
+                        "w-9 h-9 rounded-lg flex items-center justify-center transition-colors shadow-xs shrink-0 mt-0.5 sm:mt-0",
+                        isWarmthCorrectionActive ? "bg-blue-600 text-white" : "bg-white text-gray-400 border border-gray-200"
+                    )}>
+                        <Snowflake className="w-5 h-5" />
+                    </div>
+                    <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                            <span className="text-sm font-bold text-gray-900">Meleg fény korrekció (Hidegítés)</span>
+                            <span className="text-[10px] font-bold bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full border border-blue-200">
+                                -20 melegség
+                            </span>
+                            {isAdjustingWarmth && (
+                                <span className="text-[11px] text-blue-600 flex items-center gap-1 font-semibold animate-pulse">
+                                    <Loader2 className="w-3 h-3 animate-spin" /> Módosítás...
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                            Kifehéríti a hátteret és megszünteti a lámpák sárgás fényét. Feltöltés előtt vagy utána is bármikor átkattinthatod!
+                        </p>
+                    </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 self-end sm:self-auto shrink-0">
+                    <button
+                        type="button"
+                        role="switch"
+                        aria-checked={isWarmthCorrectionActive}
+                        onClick={handleToggleWarmthCorrection}
+                        disabled={isAdjustingWarmth || isCompressing}
+                        className={clsx(
+                            "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+                            isWarmthCorrectionActive ? "bg-blue-600" : "bg-gray-300"
+                        )}
+                        title="Hidegítés ki/be kapcsolása"
+                    >
+                        <span
+                            aria-hidden="true"
+                            className={clsx(
+                                "pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-md ring-0 transition duration-200 ease-in-out",
+                                isWarmthCorrectionActive ? "translate-x-5" : "translate-x-0"
+                            )}
+                        />
+                    </button>
+                    <span className={clsx("text-xs font-bold select-none min-w-[90px]", isWarmthCorrectionActive ? "text-blue-700" : "text-gray-500")}>
+                        {isWarmthCorrectionActive ? "BEKAPCSOLVA" : "KIKAPCSOLVA"}
                     </span>
                 </div>
             </div>
@@ -152,13 +379,18 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                                     Fő kép
                                 </div>
                             )}
+                            {img.isCooled && (
+                                <div className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md uppercase tracking-tight flex items-center gap-1">
+                                    <Snowflake className="w-2.5 h-2.5" /> Hidegített
+                                </div>
+                            )}
                         </div>
 
                         {/* Drag & Move Overlay (Visible on hover) */}
-                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3">
-                            <GripVertical className="text-white w-6 h-6 opacity-50" />
+                        <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2.5 p-2">
+                            <GripVertical className="text-white w-5 h-5 opacity-60" />
                             
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
                                 {index > 0 && (
                                     <button
                                         type="button"
@@ -181,41 +413,61 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                                 )}
                             </div>
 
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    removeImage(index);
-                                }}
-                                className="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg transition-all shadow-lg"
-                                title="Törlés"
-                            >
-                                <CloseIcon className="w-4 h-4" />
-                            </button>
+                            <div className="flex items-center gap-1.5">
+                                {/* Individual Warmth / Cooling Toggle Button */}
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleSingleImageWarmth(index);
+                                    }}
+                                    className={clsx(
+                                        "p-1.5 rounded-lg transition-all shadow-md text-white",
+                                        img.isCooled 
+                                            ? "bg-blue-600 hover:bg-blue-700 ring-2 ring-white/70" 
+                                            : "bg-white/20 hover:bg-white text-white hover:text-gray-900"
+                                    )}
+                                    title={img.isCooled ? "Eredeti meleg színek visszaállítása" : "Kép hidegítése (-20 melegség)"}
+                                >
+                                    <Snowflake className="w-4 h-4" />
+                                </button>
 
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setZoomImage(img.preview);
-                                }}
-                                className="bg-[var(--color-primary)] hover:bg-orange-600 text-white p-1.5 rounded-lg transition-all shadow-lg"
-                                title="Nagyítás"
-                            >
-                                <ZoomIn className="w-4 h-4" />
-                            </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        rotateImage(index);
+                                    }}
+                                    className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded-lg transition-all shadow-md"
+                                    title="Forgatás 90°"
+                                >
+                                    <RotateCw className="w-4 h-4" />
+                                </button>
 
-                            <button
-                                type="button"
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    rotateImage(index);
-                                }}
-                                className="bg-blue-500 hover:bg-blue-600 text-white p-1.5 rounded-lg transition-all shadow-lg"
-                                title="Forgatás 90°"
-                            >
-                                <RotateCw className="w-4 h-4" />
-                            </button>
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setZoomImage(img.preview);
+                                    }}
+                                    className="bg-[var(--color-primary)] hover:bg-orange-600 text-white p-1.5 rounded-lg transition-all shadow-md"
+                                    title="Nagyítás"
+                                >
+                                    <ZoomIn className="w-4 h-4" />
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeImage(index);
+                                    }}
+                                    className="bg-red-500 hover:bg-red-600 text-white p-1.5 rounded-lg transition-all shadow-md"
+                                    title="Törlés"
+                                >
+                                    <CloseIcon className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
                     </Reorder.Item>
                 ))}
@@ -233,9 +485,9 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                             multiple
                             className="hidden"
                             onChange={handleImageChange}
-                            disabled={isCompressing}
+                            disabled={isCompressing || isAdjustingWarmth}
                         />
-                        {isCompressing ? (
+                        {isCompressing || isAdjustingWarmth ? (
                             <div className="flex flex-col items-center">
                                 <Loader2 className="w-8 h-8 mb-2 animate-spin text-[var(--color-primary)]" />
                                 <span className="text-sm font-medium animate-pulse text-[var(--color-primary)]">Feldolgozás...</span>
@@ -245,7 +497,7 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                                 <div className={clsx(
                                     "p-3 rounded-full shadow-sm group-hover:shadow mb-2 transition-all group-hover:scale-110",
                                     errors.includes("images") ? "bg-red-200 text-red-700" : "bg-white text-gray-400 group-hover:text-[var(--color-primary)]"
-                                )}>
+                                    )}>
                                     <Upload className="w-6 h-6" />
                                 </div>
                                 <span className="text-sm font-medium">Új kép</span>
@@ -264,8 +516,8 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
             )}
             
             <p className="text-xs text-gray-500 italic mt-3 flex items-center justify-between">
-                <span>A feltöltött képeket a rendszer automatikusan felbontja és tömöríti. A képeket a feltöltőben 90 fokonként forgathatod.</span>
-                {isCompressing && <span className="text-[var(--color-primary)] font-bold animate-pulse">⚙️ Képek optimalizálása...</span>}
+                <span>A feltöltött képeket a rendszer automatikusan felbontja és WebP-re tömöríti. A képeket 90 fokonként forgathatod és külön-külön is hidegítheted.</span>
+                {(isCompressing || isAdjustingWarmth) && <span className="text-[var(--color-primary)] font-bold animate-pulse">⚙️ Képek optimalizálása...</span>}
             </p>
 
             {/* Zoom Modal / Lightbox */}
@@ -307,3 +559,4 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
         </div>
     );
 }
+

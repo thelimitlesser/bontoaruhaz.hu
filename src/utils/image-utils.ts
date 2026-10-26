@@ -1,9 +1,51 @@
 /**
+ * Applies warmth/color temperature correction to a 2D canvas context.
+ * warmth: negative cools down (reduces yellow/red, increases blue),
+ *         positive warms up.
+ * Default warmth: -20 (optimal for warm workshop/warehouse lights).
+ */
+export const applyWarmthCorrectionToCanvas = (
+    ctx: CanvasRenderingContext2D,
+    width: number,
+    height: number,
+    warmth: number = -20
+) => {
+    if (warmth === 0) return;
+    const imgData = ctx.getImageData(0, 0, width, height);
+    const data = imgData.data;
+
+    // Scale: warmth -20 -> factor -0.2
+    // Red: 0.92 (-8%), Green: 0.98 (-2%), Blue: 1.14 (+14%)
+    const factor = warmth / 100;
+    const rMult = 1 + factor * 0.4;
+    const gMult = 1 + factor * 0.1;
+    const bMult = 1 - factor * 0.7;
+
+    for (let i = 0; i < data.length; i += 4) {
+        const r = data[i] * rMult;
+        const g = data[i + 1] * gMult;
+        const b = data[i + 2] * bMult;
+
+        data[i] = r > 255 ? 255 : r < 0 ? 0 : r;
+        data[i + 1] = g > 255 ? 255 : g < 0 ? 0 : g;
+        data[i + 2] = b > 255 ? 255 : b < 0 ? 0 : b;
+    }
+
+    ctx.putImageData(imgData, 0, 0);
+};
+
+/**
  * Compresses an image file to WebP format using the browser's Canvas API.
  * Resizes the image to fit within MAX_WIDTH x MAX_HEIGHT while maintaining aspect ratio.
- * Now supports HEIC/HEIF conversion for Windows/iPhone compatibility.
+ * Supports HEIC/HEIF conversion and optional warmth correction.
  */
-export const compressImage = async (file: File, maxWidth = 1000, maxHeight = 1000, quality = 0.80): Promise<File> => {
+export const compressImage = async (
+    file: File,
+    maxWidth = 1000,
+    maxHeight = 1000,
+    quality = 0.80,
+    options?: { warmth?: number }
+): Promise<File> => {
     let processingFile = file;
 
     // Handle HEIC/HEIF (common on iPhones, problematic on Windows/Web)
@@ -49,7 +91,12 @@ export const compressImage = async (file: File, maxWidth = 1000, maxHeight = 100
                 canvas.width = width;
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
-                ctx?.drawImage(img, 0, 0, width, height);
+                if (ctx) {
+                    ctx.drawImage(img, 0, 0, width, height);
+                    if (options?.warmth && options.warmth !== 0) {
+                        applyWarmthCorrectionToCanvas(ctx, width, height, options.warmth);
+                    }
+                }
 
                 canvas.toBlob((blob) => {
                     if (blob) {
@@ -69,3 +116,92 @@ export const compressImage = async (file: File, maxWidth = 1000, maxHeight = 100
         reader.onerror = () => resolve(processingFile);
     });
 };
+
+/**
+ * Adjusts warmth of an existing File or Blob without resizing, outputs WebP.
+ */
+export const adjustImageWarmth = async (
+    file: File,
+    warmth: number = -20,
+    quality = 0.80
+): Promise<File> => {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = (event) => {
+            const img = new Image();
+            img.src = event.target?.result as string;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                    resolve(file);
+                    return;
+                }
+                ctx.drawImage(img, 0, 0);
+                if (warmth !== 0) {
+                    applyWarmthCorrectionToCanvas(ctx, img.width, img.height, warmth);
+                }
+                canvas.toBlob((blob) => {
+                    if (blob) {
+                        const newName = file.name.replace(/\.[^/.]+$/, "") + ".webp";
+                        const adjustedFile = new File([blob], newName, {
+                            type: 'image/webp',
+                            lastModified: Date.now(),
+                        });
+                        resolve(adjustedFile);
+                    } else {
+                        resolve(file);
+                    }
+                }, 'image/webp', quality);
+            };
+            img.onerror = () => resolve(file);
+        };
+        reader.onerror = () => resolve(file);
+    });
+};
+
+/**
+ * Adjusts warmth of an image URL (such as existing Supabase storage URLs), outputs WebP File.
+ */
+export const adjustUrlWarmth = async (
+    imageUrl: string,
+    warmth: number = -20,
+    quality = 0.80
+): Promise<File | null> => {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                resolve(null);
+                return;
+            }
+            ctx.drawImage(img, 0, 0);
+            if (warmth !== 0) {
+                applyWarmthCorrectionToCanvas(ctx, img.width, img.height, warmth);
+            }
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const adjustedFile = new File([blob], `adjusted-${Date.now()}.webp`, {
+                        type: 'image/webp',
+                        lastModified: Date.now(),
+                    });
+                    resolve(adjustedFile);
+                } else {
+                    resolve(null);
+                }
+            }, 'image/webp', quality);
+        };
+        img.onerror = () => resolve(null);
+        img.src = imageUrl;
+    });
+};
+
+
