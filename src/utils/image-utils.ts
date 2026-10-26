@@ -1,21 +1,23 @@
+export const DEFAULT_WARMTH = -15;
+
 /**
  * Applies warmth/color temperature correction to a 2D canvas context.
  * warmth: negative cools down (reduces yellow/red, increases blue),
  *         positive warms up.
- * Default warmth: -20 (optimal for warm workshop/warehouse lights).
+ * Default warmth: -15 (subtle, natural cooling without harsh blue tint).
  */
 export const applyWarmthCorrectionToCanvas = (
     ctx: CanvasRenderingContext2D,
     width: number,
     height: number,
-    warmth: number = -20
+    warmth: number = DEFAULT_WARMTH
 ) => {
     if (warmth === 0) return;
     const imgData = ctx.getImageData(0, 0, width, height);
     const data = imgData.data;
 
-    // Scale: warmth -20 -> factor -0.2
-    // Red: 0.92 (-8%), Green: 0.98 (-2%), Blue: 1.14 (+14%)
+    // Scale: warmth -15 -> factor -0.15
+    // Red: 0.94 (-6%), Green: 0.985 (-1.5%), Blue: 1.105 (+10.5%)
     const factor = warmth / 100;
     const rMult = 1 + factor * 0.4;
     const gMult = 1 + factor * 0.1;
@@ -122,7 +124,7 @@ export const compressImage = async (
  */
 export const adjustImageWarmth = async (
     file: File,
-    warmth: number = -20,
+    warmth: number = DEFAULT_WARMTH,
     quality = 0.80
 ): Promise<File> => {
     return new Promise((resolve) => {
@@ -168,7 +170,7 @@ export const adjustImageWarmth = async (
  */
 export const adjustUrlWarmth = async (
     imageUrl: string,
-    warmth: number = -20,
+    warmth: number = DEFAULT_WARMTH,
     quality = 0.80
 ): Promise<File | null> => {
     return new Promise((resolve) => {

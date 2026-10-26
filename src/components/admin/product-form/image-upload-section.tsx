@@ -1,7 +1,7 @@
 "use client";
 
 import { Upload, X as CloseIcon, Loader2, GripVertical, ArrowLeft, ArrowRight, ZoomIn, X, RotateCw, Sparkles, Snowflake } from "lucide-react";
-import { compressImage, adjustImageWarmth, adjustUrlWarmth } from "@/utils/image-utils";
+import { compressImage, adjustImageWarmth, adjustUrlWarmth, DEFAULT_WARMTH } from "@/utils/image-utils";
 import clsx from "clsx";
 import { Reorder, AnimatePresence, motion } from "framer-motion";
 import { useState } from "react";
@@ -10,6 +10,7 @@ export interface ImageItem {
     file?: File;
     preview: string;
     isExisting?: boolean;
+    originalUrl?: string;
     rawFile?: File;
     rawPreview?: string;
     isCooled?: boolean;
@@ -41,15 +42,14 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
 
             setIsCompressing(true);
             try {
-                // Compress raw files to WebP (preserving original untouched WebP file)
+                // Compress raw files to base WebP files
                 const compressedFiles = await Promise.all(rawFiles.map(file => compressImage(file)));
 
                 const newImageData = await Promise.all(
                     compressedFiles.map(async (rawFile) => {
                         const rawPreview = URL.createObjectURL(rawFile);
                         if (isWarmthCorrectionActive) {
-                            // Apply -20 warmth cooling immediately if toggle is ON
-                            const cooledFile = await adjustImageWarmth(rawFile, -20);
+                            const cooledFile = await adjustImageWarmth(rawFile, DEFAULT_WARMTH);
                             const cooledPreview = URL.createObjectURL(cooledFile);
                             return {
                                 file: cooledFile,
@@ -85,7 +85,8 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
 
     /**
      * Toggles warmth correction for ALL images currently in the list.
-     * Can be turned ON or OFF before OR after images have already been uploaded!
+     * Guaranteed idempotent: always regenerates from the pristine original base
+     * (originalUrl for existing DB images, rawFile for newly uploaded images).
      */
     const handleToggleWarmthCorrection = async () => {
         const nextState = !isWarmthCorrectionActive;
@@ -97,30 +98,31 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
         try {
             const updatedImages = await Promise.all(
                 images.map(async (img) => {
-                    if (nextState) {
-                        // Turn ON cooling: apply -20 warmth
-                        if (img.isCooled) return img;
+                    const originalUrl = img.originalUrl || (img.isExisting ? img.preview : undefined);
+                    const rawFile = img.rawFile || (!originalUrl ? img.file : undefined);
+                    const rawPreview = img.rawPreview || (originalUrl || (rawFile ? URL.createObjectURL(rawFile) : img.preview));
 
-                        const sourceFile = img.rawFile || img.file;
-                        if (sourceFile) {
-                            const cooled = await adjustImageWarmth(sourceFile, -20);
+                    if (nextState) {
+                        // Turning ON cooling: ALWAYS generate from pristine base
+                        if (rawFile) {
+                            const cooled = await adjustImageWarmth(rawFile, DEFAULT_WARMTH);
                             const cooledPreview = URL.createObjectURL(cooled);
                             return {
-                                ...img,
                                 file: cooled,
                                 preview: cooledPreview,
-                                rawFile: img.rawFile || img.file,
-                                rawPreview: img.rawPreview || img.preview,
+                                rawFile,
+                                rawPreview,
+                                isExisting: false,
                                 isCooled: true,
                             };
-                        } else if (img.isExisting && img.preview) {
-                            const cooled = await adjustUrlWarmth(img.preview, -20);
+                        } else if (originalUrl) {
+                            const cooled = await adjustUrlWarmth(originalUrl, DEFAULT_WARMTH);
                             if (cooled) {
                                 return {
-                                    ...img,
                                     file: cooled,
                                     preview: URL.createObjectURL(cooled),
-                                    rawPreview: img.preview,
+                                    originalUrl,
+                                    rawPreview: originalUrl,
                                     isExisting: false,
                                     isCooled: true,
                                 };
@@ -128,23 +130,26 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                         }
                         return img;
                     } else {
-                        // Turn OFF cooling: restore original unadjusted version
-                        if (!img.isCooled) return img;
+                        // Turning OFF cooling: revert to pristine base!
+                        if (img.preview && img.preview.startsWith('blob:') && img.preview !== rawPreview) {
+                            URL.revokeObjectURL(img.preview);
+                        }
 
-                        if (img.rawFile && img.rawPreview) {
-                            if (img.preview !== img.rawPreview && !img.isExisting) {
-                                URL.revokeObjectURL(img.preview);
-                            }
+                        if (originalUrl) {
                             return {
-                                ...img,
-                                file: img.rawFile,
-                                preview: img.rawPreview,
+                                preview: originalUrl,
+                                originalUrl,
+                                isExisting: true,
+                                file: undefined,
                                 isCooled: false,
                             };
-                        } else if (img.rawPreview) {
+                        } else if (rawFile) {
                             return {
-                                ...img,
-                                preview: img.rawPreview,
+                                file: rawFile,
+                                preview: rawPreview,
+                                rawFile,
+                                rawPreview,
+                                isExisting: false,
                                 isCooled: false,
                             };
                         }
@@ -161,49 +166,62 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
     };
 
     /**
-     * Toggles warmth correction for a single specific image
+     * Toggles warmth correction for a single specific image (idempotent from pristine source)
      */
     const toggleSingleImageWarmth = async (index: number) => {
         const img = images[index];
         if (!img) return;
 
         try {
+            const originalUrl = img.originalUrl || (img.isExisting ? img.preview : undefined);
+            const rawFile = img.rawFile || (!originalUrl ? img.file : undefined);
+            const rawPreview = img.rawPreview || (originalUrl || (rawFile ? URL.createObjectURL(rawFile) : img.preview));
+
             const newImages = [...images];
             if (img.isCooled) {
                 // Revert to original
-                if (img.rawFile && img.rawPreview) {
-                    if (img.preview !== img.rawPreview && !img.isExisting) {
-                        URL.revokeObjectURL(img.preview);
-                    }
+                if (img.preview && img.preview.startsWith('blob:') && img.preview !== rawPreview) {
+                    URL.revokeObjectURL(img.preview);
+                }
+                if (originalUrl) {
                     newImages[index] = {
-                        ...img,
-                        file: img.rawFile,
-                        preview: img.rawPreview,
+                        preview: originalUrl,
+                        originalUrl,
+                        isExisting: true,
+                        file: undefined,
+                        isCooled: false,
+                    };
+                } else if (rawFile) {
+                    newImages[index] = {
+                        file: rawFile,
+                        preview: rawPreview,
+                        rawFile,
+                        rawPreview,
+                        isExisting: false,
                         isCooled: false,
                     };
                 }
             } else {
-                // Cool down this specific image
-                const sourceFile = img.rawFile || img.file;
-                if (sourceFile) {
-                    const cooled = await adjustImageWarmth(sourceFile, -20);
+                // Cool down this specific image from pristine source!
+                if (rawFile) {
+                    const cooled = await adjustImageWarmth(rawFile, DEFAULT_WARMTH);
                     const cooledPreview = URL.createObjectURL(cooled);
                     newImages[index] = {
-                        ...img,
                         file: cooled,
                         preview: cooledPreview,
-                        rawFile: img.rawFile || img.file,
-                        rawPreview: img.rawPreview || img.preview,
+                        rawFile,
+                        rawPreview,
+                        isExisting: false,
                         isCooled: true,
                     };
-                } else if (img.isExisting && img.preview) {
-                    const cooled = await adjustUrlWarmth(img.preview, -20);
+                } else if (originalUrl) {
+                    const cooled = await adjustUrlWarmth(originalUrl, DEFAULT_WARMTH);
                     if (cooled) {
                         newImages[index] = {
-                            ...img,
                             file: cooled,
                             preview: URL.createObjectURL(cooled),
-                            rawPreview: img.preview,
+                            originalUrl,
+                            rawPreview: originalUrl,
                             isExisting: false,
                             isCooled: true,
                         };
@@ -296,7 +314,7 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                         aria-checked={isWarmthCorrectionActive}
                         onClick={handleToggleWarmthCorrection}
                         disabled={isAdjustingWarmth || isCompressing}
-                        title={isWarmthCorrectionActive ? "Hidegítés bekapcsolva (-20 melegség)" : "Hidegítés / Sárgátlanítás (-20 melegség)"}
+                        title={isWarmthCorrectionActive ? "Hidegítés bekapcsolva (-15 melegség)" : "Hidegítés / Sárgátlanítás (-15 melegség)"}
                         className={clsx(
                             "relative inline-flex h-7 w-[52px] shrink-0 items-center rounded-full p-0.5 transition-colors duration-300 ease-in-out cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 select-none shadow-inner",
                             isWarmthCorrectionActive 
@@ -407,7 +425,7 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                                             ? "bg-blue-600 hover:bg-blue-700 ring-2 ring-white/70" 
                                             : "bg-white/20 hover:bg-white text-white hover:text-gray-900"
                                     )}
-                                    title={img.isCooled ? "Eredeti meleg színek visszaállítása" : "Kép hidegítése (-20 melegség)"}
+                                    title={img.isCooled ? "Eredeti meleg színek visszaállítása" : "Kép hidegítése (-15 melegség)"}
                                 >
                                     <Snowflake className="w-4 h-4" />
                                 </button>
