@@ -194,75 +194,6 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
         }
     };
 
-    /**
-     * Toggles warmth correction for a single specific image (idempotent from pristine source)
-     */
-    const toggleSingleImageWarmth = async (index: number) => {
-        const img = images[index];
-        if (!img) return;
-
-        try {
-            const originalUrl = img.originalUrl || (img.isExisting ? img.preview : undefined);
-            const rawFile = img.rawFile || (!originalUrl ? img.file : undefined);
-            const rawPreview = img.rawPreview || (originalUrl || (rawFile ? URL.createObjectURL(rawFile) : img.preview));
-
-            const newImages = [...images];
-            if (img.isCooled) {
-                // Revert to original
-                if (img.preview && img.preview.startsWith('blob:') && img.preview !== rawPreview) {
-                    URL.revokeObjectURL(img.preview);
-                }
-                if (originalUrl) {
-                    newImages[index] = {
-                        preview: originalUrl,
-                        originalUrl,
-                        isExisting: true,
-                        file: undefined,
-                        isCooled: false,
-                    };
-                } else if (rawFile) {
-                    newImages[index] = {
-                        file: rawFile,
-                        preview: rawPreview,
-                        rawFile,
-                        rawPreview,
-                        isExisting: false,
-                        isCooled: false,
-                    };
-                }
-            } else {
-                // Cool down this specific image from pristine source!
-                if (rawFile) {
-                    const cooled = await adjustImageWarmth(rawFile, DEFAULT_WARMTH);
-                    const cooledPreview = URL.createObjectURL(cooled);
-                    newImages[index] = {
-                        file: cooled,
-                        preview: cooledPreview,
-                        rawFile,
-                        rawPreview,
-                        isExisting: false,
-                        isCooled: true,
-                    };
-                } else if (originalUrl) {
-                    const cooled = await adjustUrlWarmth(originalUrl, DEFAULT_WARMTH);
-                    if (cooled) {
-                        newImages[index] = {
-                            file: cooled,
-                            preview: URL.createObjectURL(cooled),
-                            originalUrl,
-                            rawPreview: originalUrl,
-                            isExisting: false,
-                            isCooled: true,
-                        };
-                    }
-                }
-            }
-            setImages(newImages);
-        } catch (err) {
-            console.error("Hiba az egyéni kép hidegítésekor:", err);
-        }
-    };
-
     const removeImage = (index: number) => {
         const newImages = [...images];
         if (!newImages[index].isExisting) {
@@ -400,18 +331,13 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                         <img src={img.preview} alt={`Preview ${index}`} className="w-full h-full object-cover select-none pointer-events-none" />
                         
                         {/* Status Badges */}
-                        <div className="absolute top-2 left-2 flex flex-col gap-1 pointer-events-none">
-                            {index === 0 && (
+                        {index === 0 && (
+                            <div className="absolute top-2 left-2 pointer-events-none">
                                 <div className="bg-orange-600 text-white text-[10px] font-black px-1.5 py-0.5 rounded shadow-md uppercase tracking-tighter">
                                     Fő kép
                                 </div>
-                            )}
-                            {img.isCooled && (
-                                <div className="bg-blue-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded shadow-md uppercase tracking-tight flex items-center gap-1">
-                                    <Snowflake className="w-2.5 h-2.5" /> Hidegített
-                                </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
 
                         {/* Drag & Move Overlay (Visible on hover) */}
                         <div className="absolute inset-0 bg-black/45 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2.5 p-2">
@@ -441,24 +367,6 @@ export function ImageUploadSection({ images, setImages, isCompressing, setIsComp
                             </div>
 
                             <div className="flex items-center gap-1.5">
-                                {/* Individual Warmth / Cooling Toggle Button */}
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        toggleSingleImageWarmth(index);
-                                    }}
-                                    className={clsx(
-                                        "p-1.5 rounded-lg transition-all shadow-md text-white",
-                                        img.isCooled 
-                                            ? "bg-blue-600 hover:bg-blue-700 ring-2 ring-white/70" 
-                                            : "bg-white/20 hover:bg-white text-white hover:text-gray-900"
-                                    )}
-                                    title={img.isCooled ? "Eredeti meleg színek visszaállítása" : "Kép hidegítése (-15 melegség)"}
-                                >
-                                    <Snowflake className="w-4 h-4" />
-                                </button>
-
                                 <button
                                     type="button"
                                     onClick={(e) => {
