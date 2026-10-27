@@ -485,8 +485,8 @@ export default async function ProductPage({
                 <div className="grid grid-cols-2 gap-2 sm:gap-4">
                   {/* Condition (Állapot) block */}
                   <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />
-                    <div>
+                    <Star className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5 shrink-0" />
+                    <div className="min-w-0 flex-1">
                       <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Állapot</div>
                       <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">{product.condition || "Ismeretlen"}</div>
                     </div>
@@ -494,35 +494,45 @@ export default async function ProductPage({
 
                   {/* Year / Universal block */}
                   <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                    {dbPart?.isUniversal ? <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" /> : <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />}
-                    <div>
+                    {dbPart?.isUniversal ? <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5 shrink-0" /> : <Calendar className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5 shrink-0" />}
+                    <div className="min-w-0 flex-1">
                       <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">{dbPart?.isUniversal ? "Típus" : "Évjárat"}</div>
-                      <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">
+                      <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5 truncate">
                         {dbPart?.isUniversal ? "Univerzális" : (yearString || "-")}
                       </div>
                     </div>
                   </div>
 
-                  <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                    <Hash className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />
-                    <div>
+                  {/* OEM Part Number (Gyári Cikkszám) - Full width on mobile so long codes fit without truncation */}
+                  {product.sku && (
+                    <div className="col-span-2 sm:col-span-1 p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2.5 sm:gap-3">
+                      <Factory className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5 shrink-0" />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Gyári Cikkszám</div>
+                        <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5 tracking-tight break-all select-all">
+                          {product.sku.toUpperCase()}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Reference code (Hivatkozási szám) */}
+                  <div className={clsx(
+                    "p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3",
+                    !dbPart.engineCode ? "col-span-2 sm:col-span-1" : "col-span-1"
+                  )}>
+                    <Hash className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5 shrink-0" />
+                    <div className="min-w-0 flex-1">
                       <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Hivatkozási szám</div>
                       <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">{dbPart?.productCode || "-"}</div>
                     </div>
                   </div>
-                  {product.sku && (
-                    <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                      <Factory className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />
-                      <div>
-                        <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Gyári Cikkszám</div>
-                        <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5 truncate max-w-[80px] sm:max-w-none">{product.sku.toUpperCase()}</div>
-                      </div>
-                    </div>
-                  )}
+
+                  {/* Engine Code (Motorkód) */}
                   {dbPart.engineCode && (
-                    <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3">
-                      <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5" />
-                      <div>
+                    <div className="p-3 sm:p-4 bg-background rounded-2xl border border-border flex items-start gap-2 sm:gap-3 col-span-1">
+                      <Settings className="w-4 h-4 sm:w-5 sm:h-5 text-gray-500 mt-0.5 shrink-0" />
+                      <div className="min-w-0 flex-1">
                         <div className="text-[10px] text-gray-600 uppercase tracking-wider font-bold">Motorkód</div>
                         <div className="font-mono text-sm sm:text-lg font-bold text-foreground mt-0.5">{dbPart.engineCode}</div>
                       </div>
