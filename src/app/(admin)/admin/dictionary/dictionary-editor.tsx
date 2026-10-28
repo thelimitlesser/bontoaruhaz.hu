@@ -42,7 +42,15 @@ export function DictionaryEditor({
 
     const startEditing = (type: string, item: any) => {
         setEditingItem({ type, id: item.id });
-        setEditForm({ ...item });
+        if (type === 'model') {
+            const rawYears = item.years || '';
+            const parts = rawYears.split(/[-–/]/);
+            const yearFrom = parts[0]?.trim() || '';
+            const yearTo = parts[1]?.trim() || '';
+            setEditForm({ ...item, yearFrom, yearTo });
+        } else {
+            setEditForm({ ...item });
+        }
     };
 
     const cancelEditing = () => {
@@ -63,7 +71,17 @@ export function DictionaryEditor({
                     res = await createBrand({ id: generatedId, name: editForm.name, slug: generatedId, logo: '/brands/default.svg' });
                     setBrands([...brands, res]);
                 } else if (editingItem.type === 'model') {
-                    res = await createModel({ id: generatedId, brandId: selectedBrandId, name: editForm.name, slug: generatedId, series: editForm.series, years: editForm.years });
+                    const yFrom = editForm.yearFrom?.trim() || '';
+                    const yTo = editForm.yearTo?.trim() || '';
+                    const formattedYears = (yFrom || yTo) ? `${yFrom}${yTo ? `-${yTo}` : (yFrom ? `-${yFrom}` : '')}` : null;
+                    res = await createModel({ 
+                        id: generatedId, 
+                        brandId: selectedBrandId, 
+                        name: editForm.name, 
+                        slug: generatedId, 
+                        series: editForm.series || null, 
+                        years: formattedYears 
+                    });
                     setModels([...models, res]);
                 } else if (editingItem.type === 'category') {
                     res = await createCategory({ id: generatedId, name: editForm.name, slug: generatedId });
@@ -81,7 +99,14 @@ export function DictionaryEditor({
                     const res = await updateBrand(editingItem.id, { name: editForm.name });
                     setBrands(brands.map(b => b.id === res.id ? res : b));
                 } else if (editingItem.type === 'model') {
-                    const res = await updateModel(editingItem.id, { name: editForm.name, years: editForm.years, series: editForm.series });
+                    const yFrom = editForm.yearFrom?.trim() || '';
+                    const yTo = editForm.yearTo?.trim() || '';
+                    const formattedYears = (yFrom || yTo) ? `${yFrom}${yTo ? `-${yTo}` : (yFrom ? `-${yFrom}` : '')}` : null;
+                    const res = await updateModel(editingItem.id, { 
+                        name: editForm.name, 
+                        years: formattedYears, 
+                        series: editForm.series || null 
+                    });
                     setModels(models.map(m => m.id === res.id ? res : m));
                 } else if (editingItem.type === 'category') {
                     const res = await updateCategory(editingItem.id, { name: editForm.name });
@@ -236,9 +261,13 @@ export function DictionaryEditor({
                                                 <label className="text-[10px] font-bold text-orange-800 uppercase">Főcím / Kategória</label>
                                                 <input placeholder="pl. Középkategória" value={editForm.series || ''} onChange={e => setEditForm({...editForm, series: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-inner"/>
                                             </div>
-                                            <div className="space-y-1 md:col-span-2">
-                                                <label className="text-[10px] font-bold text-orange-800 uppercase">Évjárat</label>
-                                                <input placeholder="pl. 2004-2008" value={editForm.years || ''} onChange={e => setEditForm({...editForm, years: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-inner"/>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-orange-800 uppercase">Évjárat (tól)</label>
+                                                <input type="number" placeholder="pl. 2004" value={editForm.yearFrom || ''} onChange={e => setEditForm({...editForm, yearFrom: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-inner"/>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold text-orange-800 uppercase">Évjárat (ig)</label>
+                                                <input type="number" placeholder="pl. 2008" value={editForm.yearTo || ''} onChange={e => setEditForm({...editForm, yearTo: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm shadow-inner"/>
                                             </div>
                                         </div>
                                         <div className="flex gap-3 pt-2">
@@ -276,9 +305,22 @@ export function DictionaryEditor({
                                                     {editingItem?.id === item.id && editingItem?.type === 'model' ? (
                                                         <div className="flex-1 bg-orange-50 border border-orange-200 p-3 rounded-lg flex flex-col gap-3 my-1">
                                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                                <input autoFocus placeholder="Neve" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="flex-1 px-3 py-1.5 border border-[var(--color-primary)]/50 focus:border-[var(--color-primary)] outline-none rounded-md text-sm shadow-inner" />
-                                                                <input placeholder="Főcím/Kategória (Series)" value={editForm.series || ''} onChange={e => setEditForm({...editForm, series: e.target.value})} className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm shadow-inner" />
-                                                                <input placeholder="Évjárat" value={editForm.years || ''} onChange={e => setEditForm({...editForm, years: e.target.value})} className="flex-1 px-3 py-1.5 border border-gray-300 rounded-md text-sm shadow-inner md:col-span-2" />
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[10px] font-bold text-orange-800 uppercase">Modell neve</label>
+                                                                    <input autoFocus placeholder="Neve" value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} className="w-full px-3 py-1.5 border border-[var(--color-primary)]/50 focus:border-[var(--color-primary)] outline-none rounded-md text-sm shadow-inner" />
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[10px] font-bold text-orange-800 uppercase">Főcím / Kategória</label>
+                                                                    <input placeholder="Főcím/Kategória (Series)" value={editForm.series || ''} onChange={e => setEditForm({...editForm, series: e.target.value})} className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm shadow-inner" />
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[10px] font-bold text-orange-800 uppercase">Évjárat (tól)</label>
+                                                                    <input type="number" placeholder="pl. 2004" value={editForm.yearFrom || ''} onChange={e => setEditForm({...editForm, yearFrom: e.target.value})} className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm shadow-inner" />
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[10px] font-bold text-orange-800 uppercase">Évjárat (ig)</label>
+                                                                    <input type="number" placeholder="pl. 2008" value={editForm.yearTo || ''} onChange={e => setEditForm({...editForm, yearTo: e.target.value})} className="w-full px-3 py-1.5 border border-gray-300 rounded-md text-sm shadow-inner" />
+                                                                </div>
                                                             </div>
                                                             <div className="flex gap-2 justify-end mt-1">
                                                                 <button onClick={handleSave} className="bg-green-500 hover:bg-green-600 text-white px-4 py-1.5 rounded-md text-xs font-bold flex gap-1 items-center"><Save className="w-3.5 h-3.5"/> Mentés</button>

@@ -113,7 +113,19 @@ export function VehicleCompatibilitySection({
                                 <SearchableSelect
                                     name="modelId" label="Modell *" options={modelOptions}
                                     value={selectedModel}
-                                    onChange={setSelectedModel}
+                                    onChange={(newModelId) => {
+                                        setSelectedModel(newModelId);
+                                        if (newModelId) {
+                                            const modelObj = models.find((m: any) => m.id === newModelId);
+                                            if (modelObj?.years) {
+                                                const parts = modelObj.years.split(/[-–/]/);
+                                                const parsedFrom = parts[0]?.trim();
+                                                const parsedTo = parts[1]?.trim() || parsedFrom;
+                                                if (parsedFrom) setYearFrom(parsedFrom);
+                                                if (parsedTo) setYearTo(parsedTo);
+                                            }
+                                        }
+                                    }}
                                     placeholder="Válassz modellt..." disabled={!selectedBrand}
                                     theme="light" />
                             </div>
@@ -126,7 +138,7 @@ export function VehicleCompatibilitySection({
                                     value={yearFrom} 
                                     onChange={setYearFrom}
                                     placeholder="Válassz évet..." 
-                                    minYear={2000}
+                                    minYear={1970}
                                     maxYear={2030}
                                 />
                             </div>
@@ -136,7 +148,7 @@ export function VehicleCompatibilitySection({
                                     value={yearTo} 
                                     onChange={setYearTo}
                                     placeholder="Válassz évet..." 
-                                    minYear={2000}
+                                    minYear={1970}
                                     maxYear={2030}
                                 />
                             </div>
@@ -209,7 +221,19 @@ export function VehicleCompatibilitySection({
                                     <SearchableSelect
                                         name="addModelId" options={addModelOptions}
                                         value={addModel}
-                                        onChange={setAddModel}
+                                        onChange={(newModelId) => {
+                                            setAddModel(newModelId);
+                                            if (newModelId) {
+                                                const mObj = models.find((m: any) => m.id === newModelId);
+                                                if (mObj?.years) {
+                                                    const parts = mObj.years.split(/[-–/]/);
+                                                    const parsedFrom = parts[0]?.trim();
+                                                    const parsedTo = parts[1]?.trim() || parsedFrom;
+                                                    if (parsedFrom) setAddYearFrom(parsedFrom);
+                                                    if (parsedTo) setAddYearTo(parsedTo);
+                                                }
+                                            }
+                                        }}
                                         placeholder="Modell..." disabled={!addBrand}
                                         theme="light" />
                                 </div>
@@ -228,7 +252,7 @@ export function VehicleCompatibilitySection({
                                             value={addYearFrom} 
                                             onChange={setAddYearFrom}
                                             placeholder="Év" 
-                                            minYear={2000}
+                                            minYear={1970}
                                             maxYear={2030}
                                         />
                                     </div>
@@ -240,7 +264,7 @@ export function VehicleCompatibilitySection({
                                             value={addYearTo} 
                                             onChange={setAddYearTo}
                                             placeholder="Év" 
-                                            minYear={2000}
+                                            minYear={1970}
                                             maxYear={2030}
                                         />
                                     </div>

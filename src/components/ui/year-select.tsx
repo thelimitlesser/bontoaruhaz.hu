@@ -18,7 +18,7 @@ export function YearSelect({
     onChange, 
     label, 
     placeholder = "Válassz évet...",
-    minYear = 2000,
+    minYear = 1970,
     maxYear = 2030
 }: YearSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
