@@ -129,14 +129,14 @@ model Order {
 }
 
 model OrderItem {
-  id          String @id @default(uuid())
+  id          String  @id @default(uuid())
   orderId     String
-  partId      String
+  partId      String?
   quantity    Int
   priceAtTime Int
   productName String? // The name shown to the customer (e.g. contextual vehicle branding)
-  order       Order  @relation(fields: [orderId], references: [id])
-  part        Part   @relation(fields: [partId], references: [id])
+  order       Order   @relation(fields: [orderId], references: [id])
+  part        Part?   @relation(fields: [partId], references: [id], onDelete: SetNull)
 }
 
 model DonorVehicle {

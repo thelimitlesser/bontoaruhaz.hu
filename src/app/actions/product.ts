@@ -314,26 +314,38 @@ export async function deleteProduct(id: string) {
         select: { images: true }
     });
 
-    if (product && product.images) {
+    if (!product) return;
+
+    // 2. Clear any related records that don't cascade automatically
+    await prisma.partCompatibility.deleteMany({
+        where: { partId: id }
+    });
+    await prisma.reservation.deleteMany({
+        where: { partId: id }
+    });
+
+    // 3. Delete the database record (OrderItems will safely set partId = null, keeping order history intact)
+    await prisma.part.delete({
+        where: { id }
+    });
+
+    // 4. ONLY AFTER successful DB deletion, remove images from Supabase Storage
+    if (product.images) {
         const imageUrls = product.images.split(',').filter(Boolean);
         if (imageUrls.length > 0) {
             try {
-                // 2. Extract paths from public URLs
-                // Format: .../storage/v1/object/public/part-images/folder/file.webp
                 const paths = imageUrls.map(url => {
                     const parts = url.split('/part-images/');
                     return parts.length > 1 ? parts[1] : null;
                 }).filter(Boolean) as string[];
 
                 if (paths.length > 0) {
-                    // 3. Initialize Supabase client
                     const { createClient } = await import("@supabase/supabase-js");
                     const supabase = createClient(
                         process.env.NEXT_PUBLIC_SUPABASE_URL!,
                         process.env.SUPABASE_SERVICE_ROLE_KEY!
                     );
 
-                    // 4. Remove from Storage
                     const { error } = await supabase.storage
                         .from('part-images')
                         .remove(paths);
@@ -346,15 +358,9 @@ export async function deleteProduct(id: string) {
                 }
             } catch (err) {
                 console.error("Failed to clean up images for product:", id, err);
-                // We continue with product deletion even if image cleanup fails
             }
         }
     }
-
-    // 5. Delete the database record
-    await prisma.part.delete({
-        where: { id }
-    });
 
     revalidatePath('/admin/inventory');
     revalidatePath('/', 'layout');

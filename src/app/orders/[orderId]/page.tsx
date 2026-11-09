@@ -78,10 +78,10 @@ export default async function OrderDetailPage({ params }: { params: { orderId: s
                                 {order.items.map((item) => (
                                     <div key={item.id} className="p-6 flex items-center gap-6">
                                         <div className="w-20 h-20 bg-gray-50 rounded-2xl flex items-center justify-center shrink-0 overflow-hidden relative">
-                                            {item.part.images ? (
+                                            {item.part?.images ? (
                                                 <Image
                                                     src={item.part.images.split(',')[0]}
-                                                    alt={item.part.name}
+                                                    alt={item.productName || item.part?.name || 'Alkatrész'}
                                                     fill
                                                     className="object-cover rounded"
                                                     sizes="80px"
@@ -91,8 +91,8 @@ export default async function OrderDetailPage({ params }: { params: { orderId: s
                                             )}
                                         </div>
                                         <div className="flex-1">
-                                            <h4 className="font-bold text-gray-900">{item.part.name}</h4>
-                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Cikkszám: {item.part.sku}</p>
+                                            <h4 className="font-bold text-gray-900">{item.productName || item.part?.name || 'Alkatrész'}</h4>
+                                            {item.part?.sku && <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">Cikkszám: {item.part.sku}</p>}
                                         </div>
                                         <div className="text-right">
                                             <p className="text-sm font-bold text-gray-500">{item.quantity} db</p>
