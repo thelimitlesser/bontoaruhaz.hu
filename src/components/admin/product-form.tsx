@@ -254,8 +254,9 @@ export function ProductForm({
         }
     }, [duplicateWarnings, nameDuplicates, acknowledgedNameIds, acknowledgedSkuIds]);
 
-    // Intelligent Auto-Name & Header Generation
-    
+    // Track previous partItem to intelligently replace part name in title
+    const prevPartItemRef = useRef(selectedPartItem);
+
     useEffect(() => {
         const brand = brands.find(b => b.id === selectedBrand)?.name;
         const model = models.filter(m => m.brandId === selectedBrand).find(m => m.id === selectedModel)?.name;
@@ -263,6 +264,10 @@ export function ProductForm({
         const yearsStr = yearFrom || yearTo ? `(${yearFrom || '?'}-${yearTo || '?'})` : "";
         const condLabel = condition === 'new' ? 'gyári új' : 'gyári használt';
         
+        const prevPartItem = partItems.find(p => p.id === prevPartItemRef.current);
+        const partChanged = prevPartItemRef.current !== selectedPartItem;
+        prevPartItemRef.current = selectedPartItem;
+
         if (brand && model && part) {
             const bodyTypeStr = bodyType ? ` ${bodyType}` : "";
             const newAutoName = `${brand} ${model}${bodyTypeStr} ${part}`;
@@ -270,21 +275,26 @@ export function ProductForm({
 
             // SYNC & UPDATE LOGIC
             
-            // 1. Title Update - Sync if not manually edited or empty
-            if (!isManualName || !productName) {
-                if (productName !== newAutoName) {
-                    setProductName(newAutoName);
-                }
+            // 1. Title Update
+            if (partChanged && prevPartItem?.name && productName.includes(prevPartItem.name)) {
+                // If user changed the part (e.g. from Első Lökhárító to Hátsó Lökhárító), replace it inside the existing name (preserves colors, extra info like "Ezüst (Mk3 / MZ/EZ)")
+                const updatedName = productName.replace(prevPartItem.name, part);
+                setProductName(updatedName);
+            } else if (!isManualName || !productName || partChanged) {
+                // If not manual or empty or part changed from empty
+                setProductName(newAutoName);
+                setIsManualName(false);
             }
 
-            // 2. Header Update - Sync if not manually edited or empty
-            if (!isManualHeader || !descriptionHeader) {
+            // 2. Header Update - Sync if not manually edited or empty or part changed
+            if (!isManualHeader || !descriptionHeader || partChanged) {
                 if (descriptionHeader !== newAutoHeader) {
                     setDescriptionHeader(newAutoHeader);
+                    setIsManualHeader(false);
                 }
             }
         }
-    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj, isManualName, isManualHeader]); // Removed productName/descriptionHeader to avoid loop, focus on inputs
+    }, [selectedBrand, selectedModel, selectedPartItem, condition, yearFrom, yearTo, bodyType, brands, models, selectedPartItemObj]); // Stable dependencies
 
     // --- Manual Title to Header Synchronization ---
     useEffect(() => {
