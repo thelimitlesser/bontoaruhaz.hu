@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { getProductUrl } from "@/utils/slug";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 7200; // Cache XML feed on CDN for 2 hours (saves huge CPU spikes)
 
 function escapeXml(unsafe: string): string {
     return unsafe

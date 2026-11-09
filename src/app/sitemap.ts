@@ -2,6 +2,9 @@ import { MetadataRoute } from 'next'
 import { prisma } from '@/lib/prisma'
 import { getProductUrl } from '@/utils/slug'
 
+export const revalidate = 86400; // Cache sitemap on CDN for 24 hours to save DB & CPU
+export const dynamic = 'force-static';
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const baseUrl = 'https://www.bontoaruhaz.hu'
 
