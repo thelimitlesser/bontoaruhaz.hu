@@ -35,7 +35,7 @@ function encryptData(data: any, key: string): string {
 }
 
 // Real Pannon XP API v3 Shipment Creation
-export async function createPxpShipment(order: any) {
+export async function createPxpShipment(order: any, customPackageCount?: number) {
     const isTest = process.env.PXP_MODE !== 'production';
     const baseUrl = isTest ? 'https://mypxp-test.pannonxp.hu/api/v3' : 'https://mypxp.pannonxp.hu/api/v3';
 
@@ -94,7 +94,8 @@ export async function createPxpShipment(order: any) {
 
         // PXP has strict character limits: Tartalom (~40), Megjegyzés (~100)
         // Forbidden chars: ' " \ < > ? $ ;
-        const isSingleItem = order.items.length === 1;
+        const totalItemsCount = order.items.reduce((sum: number, it: any) => sum + ((it as any).quantityInCart || it.quantity || 1), 0);
+        const isSingleItem = totalItemsCount === 1;
         const shortOrderId = order.id.slice(0, 8).toUpperCase();
         
         let tartalomText: string;
@@ -113,10 +114,85 @@ export async function createPxpShipment(order: any) {
             refText = `#${shortOrderId}${pSku ? ` | ${pSku}` : ''}`.replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
         } else {
             // Multi items: Keep summary logic for content, but only Order ID for ref
-            const summary = `${order.items.length} db autóalkatrész`;
+            const summary = `${totalItemsCount} db alkatrész`;
             tartalomText = summary.slice(0, 39);
             megjegyzesText = (`#${shortOrderId} | ${summary}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 99);
             refText = (`#${shortOrderId}`).replace(/['"\\<>?$;\[\]\+]/g, '').slice(0, 29);
+        }
+
+        // Determine packages mapping
+        let csomagokPayload: any = {};
+        const targetPackageCount = (customPackageCount && customPackageCount > 0)
+            ? Math.min(customPackageCount, order.items.length)
+            : order.items.length;
+
+        if (targetPackageCount < order.items.length) {
+            // Aggregate all items into targetPackageCount packages
+            const totalWeight = order.items.reduce((sum: number, it: any) => sum + (it.part?.weight || 0.1), 0);
+            const maxL = Math.max(...order.items.map((it: any) => it.part?.length || 30));
+            const maxW = Math.max(...order.items.map((it: any) => it.part?.width || 20));
+            const maxH = Math.max(...order.items.map((it: any) => it.part?.height || 10));
+
+            // Package type priority: if any has bulky item, use it
+            const hasSpecialType = order.items.some((it: any) => {
+                const pkg = (it.part as any)?.packageType || 'doboz';
+                return ['lokharito', 'lokharito_teher', 'csomagterajto', 'motor', 'motorhazteto', 'oldalajto', 'valto'].includes(pkg);
+            });
+            const mainType = hasSpecialType ? ((order.items[0].part as any)?.packageType || 'doboz') : 'doboz';
+            let pxpType = 'doboz';
+            if (mainType === 'lokharito') {
+                pxpType = 'lokharito_szemelyauto';
+            } else if (mainType === 'lokharito_teher') {
+                pxpType = 'lokharito_teherauto';
+            } else if (['csomagterajto', 'motor', 'motorhazteto', 'oldalajto', 'valto'].includes(mainType)) {
+                pxpType = mainType;
+            }
+
+            const weightPerPkg = Number((Math.max(0.1, totalWeight) / targetPackageCount).toFixed(1));
+
+            for (let i = 0; i < targetPackageCount; i++) {
+                csomagokPayload[i.toString()] = {
+                    db: 1,
+                    suly: Math.max(0.1, weightPerPkg),
+                    hosszusag: Math.min(420, Math.max(1, Math.round(maxL))),
+                    szelesseg: Math.min(150, Math.max(1, Math.round(maxW))),
+                    magassag: Math.min(160, Math.max(1, Math.round(maxH))),
+                    tipus: pxpType
+                };
+            }
+        } else {
+            // 1:1 mapping (one package per item)
+            csomagokPayload = order.items.reduce((acc: any, item: any, idx: number) => {
+                const dims = [
+                    item.part?.length || 30,
+                    item.part?.width || 20,
+                    item.part?.height || 10
+                ]; // Raw order (Length, Width, Height)
+                
+                const internalPackageType = (item.part as any)?.packageType || 'doboz';
+                
+                // Specific mapping for KSTA account as per PXP email
+                let pxpType = 'doboz';
+                
+                if (internalPackageType === 'lokharito') {
+                    pxpType = 'lokharito_szemelyauto';
+                } else if (internalPackageType === 'lokharito_teher') {
+                    pxpType = 'lokharito_teherauto';
+                } else if (['csomagterajto', 'motor', 'motorhazteto', 'oldalajto', 'valto'].includes(internalPackageType)) {
+                    pxpType = internalPackageType; // Matches exactly
+                }
+
+                const shipmentPackage: any = {
+                    db: (item as any).quantityInCart || item.quantity || 1,
+                    suly: Math.max(0.1, item.part?.weight || 0.1),
+                    hosszusag: Math.min(420, Math.max(1, Math.round(dims[0]))),
+                    szelesseg: Math.min(150, Math.max(1, Math.round(dims[1]))),
+                    magassag: Math.min(160, Math.max(1, Math.round(dims[2]))),
+                    tipus: pxpType
+                };
+                acc[idx.toString()] = shipmentPackage;
+                return acc;
+            }, {});
         }
 
         // Prepare the shipment data
@@ -135,37 +211,7 @@ export async function createPxpShipment(order: any) {
                 },
                 szolgaltatas: "24H",
                 sms: true,
-                csomagok: order.items.reduce((acc: any, item: any, idx: number) => {
-                    const dims = [
-                        item.part?.length || 30,
-                        item.part?.width || 20,
-                        item.part?.height || 10
-                    ]; // Raw order (Length, Width, Height)
-                    
-                    const internalPackageType = (item.part as any)?.packageType || 'doboz';
-                    
-                    // Specific mapping for KSTA account as per PXP email
-                    let pxpType = 'doboz';
-                    
-                    if (internalPackageType === 'lokharito') {
-                        pxpType = 'lokharito_szemelyauto';
-                    } else if (internalPackageType === 'lokharito_teher') {
-                        pxpType = 'lokharito_teherauto';
-                    } else if (['csomagterajto', 'motor', 'motorhazteto', 'oldalajto', 'valto'].includes(internalPackageType)) {
-                        pxpType = internalPackageType; // Matches exactly
-                    }
-
-                    const shipmentPackage: any = {
-                        db: (item as any).quantityInCart || item.quantity || 1,
-                        suly: Math.max(0.1, item.part?.weight || 0.1),
-                        hosszusag: Math.min(420, Math.max(1, Math.round(dims[0]))),
-                        szelesseg: Math.min(150, Math.max(1, Math.round(dims[1]))),
-                        magassag: Math.min(160, Math.max(1, Math.round(dims[2]))),
-                        tipus: pxpType
-                    };
-                    acc[idx.toString()] = shipmentPackage;
-                    return acc;
-                }, {}),
+                csomagok: csomagokPayload,
                 tartalom: tartalomText,
                 referenciaszam: refText,
                 utanvet: utanvetAmount

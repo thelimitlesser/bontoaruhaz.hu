@@ -98,6 +98,7 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                     status={order.status || 'PENDING'} 
                     paymentMethod={order.paymentMethod || 'CARD'} 
                     shippingMethod={order.shippingMethod || 'DELIVERY'} 
+                    itemCount={order.items?.length || 1}
                 />
                 <MarkAsPickedUpButton 
                     orderId={order.id}

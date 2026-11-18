@@ -10,12 +10,15 @@ interface ApproveOrderButtonProps {
     status: string;
     paymentMethod: string;
     shippingMethod: string;
+    itemCount?: number;
+    initialPackageCount?: number;
 }
 
-export function ApproveOrderButton({ orderId, status, paymentMethod, shippingMethod }: ApproveOrderButtonProps) {
+export function ApproveOrderButton({ orderId, status, paymentMethod, shippingMethod, itemCount = 1, initialPackageCount }: ApproveOrderButtonProps) {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [showConfirm, setShowConfirm] = useState(false);
+    const [packageCount, setPackageCount] = useState<number>(initialPackageCount || itemCount || 1);
     const router = useRouter();
 
     if (status !== 'PENDING') return null;
@@ -41,7 +44,7 @@ export function ApproveOrderButton({ orderId, status, paymentMethod, shippingMet
         setError(null);
 
         try {
-            const result = await approveOrder(orderId);
+            const result = await approveOrder(orderId, !isPickup ? packageCount : undefined);
             if (result.success) {
                 router.refresh();
             } else {
@@ -74,9 +77,47 @@ export function ApproveOrderButton({ orderId, status, paymentMethod, shippingMet
                         <AlertTriangle className="w-5 h-5 text-emerald-500" />
                         Biztosan jóváhagyod a rendelést?
                     </h3>
-                    <p className="text-sm text-emerald-700/80 dark:text-emerald-400/80 mb-4 font-medium">
+                    <p className="text-sm text-emerald-700/80 dark:text-emerald-400/80 mb-3 font-medium">
                         {helpText}
                     </p>
+
+                    {!isPickup && itemCount > 1 && (
+                        <div className="mb-4 p-3 bg-white dark:bg-zinc-800 rounded-xl border border-emerald-300 dark:border-emerald-700/50 shadow-sm space-y-2">
+                            <div className="flex items-center justify-between">
+                                <span className="text-xs font-bold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                                    📦 Csomagok / Címkék száma:
+                                </span>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={() => setPackageCount(prev => Math.max(1, prev - 1))}
+                                        className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-800 dark:text-white font-bold flex items-center justify-center transition-colors"
+                                        title="Kevesebb csomag"
+                                    >
+                                        -
+                                    </button>
+                                    <span className="w-8 text-center font-black text-lg text-emerald-600 dark:text-emerald-400">
+                                        {packageCount}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setPackageCount(prev => Math.min(itemCount, prev + 1))}
+                                        className="w-8 h-8 rounded-lg bg-gray-100 hover:bg-gray-200 dark:bg-white/10 dark:hover:bg-white/20 text-gray-800 dark:text-white font-bold flex items-center justify-center transition-colors"
+                                        title="Több csomag"
+                                    >
+                                        +
+                                    </button>
+                                </div>
+                            </div>
+                            <p className="text-[11px] text-gray-500 dark:text-gray-400 italic">
+                                {packageCount < itemCount 
+                                    ? `A(z) ${itemCount} db termék ${packageCount} db közös csomagba lesz összevonva a címkén.`
+                                    : `Minden termékhez különálló szállítási címke generálódik (${packageCount} db).`
+                                }
+                            </p>
+                        </div>
+                    )}
+
                     <div className="flex gap-2">
                         <button
                             onClick={() => setShowConfirm(false)}

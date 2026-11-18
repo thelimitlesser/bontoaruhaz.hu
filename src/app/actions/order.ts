@@ -357,8 +357,8 @@ export async function createOrder(data: {
     return order;
 }
 
-export async function approveOrder(orderId: string) {
-    console.log("APPROVING ORDER:", orderId);
+export async function approveOrder(orderId: string, customPackageCount?: number) {
+    console.log("APPROVING ORDER:", orderId, "customPackageCount:", customPackageCount);
     const order = await prisma.order.findUnique({
         where: { id: orderId },
         include: { items: { include: { part: true } } }
@@ -394,7 +394,7 @@ export async function approveOrder(orderId: string) {
         let trackingNumber = order.trackingNumber;
         if (order.shippingMethod !== 'PICKUP') {
             console.log("Creating PXP shipment for order:", order.id);
-            const pxpResult = await createPxpShipment(order);
+            const pxpResult = await createPxpShipment(order, customPackageCount);
             console.log("PXP Result:", pxpResult);
             
             if (!pxpResult.success) {
