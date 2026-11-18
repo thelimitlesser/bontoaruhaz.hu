@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
                 disallow: ['/admin/', '/api/', '/profile/', '/checkout', '/orders'],
             },
             {
-                // Aggressive scrapers and third-party SEO audit bots that drain CPU & CDN bandwidth
+                // Aggressive scrapers, AI crawlers and third-party SEO audit bots that drain CPU & CDN bandwidth
                 userAgent: [
                     'AhrefsBot',
                     'SemrushBot',
@@ -20,7 +20,15 @@ export default function robots(): MetadataRoute.Robots {
                     'Bytespider',
                     'Amazonbot',
                     'ClaudeBot',
-                    'CCBot'
+                    'CCBot',
+                    'GPTBot',
+                    'ChatGPT-User',
+                    'Google-Extended',
+                    'PerplexityBot',
+                    'Baiduspider',
+                    'YandexBot',
+                    'Sogou',
+                    'SeekportBot'
                 ],
                 disallow: ['/'],
             }

@@ -1095,7 +1095,7 @@ export const getProductPageDataAction = cache(async (idOrSku: string) => {
             };
         },
         ["product-page-data-v3", idOrSku],
-        { revalidate: 60, tags: ["products"] }
+        { revalidate: 86400, tags: ["products"] }
     )(idOrSku);
 });
 
