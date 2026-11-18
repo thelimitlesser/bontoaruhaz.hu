@@ -16,7 +16,7 @@ export default async function InventoryPage({
     const make = params.make || "";
     const model = params.model || "";
     const partItem = params.partItem || "";
-    const source = params.source || "all";
+    const source = params.source || "bonto";
 
     const where: any = { AND: [] };
 
@@ -25,7 +25,8 @@ export default async function InventoryPage({
         where.AND.push({
             partnerId: "cc487120-a18a-472b-9fd0-f21a5631da2a"
         });
-    } else if (source === "bonto") {
+    } else {
+        // Alapértelmezetten kizárólag a saját bontott raktár jelenik meg!
         where.AND.push({
             NOT: {
                 partnerId: "cc487120-a18a-472b-9fd0-f21a5631da2a"
@@ -212,25 +213,19 @@ export default async function InventoryPage({
                 </div>
             </div>
 
-            {/* Source Tabs */}
+            {/* Source Tabs - Teljesen elszeparálva, nincs Összes gomb, alapértelmezett a saját raktár */}
             <div className="flex gap-2 border-b border-gray-200 pb-2">
                 <Link
-                    href={`/admin/inventory?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(make ? { make } : {}), ...(model ? { model } : {}), ...(partItem ? { partItem } : {}), source: "all" }).toString()}`}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${source === "all" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
-                >
-                    Összes alkatrész
-                </Link>
-                <Link
                     href={`/admin/inventory?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(make ? { make } : {}), ...(model ? { model } : {}), ...(partItem ? { partItem } : {}), source: "bonto" }).toString()}`}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${source === "bonto" ? "bg-orange-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${source !== "iharos" ? "bg-orange-600 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                 >
                     🚗 Saját bontott raktár
                 </Link>
                 <Link
                     href={`/admin/inventory?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(make ? { make } : {}), ...(model ? { model } : {}), ...(partItem ? { partItem } : {}), source: "iharos" }).toString()}`}
-                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${source === "iharos" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${source === "iharos" ? "bg-purple-600 text-white shadow-sm" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
                 >
-                    📦 Iharos & Goller B2B
+                    📦 Iharos & Goller B2B (külső katalógus)
                 </Link>
             </div>
 
