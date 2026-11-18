@@ -28,7 +28,8 @@ export default async function OrderDetailPage({ params }: { params: { id: string
                             VehicleBrand: true,
                             VehicleModel: true,
                             PartCategory: true,
-                            PartSubcategory: true
+                            PartSubcategory: true,
+                            partner: true
                         }
                     }
                 }

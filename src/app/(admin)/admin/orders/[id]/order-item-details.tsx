@@ -169,6 +169,15 @@ export function OrderItemDetails({ item }: OrderItemDetailsProps) {
                 </div>
 
                 <div className="flex flex-wrap gap-2 mt-1">
+                    {item.part?.partner?.businessName === 'Iharos & Goller Kft.' || item.part?.condition === 'NEW' ? (
+                        <span className="text-xs uppercase tracking-wider px-2 py-1 bg-purple-100 dark:bg-purple-900/40 text-purple-700 dark:text-purple-300 rounded font-black border border-purple-300 dark:border-purple-700 shadow-sm flex items-center gap-1">
+                            📦 B2B KÜLSŐ BESZÁLLÍTÓ (Iharos)
+                        </span>
+                    ) : (
+                        <span className="text-xs uppercase tracking-wider px-2 py-1 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 rounded font-bold border border-blue-200 dark:border-blue-800 shadow-sm">
+                            Saját Bontott Raktár
+                        </span>
+                    )}
                     <span className="text-xs uppercase tracking-wider px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded font-black text-zinc-900 dark:text-white border border-zinc-200 dark:border-zinc-700 shadow-sm">
                         SKU: {item.part?.sku || 'N/A'}
                     </span>
