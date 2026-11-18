@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { ArrowLeft, CheckCircle2, ShieldCheck, Truck, Star, Settings, Calendar, Hash, Factory, Info, Phone, HelpCircle, Globe, ChevronRight, Box } from "lucide-react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cookies } from "next/headers";
 import { ProductGallery } from "@/components/product-gallery";
 import { CompatibilityWrapper } from "@/components/compatibility-wrapper";
 import { AddToCartButton } from "@/components/add-to-cart-button";
@@ -218,8 +219,15 @@ export default async function ProductPage({
   const images = (dbPart.images || "").split(",").filter(img => img.length > 0);
   const mainImage = images.length > 0 ? images[0] : "/placeholder.png";
 
-  // Active reservations: calculate availability without dynamic cookie read to enable full edge CDN caching
-  const bookedByAll = dbPart.reservations?.reduce((acc: number, r: any) => acc + r.quantity, 0) || 0;
+  const cookieStore = await cookies();
+  const sessionId = cookieStore.get("bontoaruhaz-session-id")?.value || null;
+
+  // Filter reservations: Ignore the current user's session ID when calculating availability
+  const reservationsByOthers = dbPart.reservations?.filter(r => r.sessionId !== sessionId) || [];
+  const bookedByOthers = reservationsByOthers.reduce((acc, r) => acc + r.quantity, 0);
+  
+  // For the display: Count ALL active reservations (to show what's left on the shelf)
+  const bookedByAll = dbPart.reservations?.reduce((acc, r) => acc + r.quantity, 0) || 0;
   const remainingOnShelf = Math.max(0, dbPart.stock - bookedByAll);
 
   // Re-generate product name if dynamic
@@ -268,7 +276,7 @@ export default async function ProductPage({
     brand: brandName,
     model: modelName,
     sku: dbPart.sku || "",
-    quantity: remainingOnShelf,
+    quantity: dbPart.stock - bookedByOthers,
     shippingPrice: (dbPart as any).shippingPrice,
     weight: (dbPart as any).weight,
     length: (dbPart as any).length,
