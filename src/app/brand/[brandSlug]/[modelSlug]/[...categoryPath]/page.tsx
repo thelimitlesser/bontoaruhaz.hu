@@ -1,9 +1,4 @@
 export const revalidate = 3600;
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-    return [];
-}
 import { Suspense } from "react";
 import { notFound, redirect } from "next/navigation";
 import { Navbar } from "@/components/navbar";

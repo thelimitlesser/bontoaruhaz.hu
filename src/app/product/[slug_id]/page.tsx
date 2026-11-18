@@ -1,9 +1,4 @@
 export const revalidate = 3600;
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-    return [];
-}
 import { getRelatedProducts, getProductPageDataAction, getProductMetadataAction } from "@/app/actions/product";
 import { extractIdFromSlug, getProductSlug, getProductUrl } from "@/utils/slug";
 import { redirect } from "next/navigation";

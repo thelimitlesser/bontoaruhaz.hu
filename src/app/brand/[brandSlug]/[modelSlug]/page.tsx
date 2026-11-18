@@ -1,9 +1,4 @@
 export const revalidate = 3600;
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-    return [];
-}
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
