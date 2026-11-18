@@ -9,15 +9,29 @@ import { getBrands, getCategories, getAllPartItems } from "@/app/actions/catalog
 export default async function InventoryPage({
     searchParams,
 }: {
-    searchParams: Promise<{ q?: string; make?: string; model?: string; partItem?: string; page?: string }>
+    searchParams: Promise<{ q?: string; make?: string; model?: string; partItem?: string; page?: string; source?: string }>
 }) {
     const params = await searchParams;
     const query = params.q || "";
     const make = params.make || "";
     const model = params.model || "";
     const partItem = params.partItem || "";
+    const source = params.source || "all";
 
     const where: any = { AND: [] };
+
+    // Partner / Source Filter
+    if (source === "iharos") {
+        where.AND.push({
+            partnerId: "cc487120-a18a-472b-9fd0-f21a5631da2a"
+        });
+    } else if (source === "bonto") {
+        where.AND.push({
+            NOT: {
+                partnerId: "cc487120-a18a-472b-9fd0-f21a5631da2a"
+            }
+        });
+    }
 
     // Text Search
     if (query) {
@@ -166,7 +180,8 @@ export default async function InventoryPage({
                 include: {
                     compatibilities: true,
                     VehicleBrand: true,
-                    VehicleModel: true
+                    VehicleModel: true,
+                    partner: true
                 }
             }),
             prisma.part.count({ where })
@@ -195,6 +210,28 @@ export default async function InventoryPage({
                         Új Alkatrész
                     </Link>
                 </div>
+            </div>
+
+            {/* Source Tabs */}
+            <div className="flex gap-2 border-b border-gray-200 pb-2">
+                <Link
+                    href={`/admin/inventory?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(make ? { make } : {}), ...(model ? { model } : {}), ...(partItem ? { partItem } : {}), source: "all" }).toString()}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${source === "all" ? "bg-gray-900 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                >
+                    Összes alkatrész
+                </Link>
+                <Link
+                    href={`/admin/inventory?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(make ? { make } : {}), ...(model ? { model } : {}), ...(partItem ? { partItem } : {}), source: "bonto" }).toString()}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${source === "bonto" ? "bg-orange-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                >
+                    🚗 Saját bontott raktár
+                </Link>
+                <Link
+                    href={`/admin/inventory?${new URLSearchParams({ ...(query ? { q: query } : {}), ...(make ? { make } : {}), ...(model ? { model } : {}), ...(partItem ? { partItem } : {}), source: "iharos" }).toString()}`}
+                    className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${source === "iharos" ? "bg-purple-600 text-white" : "bg-gray-100 text-gray-600 hover:bg-gray-200"}`}
+                >
+                    📦 Iharos & Goller B2B
+                </Link>
             </div>
 
             {/* Search & Filter Bar (Client Component) */}

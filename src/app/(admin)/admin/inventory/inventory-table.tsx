@@ -90,11 +90,16 @@ export function InventoryTable({
                                                 {part.name}
                                             </div>
                                             <div className="font-mono text-xs text-gray-600 bg-gray-100 inline-block px-2 py-1 rounded border border-gray-200">
-                                                Gyári SKU: {part.sku}
+                                                Gyári SKU: {part.sku || "—"}
                                             </div>
                                             {part.productCode && (
                                                 <div className="font-mono text-xs text-orange-700 bg-orange-100 inline-block px-2 py-1 rounded border border-orange-200 ml-2">
                                                     Hiv. szám: {part.productCode}
+                                                </div>
+                                            )}
+                                            {(part.partner?.businessName?.includes("Iharos") || part.partnerId === "cc487120-a18a-472b-9fd0-f21a5631da2a") && (
+                                                <div className="text-[11px] font-bold text-purple-700 bg-purple-100 inline-block px-2 py-0.5 rounded border border-purple-200 ml-2">
+                                                    📦 Iharos B2B
                                                 </div>
                                             )}
                                             {part.originalPrice && part.originalPrice > part.priceGross && (
