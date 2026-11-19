@@ -89,17 +89,28 @@ export function InventoryTable({
                                             <div className="font-bold text-base text-gray-900 mb-1 group-hover:text-[var(--color-primary)] transition-colors">
                                                 {part.name}
                                             </div>
-                                            <div className="font-mono text-xs text-gray-600 bg-gray-100 inline-block px-2 py-1 rounded border border-gray-200">
-                                                Gyári SKU: {part.sku || "—"}
-                                            </div>
-                                            {part.productCode && (
-                                                <div className="font-mono text-xs text-orange-700 bg-orange-100 inline-block px-2 py-1 rounded border border-orange-200 ml-2">
-                                                    Hiv. szám: {part.productCode}
+                                            {/* Azonosítók megjelenítése: B2B partner esetén simán "Cikkszám", saját bontott esetén Gyári SKU + Hiv. szám */}
+                                            {part.partner?.businessName?.includes("Iharos") || part.partnerId === "cc487120-a18a-472b-9fd0-f21a5631da2a" ? (
+                                                <div className="flex items-center gap-2">
+                                                    {(part.productCode || part.sku) && (
+                                                        <div className="font-mono text-xs text-gray-700 bg-gray-100 inline-block px-2 py-1 rounded border border-gray-200">
+                                                            Cikkszám: {part.productCode || part.sku}
+                                                        </div>
+                                                    )}
+                                                    <div className="text-[11px] font-bold text-purple-700 bg-purple-100 inline-block px-2 py-0.5 rounded border border-purple-200">
+                                                        📦 Iharos B2B
+                                                    </div>
                                                 </div>
-                                            )}
-                                            {(part.partner?.businessName?.includes("Iharos") || part.partnerId === "cc487120-a18a-472b-9fd0-f21a5631da2a") && (
-                                                <div className="text-[11px] font-bold text-purple-700 bg-purple-100 inline-block px-2 py-0.5 rounded border border-purple-200 ml-2">
-                                                    📦 Iharos B2B
+                                            ) : (
+                                                <div className="flex items-center gap-2">
+                                                    <div className="font-mono text-xs text-gray-600 bg-gray-100 inline-block px-2 py-1 rounded border border-gray-200">
+                                                        Gyári SKU: {part.sku || "—"}
+                                                    </div>
+                                                    {part.productCode && (
+                                                        <div className="font-mono text-xs text-orange-700 bg-orange-100 inline-block px-2 py-1 rounded border border-orange-200">
+                                                            Hiv. szám: {part.productCode}
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
                                             {part.originalPrice && part.originalPrice > part.priceGross && (
