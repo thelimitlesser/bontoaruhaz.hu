@@ -93,7 +93,8 @@ export async function GET() {
             }
             xml += `    <g:availability>${part.stock > 0 ? 'in_stock' : 'out_of_stock'}</g:availability>\n`;
             xml += `    <g:price>${price} HUF</g:price>\n`;
-            xml += `    <g:condition>used</g:condition>\n`;
+            const gCondition = (part.condition || "USED").toUpperCase() === "NEW" ? "new" : "used";
+            xml += `    <g:condition>${gCondition}</g:condition>\n`;
             if (part.VehicleBrand?.name) {
                 xml += `    <g:brand>${escapeXml(part.VehicleBrand.name)}</g:brand>\n`;
             }

@@ -105,8 +105,10 @@ export function DescriptionSection({
 
                     {/* Auto Footer Component */}
                     <div className="bg-gray-50 text-gray-500 px-4 py-3 border-t border-gray-100 text-sm whitespace-pre-wrap">
-                        Az alkatrész szakszerűen kiszerelve és tárolva. Beépítési garanciával!{"\n"}
-                        Érdeklődéskor hivatkozzon erre a hivatkozási számra: <span className="font-bold text-gray-700">({autoRef || "..."})</span>
+                        {condition === "new"
+                            ? "Új, utángyártott alkatrész. 14 napos elállási joggal!"
+                            : "Az alkatrész szakszerűen kiszerelve és tárolva. Beépítési garanciával!"}{"\n"}
+                        Érdeklődéskor hivatkozzon erre a {condition === "new" ? "cikkszámra" : "hivatkozási számra"}: <span className="font-bold text-gray-700">({autoRef || "..."})</span>
                     </div>
                 </div>
                 

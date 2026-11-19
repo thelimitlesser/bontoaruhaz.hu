@@ -68,7 +68,7 @@ export function ProductForm({
     const [acknowledgedSkuIds, setAcknowledgedSkuIds] = useState<Set<string>>(new Set());
     const [yearFrom, setYearFrom] = useState(initialData?.yearFrom?.toString() || "");
     const [yearTo, setYearTo] = useState(initialData?.yearTo?.toString() || "");
-    const [condition, setCondition] = useState(initialData?.condition || "used");
+    const [condition, setCondition] = useState((initialData?.condition || "used").toLowerCase());
     const [engineCode, setEngineCode] = useState(initialData?.engineCode || "");
     const [bodyType, setBodyType] = useState(initialData?.bodyType || "");
     const [descriptionHeader, setDescriptionHeader] = useState("");
@@ -398,7 +398,7 @@ export function ProductForm({
             formData.set('compatibilitiesData', JSON.stringify(compatibilities));
             formData.set('productCode', autoRef);
             formData.set('sku', sku);
-            formData.set('condition', condition);
+            formData.set('condition', condition.toUpperCase());
             formData.set('engineCode', engineCode);
             formData.set('bodyType', bodyType);
             
